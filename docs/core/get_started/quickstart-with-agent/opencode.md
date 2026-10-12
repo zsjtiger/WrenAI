@@ -2,7 +2,7 @@
 sidebar_label: OpenCode
 ---
 
-# Install Wren AI with OpenCode
+# Install Janus AI with OpenCode
 
 SST's open-source coding agent.
 
@@ -10,7 +10,7 @@ SST's open-source coding agent.
 
 - [OpenCode](https://opencode.ai) installed and authenticated.
 
-## Install Wren skills
+## Install Janus skills
 
 ```bash
 npx skills add Canner/WrenAI --agent opencode
@@ -25,7 +25,7 @@ opencode
 Then ask:
 
 ```text
-Use the /wren skill to install and set up Wren AI.
+Use the /janus skill to install and set up Janus AI.
 ```
 
 The skill walks the agent through environment checks, profile creation, project scaffolding, and a first query.
@@ -33,4 +33,4 @@ The skill walks the agent through environment checks, profile creation, project 
 ## Next step
 
 - [Quickstart with sample data](../quickstart) — walk through `jaffle_shop` end-to-end
-- [Connect your data](/oss/guides/connect) — point Wren AI at a real database
+- [Connect your data](/oss/guides/connect) — point Janus AI at a real database

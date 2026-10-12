@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# Install the Wren AI agent skill discovery stub into your local AI client.
+# Install the Janus AI agent skill discovery stub into your local AI client.
 #
-# The actual skill content lives inside the `wren` CLI itself
-# (`pip install wrenai`). This script installs the discovery stub (`wren`)
+# The actual skill content lives inside the `janus` CLI itself
+# (`pip install janusai`). This script installs the discovery stub (`janus`)
 # that points an AI client at the CLI; from then on the agent fetches
-# everything else via `wren skills get` / `wren ask`.
+# everything else via `janus skills get` / `janus ask`.
 #
 # Usage:
 #   ./install.sh                # install the discovery stub
@@ -14,9 +14,9 @@
 set -euo pipefail
 
 REPO="Canner/WrenAI"
-BRANCH="${WREN_SKILLS_BRANCH:-main}"
+BRANCH="${JANUS_SKILLS_BRANCH:-main}"
 DEST="${CLAUDE_SKILLS_DIR:-$HOME/.claude/skills}"
-SKILL="wren"
+SKILL="janus"
 
 FORCE=false
 for arg in "$@"; do
@@ -57,7 +57,7 @@ else
   tmpdir=$(mktemp -d)
   trap 'rm -rf "$tmpdir"' EXIT
   curl -fsSL "https://github.com/$REPO/archive/refs/heads/$BRANCH.tar.gz" \
-    | tar -xz -C "$tmpdir" --strip-components=2 "WrenAI-${BRANCH}/skills/${SKILL}"
+    | tar -xz -C "$tmpdir" --strip-components=2 "JanusAI-${BRANCH}/skills/${SKILL}"
   install_skill "$tmpdir/$SKILL" "$DEST/$SKILL"
 fi
 

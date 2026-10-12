@@ -1,14 +1,14 @@
-# Wren project layout (v5)
+# Janus project layout (v5)
 
 > **Internal engineering doc.** Lives in `docs/core/internals/` and is not published to the
-> docs site. It describes the on-disk structure of a Wren project at `schema_version: 5`
-> for contributors working on the project reader/writer (`core/wren/src/wren/context.py`)
-> and the GenBI app tooling (`core/wren/src/wren/genbi/`).
+> docs site. It describes the on-disk structure of a Janus project at `schema_version: 5`
+> for contributors working on the project reader/writer (`core/janus/src/janus/context.py`)
+> and the GenBI app tooling (`core/janus/src/janus/genbi/`).
 >
 > For the user-facing field surface of each YAML artifact, see the
 > [MDL schema reference](../reference/mdl.md).
 
-A Wren project is a directory of YAML/SQL source plus a few generated artifacts. v5 is the
+A Janus project is a directory of YAML/SQL source plus a few generated artifacts. v5 is the
 current layout: per-model and per-view folders, `cubes/` as pre-aggregated semantic
 objects, a first-class `knowledge/` base, and GenBI `apps/` as generated front-ends.
 
@@ -18,7 +18,7 @@ A project carries two **independent** version numbers:
 
 | Axis | File | What it versions |
 |------|------|------------------|
-| `schema_version` | `wren_project.yml` | the **project layout shape** — file paths, directory structure, required fields |
+| `schema_version` | `janus_project.yml` | the **project layout shape** — file paths, directory structure, required fields |
 | `layoutVersion` | `target/mdl.json` (generated) | the **engine wire format** of the compiled manifest |
 
 `schema_version` is the source of truth; `layoutVersion` is derived at build time from it.
@@ -33,7 +33,7 @@ the same JSON shape. See `_LAYOUT_VERSION_MAP` in `context.py`.
 
 ```text
 <project>/
-├── wren_project.yml                # schema_version: 5 + name / catalog / schema / data_source
+├── janus_project.yml                # schema_version: 5 + name / catalog / schema / data_source
 │
 ├── models/<name>/                  # MDL — one folder per model
 │   ├── metadata.yml                #   columns, primary_key, table_reference, …
@@ -61,11 +61,11 @@ the same JSON shape. See `_LAYOUT_VERSION_MAP` in `context.py`.
 ├── instructions.md                 # business / operational guidance for agents (legacy; see knowledge/rules/)
 ├── AGENTS.md                       # agent guidance for this project
 │
-├── .wren/                          # runtime state (gitignored)
-│   ├── apps.yml                    #   GenBI app index — machine-written by `wren genbi register`
+├── .janus/                          # runtime state (gitignored)
+│   ├── apps.yml                    #   GenBI app index — machine-written by `janus genbi register`
 │   └── memory/                     #   LanceDB semantic-memory index
 └── target/
-    └── mdl.json                    # build artifact (gitignored) — `wren context build` output
+    └── mdl.json                    # build artifact (gitignored) — `janus context build` output
 ```
 
 ## MDL — `models/`, `views/`, `relationships.yml`, `cubes/`
@@ -77,9 +77,9 @@ single top-level `relationships.yml`.
 
 `cubes/<name>/metadata.yml` declares a pre-aggregated semantic object over a base model or
 view — its measures, dimensions, time dimensions, and hierarchies. Cubes are queried
-structurally via `wren cube query`.
+structurally via `janus cube query`.
 
-All four compile into `target/mdl.json` via `wren context build`. The reader dispatches on
+All four compile into `target/mdl.json` via `janus context build`. The reader dispatches on
 `schema_version`: v1 used flat files (`models/*.yml`, `views.yml`, `cubes/*.yml`); v2
 onward — including v5 — uses the per-folder layout above. See the
 [MDL schema reference](../reference/mdl.md) for every field.
@@ -92,9 +92,9 @@ caveats, and the NL→SQL pairs under `sql/` that are the source of truth for se
 memory. It has its **own** `schema_version` in `knowledge.yml`, decoupled from the MDL
 axis because knowledge and the data model evolve on different cadences.
 
-## GenBI apps — `apps/` and `.wren/apps.yml`
+## GenBI apps — `apps/` and `.janus/apps.yml`
 
-`wren genbi` scaffolds, builds, and deploys small front-end apps generated from the
+`janus genbi` scaffolds, builds, and deploys small front-end apps generated from the
 project. Each app is a self-contained folder under `apps/<name>/`:
 
 - `index.html` — the app entry point.
@@ -107,9 +107,9 @@ Because an app ships to a public static host, the build verifies each `apps/<nam
 folder — entry point present, `mdl.json` valid and non-empty, snapshot apps carry a data
 asset, and no secrets are bundled.
 
-The app **index** lives at `.wren/apps.yml` — a machine-written registry (status state
-machine: `scaffolded → built → deployed`), mirroring how `~/.wren/profiles.yml` indexes
-connection profiles. It is never hand-edited and lives in the gitignored `.wren/` runtime
+The app **index** lives at `.janus/apps.yml` — a machine-written registry (status state
+machine: `scaffolded → built → deployed`), mirroring how `~/.janus/profiles.yml` indexes
+connection profiles. It is never hand-edited and lives in the gitignored `.janus/` runtime
 directory.
 
 ## Generated vs. committed
@@ -120,10 +120,10 @@ directory.
 | `knowledge/` | committed knowledge base |
 | `instructions.md`, `AGENTS.md` | committed agent guidance |
 | `apps/<name>/` | generated front-ends (committed when you want to track/deploy them) |
-| `.wren/` (`apps.yml`, `memory/`) | runtime state — gitignored |
+| `.janus/` (`apps.yml`, `memory/`) | runtime state — gitignored |
 | `target/mdl.json` | build artifact — gitignored |
 
-## Constants (`core/wren/src/wren/context.py`)
+## Constants (`core/janus/src/janus/context.py`)
 
 ```python
 _SUPPORTED_SCHEMA_VERSIONS = {1, 2, 3, 4, 5}

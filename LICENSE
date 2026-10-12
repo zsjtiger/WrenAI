@@ -1,7 +1,7 @@
-WrenAI License Overview
+JanusAI License Overview
 =======================
 
-WrenAI is multi-licensed. The license that applies depends on the path within
+JanusAI is multi-licensed. The license that applies depends on the path within
 this repository. Full license texts are provided alongside this file at the
 repository root: `LICENSE-APACHE-2.0`, `LICENSE-CC-BY-4.0`, and
 `LICENSE-AGPL-3.0`.
@@ -46,6 +46,6 @@ for the corresponding paths.
 Trademarks
 ----------
 
-The names "Wren", "WrenAI", and the project's logos are trademarks of Canner,
+The names "Janus", "JanusAI", and the project's logos are trademarks of Canner,
 Inc. and are not licensed under any of the licenses referenced above. Their
 use is governed separately; see the trademark policy.

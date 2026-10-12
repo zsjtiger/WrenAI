@@ -9,20 +9,20 @@ core:
 rust:
   - changed-files:
       - any-glob-to-any-file:
-          - "core/wren-core/**"
-          - "core/wren-core-base/**"
-          - "core/wren-core-wasm/**"
+          - "core/janus-core/**"
+          - "core/janus-core-base/**"
+          - "core/janus-core-wasm/**"
 
 python:
   - changed-files:
       - any-glob-to-any-file:
-          - "core/wren-core-py/**"
-          - "core/wren/**"
+          - "core/janus-core-py/**"
+          - "core/janus/**"
 
 wasm:
   - changed-files:
       - any-glob-to-any-file:
-          - "core/wren-core-wasm/**"
+          - "core/janus-core-wasm/**"
 
 skills:
   - changed-files:

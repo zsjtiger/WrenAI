@@ -2,53 +2,53 @@
 
 ## Default command — query
 
-Running `wren --sql '...'` executes a query and prints the result. This is the same as `wren query --sql '...'`.
+Running `janus --sql '...'` executes a query and prints the result. This is the same as `janus query --sql '...'`.
 
 ```bash
-wren --sql 'SELECT COUNT(*) FROM "orders"'
-wren --sql 'SELECT * FROM "orders" LIMIT 5' --output csv
-wren --sql 'SELECT * FROM "orders"' --limit 100 --output json
+janus --sql 'SELECT COUNT(*) FROM "orders"'
+janus --sql 'SELECT * FROM "orders" LIMIT 5' --output csv
+janus --sql 'SELECT * FROM "orders"' --limit 100 --output json
 ```
 
 Output formats: `table` (default), `csv`, `json`.
 
-## `wren query`
+## `janus query`
 
 Execute SQL and return results.
 
 ```bash
-wren query --sql 'SELECT order_id, total FROM "orders" ORDER BY total DESC LIMIT 5'
+janus query --sql 'SELECT order_id, total FROM "orders" ORDER BY total DESC LIMIT 5'
 ```
 
-## `wren dry-plan`
+## `janus dry-plan`
 
 Translate MDL SQL to the native dialect SQL for your data source. No database connection required.
 
 ```bash
-wren dry-plan --sql 'SELECT order_id FROM "orders"'
-wren dry-plan --sql 'SELECT order_id FROM "orders"' -d postgres  # explicit datasource, no connection file needed
+janus dry-plan --sql 'SELECT order_id FROM "orders"'
+janus dry-plan --sql 'SELECT order_id FROM "orders"' -d postgres  # explicit datasource, no connection file needed
 ```
 
-## `wren dry-run`
+## `janus dry-run`
 
 Dry-run SQL against the live database without returning rows. Prints `OK` on success, `Error: <reason>` on failure.
 
 ```bash
-wren dry-run --sql 'SELECT * FROM "orders" LIMIT 1'
+janus dry-run --sql 'SELECT * FROM "orders" LIMIT 1'
 # OK
 
-wren dry-run --sql 'SELECT * FROM "NonExistent"'
+janus dry-run --sql 'SELECT * FROM "NonExistent"'
 # Error: table not found ...
 ```
 
 ## Overriding defaults
 
-All flags are optional when `~/.wren/mdl.json` and `~/.wren/connection_info.json` exist.
+All flags are optional when `~/.janus/mdl.json` and `~/.janus/connection_info.json` exist.
 
 The data source is always read from the `datasource` field in `connection_info.json` (or the inline `--connection-info` value). Only `dry-plan` accepts `--datasource` / `-d` as an override for transpile-only use without a connection file.
 
 ```bash
-wren --sql '...' \
+janus --sql '...' \
   --mdl /path/to/other-mdl.json \
   --connection-file /path/to/prod-connection_info.json
 ```
@@ -56,7 +56,7 @@ wren --sql '...' \
 Or pass connection info inline:
 
 ```bash
-wren --sql 'SELECT COUNT(*) FROM "orders"' \
+janus --sql 'SELECT COUNT(*) FROM "orders"' \
   --connection-info '{"datasource":"mysql","host":"localhost","port":3306,"database":"mydb","user":"root","password":"secret"}'
 ```
 
@@ -72,39 +72,39 @@ Both flat and envelope formats are accepted:
 
 ---
 
-## `wren profile import dbt`
+## `janus profile import dbt`
 
-Import the active dbt target from `profiles.yml` into `~/.wren/profiles.yml`.
+Import the active dbt target from `profiles.yml` into `~/.janus/profiles.yml`.
 
 ```bash
-wren profile import dbt --project-dir ./jaffle_shop
-wren profile import dbt --project-dir ./jaffle_shop --target prod --name jaffle-prod
+janus profile import dbt --project-dir ./jaffle_shop
+janus profile import dbt --project-dir ./jaffle_shop --target prod --name jaffle-prod
 ```
 
 Common flags: `--profiles-path`, `--profile`, `--target`, `--name`, `--no-activate`.
 
-## `wren context import dbt`
+## `janus context import dbt`
 
-Generate a Wren project from dbt artifacts.
+Generate a Janus project from dbt artifacts.
 
 ```bash
-wren context import dbt --project-dir ./jaffle_shop --path ./wren-jaffle
-wren context import dbt --project-dir ./jaffle_shop --path ./wren-jaffle --dry-run
+janus context import dbt --project-dir ./jaffle_shop --path ./janus-jaffle
+janus context import dbt --project-dir ./jaffle_shop --path ./janus-jaffle --dry-run
 ```
 
 Requires `target/manifest.json` and `target/catalog.json`; run `dbt build` and `dbt docs generate` first. See [dbt Integration](../guides/dbt-integration.md).
 
 ---
 
-## `wren context upgrade`
+## `janus context upgrade`
 
 Upgrade a project to the latest layout (`schema_version` 5). Forward-only and idempotent;
 the v4→v5 step creates the `knowledge/` skeleton.
 
 ```bash
-wren context upgrade --dry-run   # preview created/modified files
-wren context upgrade             # apply
-wren context upgrade --to 5      # target a specific version
+janus context upgrade --dry-run   # preview created/modified files
+janus context upgrade             # apply
+janus context upgrade --to 5      # target a specific version
 ```
 
 To migrate `instructions.md` and the LanceDB memory into `knowledge/`, see
@@ -112,43 +112,43 @@ To migrate `instructions.md` and the LanceDB memory into `knowledge/`, see
 
 ---
 
-## `wren docs` — Connection Info
+## `janus docs` — Connection Info
 
-### `wren docs connection-info <datasource>`
+### `janus docs connection-info <datasource>`
 
 Print the required and optional connection fields for a data source.
 
 ```bash
-wren docs connection-info postgres
-wren docs connection-info bigquery
-wren docs connection-info snowflake
+janus docs connection-info postgres
+janus docs connection-info bigquery
+janus docs connection-info snowflake
 ```
 
 Use this to check which fields are needed before creating a profile.
 
 ---
 
-## `wren memory` — Schema & Query Memory
+## `janus memory` — Schema & Query Memory
 
 Schema and NL-SQL memory. NL→SQL pairs live in `knowledge/sql/*.md` (the source of truth);
 the LanceDB index is a derived artifact rebuilt from them.
 
 `store`, `index`, and `recall` work **without** any extra — pairs are written to and
 searched over `knowledge/sql/` directly (token/substring matching). Install the `memory`
-extra only for **semantic** (embedding) recall and schema search (`wren memory fetch`):
+extra only for **semantic** (embedding) recall and schema search (`janus memory fetch`):
 
 ```bash
-pip install 'wrenai[memory]'
+pip install 'janusai[memory]'
 # or combine with main for the browser UI and interactive prompts:
-pip install 'wrenai[memory,main]'
+pip install 'janusai[memory,main]'
 ```
 
 The backend is chosen automatically — LanceDB when the extra is installed, otherwise the
-dependency-free grep backend. Force one with `WREN_MEMORY_BACKEND=grep|lancedb`. All
+dependency-free grep backend. Force one with `JANUS_MEMORY_BACKEND=grep|lancedb`. All
 `memory` subcommands accept `--path DIR` to override the LanceDB storage location
-(`~/.wren/memory/`).
+(`~/.janus/memory/`).
 
-> **Note:** The `memory` extra bundles ~800MB of large unsigned native libraries (lancedb plus sentence-transformers/torch). On macOS, the first command that loads the memory stack can trigger a one-time XProtect/Gatekeeper scan and pause for up to about a minute before it finishes; this is normal macOS behavior, not a Wren error, and happens once per install or fresh virtual environment. With lazy memory loading, lightweight non-`memory` commands are unaffected — the scan is deferred to your first real memory use, not eliminated.
+> **Note:** The `memory` extra bundles ~800MB of large unsigned native libraries (lancedb plus sentence-transformers/torch). On macOS, the first command that loads the memory stack can trigger a one-time XProtect/Gatekeeper scan and pause for up to about a minute before it finishes; this is normal macOS behavior, not a Janus error, and happens once per install or fresh virtual environment. With lazy memory loading, lightweight non-`memory` commands are unaffected — the scan is deferred to your first real memory use, not eliminated.
 
 ### Hybrid strategy: full text vs. embedding search
 
@@ -157,7 +157,7 @@ When providing schema context to an LLM, there is a trade-off:
 - **Small schemas** — the full plain-text description fits easily in the LLM context window and gives better results because the LLM sees the complete structure (model-column relationships, join paths, primary keys) rather than isolated fragments from a vector search.
 - **Large schemas** — the full text exceeds what is practical to send in a single prompt, so embedding search is needed to retrieve only the relevant fragments.
 
-`wren memory fetch` automatically picks the right strategy based on the **character length** of the generated plain-text description:
+`janus memory fetch` automatically picks the right strategy based on the **character length** of the generated plain-text description:
 
 | Schema size | Threshold | Strategy |
 |---|---|---|
@@ -168,7 +168,7 @@ The threshold is measured in characters (not tokens) because character length is
 
 The default threshold (30,000 chars) can be overridden with `--threshold`.
 
-### `wren memory index`
+### `janus memory index`
 
 Build the semantic index: schema items (models, columns, relationships, views) plus the
 NL→SQL pairs from `knowledge/sql/*.md` (re-running converges on the markdown). Requires the
@@ -176,16 +176,16 @@ NL→SQL pairs from `knowledge/sql/*.md` (re-running converges on the markdown).
 nothing to build and this command is a no-op.
 
 ```bash
-wren memory index                          # uses ~/.wren/mdl.json
-wren memory index --mdl /path/to/mdl.json  # explicit MDL file
+janus memory index                          # uses ~/.janus/mdl.json
+janus memory index --mdl /path/to/mdl.json  # explicit MDL file
 ```
 
-### `wren memory watch`
+### `janus memory watch`
 
 Watch project sources and auto-reindex on change, so semantic recall never serves a
 stale schema while you are actively modelling. Polls `target/mdl.json` and
 `knowledge/sql/*.md` on an interval; when their content fingerprint changes it runs the
-equivalent of `wren memory index`. A reindex that fails leaves the change pending and is
+equivalent of `janus memory index`. A reindex that fails leaves the change pending and is
 retried on the next poll — an update is never silently dropped. Runs until `Ctrl+C`.
 
 Requires the `memory` extra (the index it maintains is LanceDB-backed). With the grep
@@ -200,30 +200,30 @@ backend there is no derived index to keep fresh, so this command exits with a me
 | `--path` | Project root to watch. Defaults to the discovered project. |
 
 ```bash
-wren memory watch                       # poll every 5s, reindex on change
-wren memory watch -i 2                   # poll every 2s
-wren memory watch --reindex-on-start     # ensure the index is fresh before the first interval
+janus memory watch                       # poll every 5s, reindex on change
+janus memory watch -i 2                   # poll every 2s
+janus memory watch --reindex-on-start     # ensure the index is fresh before the first interval
 ```
 
-### `wren memory describe`
+### `janus memory describe`
 
 Print the full schema as structured plain text. No embedding or LanceDB required — this is a pure transformation of the MDL manifest into a human/LLM-readable format.
 
 ```bash
-wren memory describe                          # uses ~/.wren/mdl.json
-wren memory describe --mdl /path/to/mdl.json
+janus memory describe                          # uses ~/.janus/mdl.json
+janus memory describe --mdl /path/to/mdl.json
 ```
 
-### `wren memory fetch`
+### `janus memory fetch`
 
 Get schema context for an LLM. Automatically chooses the best strategy based on schema size: full plain text for small schemas, embedding search for large schemas.
 
 When using the search strategy, optional `--type` and `--model` filters narrow the results.
 
 ```bash
-wren memory fetch -q "customer order price"
-wren memory fetch -q "revenue" --type column --model orders
-wren memory fetch -q "order date" --threshold 50000 --output json
+janus memory fetch -q "customer order price"
+janus memory fetch -q "revenue" --type column --model orders
+janus memory fetch -q "order date" --threshold 50000 --output json
 ```
 
 | Flag | Description |
@@ -236,26 +236,26 @@ wren memory fetch -q "order date" --threshold 50000 --output json
 | `--threshold` | Character threshold for full vs search (default: 30,000) |
 | `-o, --output` | Output format: `table` (default), `json` |
 
-### `wren memory store`
+### `janus memory store`
 
 Store a natural-language-to-SQL pair. Writes `knowledge/sql/<slug>.md` (the source of
 truth, no extra required), then indexes it into LanceDB when the `memory` extra is present.
 
 ```bash
-wren memory store \
+janus memory store \
   --nl "show top customers by revenue" \
   --sql "SELECT c_name, sum(o_totalprice) FROM orders JOIN customer GROUP BY 1 ORDER BY 2 DESC" \
   --datasource postgres
 ```
 
-### `wren memory recall`
+### `janus memory recall`
 
 Search stored NL-SQL pairs — semantic similarity with the `memory` extra, token/substring
 matching (grep) without it. Each hit is annotated with its `knowledge/sql/*.md` path.
 
 ```bash
-wren memory recall -q "best customers"
-wren memory recall -q "monthly revenue" --datasource mysql --limit 5 --output json
+janus memory recall -q "best customers"
+janus memory recall -q "monthly revenue" --datasource mysql --limit 5 --output json
 ```
 
 | Flag | Description |
@@ -265,81 +265,81 @@ wren memory recall -q "monthly revenue" --datasource mysql --limit 5 --output js
 | `-d, --datasource` | Filter by data source |
 | `-o, --output` | Output format: `table` (default), `json` |
 
-### `wren memory export`
+### `janus memory export`
 
 One-time migration: export an existing LanceDB `query_history` into `knowledge/sql/*.md`
 (source, timestamp, and dedup preserved). Requires the `memory` extra to read LanceDB;
 leaves LanceDB intact. See [Migration](./migration.md).
 
 ```bash
-wren memory export                 # query_history → knowledge/sql/*.md
-wren memory export --include-seed   # also export auto-generated seed pairs
+janus memory export                 # query_history → knowledge/sql/*.md
+janus memory export --include-seed   # also export auto-generated seed pairs
 ```
 
-### `wren memory check`
+### `janus memory check`
 
 Report drift between `knowledge/sql/*.md` and the derived index (which user pairs are not
 indexed, or indexed without a markdown source).
 
 ```bash
-wren memory check
+janus memory check
 ```
 
-### `wren memory status`
+### `janus memory status`
 
 Show index statistics: storage path, table names, and row counts.
 
 ```bash
-wren memory status
-# Path: /Users/you/.wren/memory
+janus memory status
+# Path: /Users/you/.janus/memory
 #   schema_items: 47 rows
 #   query_history: 12 rows
 ```
 
-### `wren memory reset`
+### `janus memory reset`
 
 Drop the derived LanceDB index. Your `knowledge/sql/*.md` source files are **preserved** —
-rebuild the index any time with `wren memory index`.
+rebuild the index any time with `janus memory index`.
 
 ```bash
-wren memory reset          # prompts for confirmation
-wren memory reset --force  # skip confirmation
+janus memory reset          # prompts for confirmation
+janus memory reset --force  # skip confirmation
 ```
 
 ---
 
-## `wren cube` — Pre-aggregation Queries
+## `janus cube` — Pre-aggregation Queries
 
-For aggregation queries where the MDL defines cubes, use `wren cube` instead
+For aggregation queries where the MDL defines cubes, use `janus cube` instead
 of writing raw SQL. The translator produces correct `GROUP BY`, `DATE_TRUNC`,
 and `WHERE` clauses from a structured input.
 
-### `wren cube list`
+### `janus cube list`
 
 List all cubes in the loaded MDL with their measures and dimensions.
 
 ```bash
-wren cube list
+janus cube list
 ```
 
-### `wren cube describe <name>`
+### `janus cube describe <name>`
 
 Pretty-print the full cube schema as JSON: `baseObject`, measures (with
 expressions), dimensions, time dimensions, hierarchies.
 
 ```bash
-wren cube describe revenue
+janus cube describe revenue
 ```
 
-### `wren cube query`
+### `janus cube query`
 
-Build a CubeQuery and translate it to SQL via wren-core, then execute through
-the same path as `wren --sql`. Two input modes:
+Build a CubeQuery and translate it to SQL via janus-core, then execute through
+the same path as `janus --sql`. Two input modes:
 
 **CLI flags:**
 
 ```bash
-wren cube query \
+janus cube query \
   --cube revenue \
   --measures total,order_count \
   --dimensions status \
@@ -352,7 +352,7 @@ wren cube query \
 **JSON input** (`--from <file|->`):
 
 ```bash
-cat query.json | wren cube query --from -
+cat query.json | janus cube query --from -
 ```
 
 | Flag | Description |
@@ -377,28 +377,28 @@ cat query.json | wren cube query --from -
 **Ordering:** `--order-by` sorts by the query's selected members, so pair it with
 `--limit` for a genuine top-N. Omitting it keeps the default ordering (by the time
 dimension when one is present). Directions are lowercase only, and a member listed
-twice — or one the query does not select — is rejected by wren-core.
+twice — or one the query does not select — is rejected by janus-core.
 
 See the [Cube guide](../guides/cubes.md) for YAML structure and
 validation rules.
 
 ---
 
-## `wren serve` — MCP Server
+## `janus serve` — MCP Server
 
 Serve the project's query, schema, and knowledge tools to MCP clients (Claude
 Desktop/Code, Cursor, any MCP-capable IDE) as a local MCP server. The server
 embeds the engine in-process — no ibis-server, no separate backend — so it
-runs from a bare project checkout as long as `wren context build` has run.
+runs from a bare project checkout as long as `janus context build` has run.
 
-### `wren serve mcp`
+### `janus serve mcp`
 
 ```bash
-wren serve mcp                                  # stdio (default) — client spawns this as a child process
-wren serve mcp --transport http --port 8080     # local Streamable HTTP for multiple / remote clients
+janus serve mcp                                  # stdio (default) — client spawns this as a child process
+janus serve mcp --transport http --port 8080     # local Streamable HTTP for multiple / remote clients
 ```
 
-Requires the `mcp` extra: `pip install 'wrenai[mcp]'`.
+Requires the `mcp` extra: `pip install 'janusai[mcp]'`.
 
 | Flag | Default | Description |
 |------|---------|-------------|
@@ -414,19 +414,19 @@ Requires the `mcp` extra: `pip install 'wrenai[mcp]'`.
 On startup the server prints (to stderr) ready-to-copy registration commands for
 the running invocation — a `claude mcp add` / `codex mcp add` command for
 `--transport http`, and those plus a JSON `mcpServers` config block for stdio
-(reflecting `--project`, `--profile`, `--allow-write`, and `WREN_HOME`). Pass
+(reflecting `--project`, `--profile`, `--allow-write`, and `JANUS_HOME`). Pass
 `--quiet` to suppress it.
 
-Requires `target/mdl.json` to exist (`wren context build` first) — errors with
+Requires `target/mdl.json` to exist (`janus context build` first) — errors with
 a hint otherwise. If project source files (`models/`, `views/`, `cubes/`,
-`relationships.yml`, `wren_project.yml`) are newer than `target/mdl.json`, it
+`relationships.yml`, `janus_project.yml`) are newer than `target/mdl.json`, it
 warns that the MDL may be stale but still serves it — it never auto-builds.
 
 ### Client wiring (stdio)
 
 ```json
 {
-  "command": "wren",
+  "command": "janus",
   "args": ["serve", "mcp"],
   "cwd": "/path/to/project"
 }
@@ -454,18 +454,18 @@ The knowledge tools degrade gracefully without the `memory` extra:
 `describe_schema` (the human-readable counterpart to `get_mdl`) needs no
 optional dependency at all; `list_stored_queries` enumerates every NL→SQL
 pair (not just a semantic top-k) from `knowledge/sql/*.md`; `list_knowledge`
-lists every file readable via the `wren://knowledge/{path}` resource below.
+lists every file readable via the `janus://knowledge/{path}` resource below.
 
 ### Resources & prompt
 
-- `wren://mdl` — compiled MDL JSON
-- `wren://instructions` — business rules from `knowledge/rules/*.md`
-- `wren://project` — project name / catalog / schema / data source / schema_version / knowledge_schema_version
-- `wren://agents` — the project's `AGENTS.md`, if present
-- `wren://knowledge/{path}` — read any file under `knowledge/` (e.g.
-  `wren://knowledge/knowledge.yml`, `wren://knowledge/rules/general.md`);
+- `janus://mdl` — compiled MDL JSON
+- `janus://instructions` — business rules from `knowledge/rules/*.md`
+- `janus://project` — project name / catalog / schema / data source / schema_version / knowledge_schema_version
+- `janus://agents` — the project's `AGENTS.md`, if present
+- `janus://knowledge/{path}` — read any file under `knowledge/` (e.g.
+  `janus://knowledge/knowledge.yml`, `janus://knowledge/rules/general.md`);
   rejects any path that escapes the project's `knowledge/` directory
-- `wren_workflow` prompt — packages the schema → instructions → recall →
+- `janus_workflow` prompt — packages the schema → instructions → recall →
   dry-run → run_sql → query_cube → store SOP for a connecting agent
 
 ### Security
@@ -478,49 +478,49 @@ See the [MCP guide](../guides/mcp.md) for a walkthrough of wiring a client.
 
 ---
 
-## `wren skills` — Agent Workflow Guides
+## `janus skills` — Agent Workflow Guides
 
 The CLI ships its own agent skill content. Use this on any AI client (the
 content is the same — content travels with the wheel, not the agent cache).
 
-### `wren skills list`
+### `janus skills list`
 
 List the available workflow guides.
 
 ```bash
-wren skills list
+janus skills list
 ```
 
-### `wren skills get <name>`
+### `janus skills get <name>`
 
 Print a skill's main guide to stdout. Five names ship today:
 `onboarding`, `usage`, `generate-mdl`, `dlt-connector`, `enrich-context`.
 
 ```bash
-wren skills get onboarding              # set up Wren end-to-end
-wren skills get usage                   # day-to-day querying
-wren skills get generate-mdl            # MDL from a database schema
-wren skills get dlt-connector           # connect SaaS sources via dlt
-wren skills get enrich-context          # add business context (units, enums, cubes)
+janus skills get onboarding              # set up Janus end-to-end
+janus skills get usage                   # day-to-day querying
+janus skills get generate-mdl            # MDL from a database schema
+janus skills get dlt-connector           # connect SaaS sources via dlt
+janus skills get enrich-context          # add business context (units, enums, cubes)
 ```
 
-### `wren skills get <name> --full`
+### `janus skills get <name> --full`
 
 Include the skill's reference docs inline (sorted, separated). For skills
 that have no `references/`, the output is identical to the non-`--full` form.
 
-### `wren skills get <name> --script <s>`
+### `janus skills get <name> --script <s>`
 
 Print a bundled script's source to stdout. Currently:
 
 ```bash
-wren skills get dlt-connector --script introspect_dlt > introspect_dlt.py
+janus skills get dlt-connector --script introspect_dlt > introspect_dlt.py
 python introspect_dlt.py --duckdb-path ./pipeline.duckdb --output-dir ./project
 ```
 
 ---
 
-## `wren ask` — Prompt Shaping
+## `janus ask` — Prompt Shaping
 
 Wrap a natural-language question in one of two bundled templates and print
 the rendered prompt to stdout. **Does not execute any query** — it
@@ -529,86 +529,86 @@ produces a prompt for an agent to consume.
 You must explicitly pick one mode (no default — silently changing a
 default would alter agent behavior across an upgrade).
 
-### `wren ask "<question>" --guided`
+### `janus ask "<question>" --guided`
 
-For weaker LLMs. Prepends a strict task flow (`wren context show` →
-`wren memory recall` → write SQL → `wren dry-plan` → `wren query`).
+For weaker LLMs. Prepends a strict task flow (`janus context show` →
+`janus memory recall` → write SQL → `janus dry-plan` → `janus query`).
 
 ```bash
-wren ask "top 5 customers by revenue" --guided
+janus ask "top 5 customers by revenue" --guided
 ```
 
-### `wren ask "<question>" --direct`
+### `janus ask "<question>" --direct`
 
-For stronger LLMs. Minimal wrapping; the agent decides which wren commands
+For stronger LLMs. Minimal wrapping; the agent decides which janus commands
 to run.
 
 ```bash
-wren ask "monthly orders trend" --direct
+janus ask "monthly orders trend" --direct
 ```
 
-## `wren genbi` — Build & Deploy GenBI Apps
+## `janus genbi` — Build & Deploy GenBI Apps
 
 Turn a project's context layer into a shareable, browser-side GenBI web app
-(powered by `wren-core-wasm`) and deploy it to Vercel or Cloudflare Pages.
+(powered by `janus-core-wasm`) and deploy it to Vercel or Cloudflare Pages.
 
 **CLI ↔ agent split:** the CLI owns the authoritative build instruction and all
 deterministic state (the app index, verify, deploy). The agent authors the app
-code by following the instruction. `.wren/apps.yml` is only ever written by the
-CLI — never by hand. The matching agent workflow guide is `wren skills get
+code by following the instruction. `.janus/apps.yml` is only ever written by the
+CLI — never by hand. The matching agent workflow guide is `janus skills get
 genbi`.
 
-### `wren genbi build <name>`
+### `janus genbi build <name>`
 
 Print a project-hydrated build instruction (wasm wiring with the pinned
-`wren-core-wasm` version, the project's model/column inventory, data-mode
+`janus-core-wasm` version, the project's model/column inventory, data-mode
 guidance, acceptance criteria, and the target folder). Writes no app files; it
 only compiles `target/mdl.json` first if it's missing.
 
 ```bash
-wren genbi build sales-overview --prompt "orders dashboard" --data-mode snapshot
+janus genbi build sales-overview --prompt "orders dashboard" --data-mode snapshot
 # --prompt-file <file> / --prompt -    read a long prompt from a file or stdin
 # --data-mode snapshot|live            snapshot (default): bundle data with the app
 #                                      live: app calls a CORS endpoint at view time
 ```
 
-### `wren genbi register <name>` / `list` / `remove <name>`
+### `janus genbi register <name>` / `list` / `remove <name>`
 
-Machine-written app index (`<project>/.wren/apps.yml`).
+Machine-written app index (`<project>/.janus/apps.yml`).
 
 ```bash
-wren genbi register sales-overview --data-mode snapshot   # record an authored app
-wren genbi list                                           # apps + status + deploy state
-wren genbi remove sales-overview                          # drop index entry (files kept)
+janus genbi register sales-overview --data-mode snapshot   # record an authored app
+janus genbi list                                           # apps + status + deploy state
+janus genbi remove sales-overview                          # drop index entry (files kept)
 ```
 
 App names must be simple slugs (letters, numbers, `_`, `-`); names containing
 path separators are rejected so they can't escape `<project>/apps/`.
 
-### `wren genbi verify <name>`
+### `janus genbi verify <name>`
 
 Deterministic deploy preflight (no browser): required files exist, `mdl.json`
 parses, snapshot apps ship a `.parquet`/`.duckdb` asset, and a default-deny
 secret scan flags inlined credentials. `deploy` gates on this. The secret scan
 is best-effort defense-in-depth, not a guarantee — never inline secrets.
 
-### `wren genbi open <name>`
+### `janus genbi open <name>`
 
 Serve a built app locally for preview (blocking; Ctrl-C stops).
 
 ```bash
-wren genbi open sales-overview --port 8848   # 0 = auto-pick
+janus genbi open sales-overview --port 8848   # 0 = auto-pick
 ```
 
-### `wren genbi deploy <name>`
+### `janus genbi deploy <name>`
 
 Verify, then ship to the user's provider account and return a shareable URL.
 Preview by default; `--prod` deploys to production (confirm with the user
 first).
 
 ```bash
-wren genbi deploy sales-overview --provider vercel        # or cloudflare
-wren genbi deploy sales-overview --provider vercel --prod
+janus genbi deploy sales-overview --provider vercel        # or cloudflare
+janus genbi deploy sales-overview --provider vercel --prod
 ```
 
 - **Tokens** are discovered from the environment or `.env` files
@@ -623,9 +623,9 @@ wren genbi deploy sales-overview --provider vercel --prod
 
 ---
 
-## `wren cloud` — Connect a Project to Wren Cloud
+## `janus cloud` — Connect a Project to Janus Cloud
 
-Binds a local Wren project to a Wren Cloud project's git repository. **The
+Binds a local Janus project to a Janus Cloud project's git repository. **The
 binding *is* the git remote** — nothing on your machine records which project a
 directory belongs to. After binding, plain `git push` / `git pull` / `git diff`
 are the commands; none of the security depends on going through this CLI again.
@@ -633,7 +633,7 @@ are the commands; none of the security depends on going through this CLI again.
 Two credentials, two lifetimes:
 
 - The **project API key** is durable. It is prompted for once, stored under
-  `~/.wren/cloud.yml` (mode `0600`, keyed by git host + project id), and never
+  `~/.janus/cloud.yml` (mode `0600`, keyed by git host + project id), and never
   leaves the machine except as an `Authorization` header.
 - A **git token** is a short-TTL JWT minted from that key on *every* git
   operation, by a credential helper git invokes itself. It is never written to
@@ -651,14 +651,14 @@ way, `https` is assumed when no scheme is given.
 different hosts — a self-hosted setup with no single ingress in front of both.
 On the managed service, leave it out.
 
-### `wren cloud auth add`
+### `janus cloud auth add`
 
 Store the credential git will authenticate with, and configure git to use it.
 Touches no directory, so it works before any clone exists.
 
 ```bash
-wren cloud auth add --project 1234
-wren cloud auth add --project 1234 --host https://wren.internal.example.com
+janus cloud auth add --project 1234
+janus cloud auth add --project 1234 --host https://janus.internal.example.com
 ```
 
 Writes a URL-scoped credential-helper entry into your **global** git config
@@ -666,21 +666,21 @@ Writes a URL-scoped credential-helper entry into your **global** git config
 which project's token to mint from the path git hands it, one entry per host
 serves every project on it.
 
-Refuses up front if the `wren` on `PATH` cannot serve the helper — a stored
+Refuses up front if the `janus` on `PATH` cannot serve the helper — a stored
 credential that git cannot use is worse than none.
 
-### `wren cloud create`
+### `janus cloud create`
 
-Turn a Wren project you already have into a Wren Cloud project: create it,
+Turn a Janus project you already have into a Janus Cloud project: create it,
 connect its data source, bind this directory, and push — the push is what
 deploys the models.
 
 ```bash
-wren cloud create --org 42 --type BIG_QUERY --connection-info-file ./conn.json
-wren cloud create --org 42 --type POSTGRES --connection-info '{"host":"db","port":"5432","user":"u","password":"p","database":"d"}' --test-connection
+janus cloud create --org 42 --type BIG_QUERY --connection-info-file ./conn.json
+janus cloud create --org 42 --type POSTGRES --connection-info '{"host":"db","port":"5432","user":"u","password":"p","database":"d"}' --test-connection
 ```
 
-The organization key comes from `--org-key`, the `WREN_CLOUD_ORG_KEY`
+The organization key comes from `--org-key`, the `JANUS_CLOUD_ORG_KEY`
 environment variable, or a prompt. It is used only to create the project and
 mint that project's own key, and is **never** written to disk.
 
@@ -688,21 +688,21 @@ mint that project's own key, and is **never** written to disk.
 underscore in `BIG_QUERY`. `--connection-info` is passed through unchanged, so
 its fields are the API's too, and they differ per data source.
 
-**It is not the shape `wren profile` uses, and nothing converts between them.**
+**It is not the shape `janus profile` uses, and nothing converts between them.**
 The API wants camelCase keys, and BigQuery `credentials` as the service-account
 object; a profile has snake_case keys and `credentials` as a base64 string.
 Passing a profile export is rejected.
 
 **For the accepted types and a worked `connectionInfo` example for each, see
-[Create a project → Database connectionInfo examples](https://wrenai.readme.io/reference/post_projects#database-connectioninfo-examples).**
+[Create a project → Database connectionInfo examples](https://janusai.readme.io/reference/post_projects#database-connectioninfo-examples).**
 That page is the source of truth; this CLI does not keep its own copy of the
 list, so a data source added there works here without a CLI release.
 
 Requirements, all checked **before** anything is created, so a refusal leaves no
 half-made project behind:
 
-- The directory is a Wren project (`wren_project.yml`) whose YAML compiles. To
-  start a brand-new project instead, create it in the Wren Cloud web UI.
+- The directory is a Janus project (`janus_project.yml`) whose YAML compiles. To
+  start a brand-new project instead, create it in the Janus Cloud web UI.
 - `--type` and a connection info are both given. A project without a data source
   is reported as still needing setup, and this CLI cannot attach one afterwards.
 - The directory is not already bound, does not sit inside another git
@@ -711,14 +711,14 @@ half-made project behind:
 Models travel by git, not by the API: the manifest is built to validate the
 project and then discarded, and the push fires the repository's deploy hook.
 
-### `wren cloud link`
+### `janus cloud link`
 
 Bind a directory to a project you have already run `auth add` for. Use this to
 clone a project onto a second machine, or to re-bind after `unlink`.
 
 ```bash
-wren cloud link                       # current directory
-wren cloud link ./my-project --project 1234
+janus cloud link                       # current directory
+janus cloud link ./my-project --project 1234
 ```
 
 Safe to re-run if a previous attempt failed partway. If the directory is
@@ -728,14 +728,14 @@ get updates.
 Names the local branch after the remote's default branch, so plain `git push`
 works afterwards. Refuses to merge one project's history into another.
 
-### `wren cloud unlink`
+### `janus cloud unlink`
 
 Remove the `origin` remote. That is the entire unbind — no server call, and the
 project is untouched.
 
 ```bash
-wren cloud unlink
-wren cloud unlink ./my-project --forget-key --yes
+janus cloud unlink
+janus cloud unlink ./my-project --forget-key --yes
 ```
 
 Your stored key is kept by default, since another directory may still be bound
@@ -743,12 +743,12 @@ to the same project. `--forget-key` drops it too, and removes that host's
 credential-helper entry — but only once no stored login uses that host, because
 the entry is shared by every project on it.
 
-### `wren cloud auth list`
+### `janus cloud auth list`
 
 Show what is stored, without showing the keys.
 
 ```bash
-wren cloud auth list
+janus cloud auth list
 ```
 
 ```text
@@ -764,14 +764,14 @@ value for `--host` gives you the wrong one. This command is the answer to that.
 
 No flag prints a key.
 
-### `wren cloud auth remove`
+### `janus cloud auth remove`
 
 Drop a stored credential. Touches no directory.
 
 ```bash
-wren cloud auth remove --project 1234 --yes
+janus cloud auth remove --project 1234 --yes
 ```
 
-### `wren cloud git-credential`
+### `janus cloud git-credential`
 
 The credential helper `auth add` wires into git. Git invokes it; you do not.

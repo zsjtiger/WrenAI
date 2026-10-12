@@ -2,7 +2,7 @@
 sidebar_label: Tabnine CLI
 ---
 
-# Install Wren AI with Tabnine CLI
+# Install Janus AI with Tabnine CLI
 
 Tabnine CLI coding agent.
 
@@ -11,7 +11,7 @@ Tabnine CLI coding agent.
 - [Tabnine CLI](https://www.tabnine.com) installed and authenticated.
 - A Tabnine subscription is required.
 
-## Install Wren skills
+## Install Janus skills
 
 ```bash
 npx skills add Canner/WrenAI --agent tabnine-cli
@@ -26,7 +26,7 @@ tabnine
 Then ask:
 
 ```text
-Use the /wren skill to install and set up Wren AI.
+Use the /janus skill to install and set up Janus AI.
 ```
 
 The skill walks the agent through environment checks, profile creation, project scaffolding, and a first query.
@@ -34,4 +34,4 @@ The skill walks the agent through environment checks, profile creation, project 
 ## Next step
 
 - [Quickstart with sample data](../quickstart) — walk through `jaffle_shop` end-to-end
-- [Connect your data](/oss/guides/connect) — point Wren AI at a real database
+- [Connect your data](/oss/guides/connect) — point Janus AI at a real database

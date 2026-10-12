@@ -1,6 +1,6 @@
 {
-  "name": "wren",
-  "description": "AI agent skills for Wren Engine CLI — semantic SQL layer for 22+ data sources.",
+  "name": "janus",
+  "description": "AI agent skills for Janus Engine CLI — semantic SQL layer for 22+ data sources.",
   "version": "1.0.0",
   "author": {
     "name": "Canner",
@@ -10,7 +10,7 @@
   "repository": "https://github.com/Canner/WrenAI",
   "license": "Apache-2.0",
   "keywords": [
-    "wren",
+    "janus",
     "sql",
     "mdl",
     "cli",

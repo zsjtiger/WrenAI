@@ -6,7 +6,7 @@ A schema tells an agent that a table has columns. Context tells it which table i
 
 That distinction matters because AI agents do not fail on business data only because they are not smart enough. They fail because the meaning they need is scattered across warehouses, dashboards, SQL files, docs, decks, Slack threads, and people's heads.
 
-Wren AI exists to turn that scattered meaning into an open, machine-readable context layer that humans, agents, dashboards, and applications can share. It is the layer that makes **GenBI** (the answers and dashboards your agents generate) trustworthy instead of merely plausible.
+Janus AI exists to turn that scattered meaning into an open, machine-readable context layer that humans, agents, dashboards, and applications can share. It is the layer that makes **GenBI** (the answers and dashboards your agents generate) trustworthy instead of merely plausible.
 
 ## Why schema is not enough
 
@@ -41,7 +41,7 @@ Together, these layers form the context layer.
 
 ## Context vs. semantic layer
 
-"Semantic layer" is the industry's name for tools like the dbt Semantic Layer, Cube, or LookML. They define business-facing models, relationships, calculations, and reusable logic so people and tools do not have to query raw tables directly. That job matters, and it is one important part of context — in Wren AI, those semantic definitions live in MDL.
+"Semantic layer" is the industry's name for tools like the dbt Semantic Layer, Cube, or LookML. They define business-facing models, relationships, calculations, and reusable logic so people and tools do not have to query raw tables directly. That job matters, and it is one important part of context — in Janus AI, those semantic definitions live in MDL.
 
 A context layer is broader. Around the semantic definitions, it adds the knowledge an autonomous agent needs to behave well in the real world:
 
@@ -55,9 +55,9 @@ A context layer is broader. Around the semantic definitions, it adds the knowled
 
 Semantic layers were designed mostly for dashboards and BI workflows. The context layer is designed for a world where agents, applications, and humans all need the same trusted answer through different interfaces.
 
-## How Wren AI represents context
+## How Janus AI represents context
 
-Wren AI does not treat context as a single prompt or a hidden product feature. It stores context in explicit, reviewable pieces.
+Janus AI does not treat context as a single prompt or a hidden product feature. It stores context in explicit, reviewable pieces.
 
 ### MDL: the semantic contract
 
@@ -73,7 +73,7 @@ This is where business meaning starts to become operational. The agent is not on
 
 ### Queries and memory: examples that compound
 
-Most text-to-SQL systems treat every question like the first question. Wren AI adds a [memory layer](/oss/concepts/memory_system) so successful work can improve future work.
+Most text-to-SQL systems treat every question like the first question. Janus AI adds a [memory layer](/oss/concepts/memory_system) so successful work can improve future work.
 
 Memory has two jobs:
 
@@ -84,7 +84,7 @@ This turns usage into a learning loop. The context layer becomes more useful as 
 
 ### Skills: repeatable agent workflows
 
-[Skills](/oss/reference/skills) give AI coding agents structured workflows for working with Wren AI. Instead of asking an agent to improvise every step, skills guide it through repeatable actions such as onboarding, generating MDL, validating context, and querying safely.
+[Skills](/oss/reference/skills) give AI coding agents structured workflows for working with Janus AI. Instead of asking an agent to improvise every step, skills guide it through repeatable actions such as onboarding, generating MDL, validating context, and querying safely.
 
 Skills matter because context is not only data. Context is also procedure: when to inspect, when to validate, when to ask, when to store, and when to stop.
 
@@ -113,11 +113,11 @@ Reliable text-to-SQL depends on several primitives working together:
 - **Retry and repair** - recover when the first attempt fails.
 - **Eval** - detect regressions as definitions and schemas change.
 
-Wren AI exposes these as primitives the agent can orchestrate instead of hiding correctness inside a closed product. See [How does Wren AI keep agents from hallucinating?](/oss/concepts/correctness) for the deeper view and [Architecture](/oss/reference/architecture) for the technical breakdown.
+Janus AI exposes these as primitives the agent can orchestrate instead of hiding correctness inside a closed product. See [How does Janus AI keep agents from hallucinating?](/oss/concepts/correctness) for the deeper view and [Architecture](/oss/reference/architecture) for the technical breakdown.
 
 ## Where context comes from
 
-The first version of context usually comes from the database. Wren AI can scaffold MDL from tables, columns, types, and relationships so the agent has a working structural and semantic foundation quickly.
+The first version of context usually comes from the database. Janus AI can scaffold MDL from tables, columns, types, and relationships so the agent has a working structural and semantic foundation quickly.
 
 The deeper context comes from everywhere else:
 
@@ -130,7 +130,7 @@ The deeper context comes from everywhere else:
 - past questions and accepted answers
 - human corrections and review
 
-That is why Wren AI is designed around the workflow **scaffold fast, then enrich deep**. Start with the structure, then bring in the business meaning that makes the answers trustworthy.
+That is why Janus AI is designed around the workflow **scaffold fast, then enrich deep**. Start with the structure, then bring in the business meaning that makes the answers trustworthy.
 
 ## In short
 
@@ -138,4 +138,4 @@ That is why Wren AI is designed around the workflow **scaffold fast, then enrich
 - **Semantic definitions** tell an agent what the data means.
 - **Context layer** tells an agent how the business uses the data, how to act safely, and what has worked before.
 
-Wren AI is the open context layer for AI agents: portable, inspectable, versionable, and shared across every agent and app that needs trusted business data.
+Janus AI is the open context layer for AI agents: portable, inspectable, versionable, and shared across every agent and app that needs trusted business data.

@@ -1,7 +1,7 @@
 # Spodbtify A/B Eval
 
 This eval compares two workflows for turning the same DuckDB database into a
-queryable Wren semantic layer, then scoring how well an AI coding agent answers
+queryable Janus semantic layer, then scoring how well an AI coding agent answers
 20 analytical Spotify playlist questions.
 
 The eval is intentionally agent-agnostic. It is not tied to Claude Code: use

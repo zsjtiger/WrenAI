@@ -1,6 +1,6 @@
 # The memory system
 
-Memory is the behavioral layer of Wren AI's context system.
+Memory is the behavioral layer of Janus AI's context system.
 
 MDL tells an agent what your data means. Instructions tell it how your team wants that data used. Memory tells it what has worked before: which schema items were relevant, which SQL answered a similar question, and which examples your team has already confirmed.
 
@@ -17,7 +17,7 @@ Business questions repeat with small variations:
 
 An agent should not rediscover the same joins, filters, and metric definitions every time. It should be able to retrieve the relevant parts of the context layer and reuse proven examples.
 
-That is what Wren AI memory provides.
+That is what Janus AI memory provides.
 
 ## What memory stores
 
@@ -25,8 +25,8 @@ The **source of truth is markdown in your project**: confirmed natural-language-
 pairs live in `knowledge/sql/*.md`, and business rules in `knowledge/rules/`. These are
 plain files you commit and review like any other source.
 
-On top of that markdown, Wren builds a **derived index** for retrieval. With the optional
-`memory` extra it's a [LanceDB](https://lancedb.com/) embedding index under `.wren/memory/`
+On top of that markdown, Janus builds a **derived index** for retrieval. With the optional
+`memory` extra it's a [LanceDB](https://lancedb.com/) embedding index under `.janus/memory/`
 (gitignored, rebuildable any time); without it, a dependency-free grep backend searches the
 markdown directly. Either way the index is disposable — `knowledge/` is the durable layer.
 
@@ -44,26 +44,26 @@ The source of truth is the same either way — only the retrieval engine differs
 | | With `memory` extra (LanceDB) | Without it (grep, default) |
 | --- | --- | --- |
 | NL→SQL `recall` | **Semantic** — embedding similarity, so paraphrases match (store *"monthly revenue"*, recall *"sales per month"*) | **Lexical** — token overlap + substring over `knowledge/sql/*.md`, read directly at query time. Paraphrases with no shared words won't match |
-| Persistent index | LanceDB under `.wren/memory/` (built by `index`/`store`) | None — the markdown *is* the index, so `index` is a no-op |
+| Persistent index | LanceDB under `.janus/memory/` (built by `index`/`store`) | None — the markdown *is* the index, so `index` is a no-op |
 | Schema search (`fetch`) | Available (embedding retrieval over schema items) | **Not available** — needs embeddings; large schemas should install the extra |
 
 The grep backend is the zero-dependency fallback: it works out of the box and keeps
 `store`/`recall` available, at lower recall quality. Install the extra (or set
-`WREN_MEMORY_BACKEND=lancedb`) for semantic recall and schema search; nothing about your
+`JANUS_MEMORY_BACKEND=lancedb`) for semantic recall and schema search; nothing about your
 `knowledge/` files changes when you switch.
 
 ## How memory is used
 
-When an agent answers a question through Wren AI, memory usually participates before SQL is written:
+When an agent answers a question through Janus AI, memory usually participates before SQL is written:
 
 ```text
 User question
   |
-  |-- wren memory recall -q "..."  -> find similar accepted questions and SQL
-  |-- wren memory fetch -q "..."   -> find relevant models, columns, relationships, and instructions
+  |-- janus memory recall -q "..."  -> find similar accepted questions and SQL
+  |-- janus memory fetch -q "..."   -> find relevant models, columns, relationships, and instructions
   |-- Agent writes SQL against MDL objects
-  |-- Wren AI plans and executes the query
-  |-- wren memory store            -> save confirmed NL-SQL pair
+  |-- Janus AI plans and executes the query
+  |-- janus memory store            -> save confirmed NL-SQL pair
 ```
 
 This loop gives the agent two kinds of grounding:
@@ -87,11 +87,11 @@ The goal is not to memorize every answer. The goal is to make the agent better a
 
 ## When to re-index
 
-`wren memory store` writes the confirmed NL→SQL pair to `knowledge/sql/` and indexes it. The
+`janus memory store` writes the confirmed NL→SQL pair to `knowledge/sql/` and indexes it. The
 schema/rules side of the index is rebuilt with:
 
 ```bash
-wren memory index
+janus memory index
 ```
 
 Re-index after:
@@ -101,17 +101,17 @@ Re-index after:
 - adding or editing pairs in `knowledge/sql/`
 - running a major context enrichment pass
 
-See the [Refine answer quality](/oss/guides/refine) recipe and [CLI reference](/oss/reference/cli#wren-memory--schema--query-memory) for command details.
+See the [Refine answer quality](/oss/guides/refine) recipe and [CLI reference](/oss/reference/cli#janus-memory--schema--query-memory) for command details.
 
 ## Sharing memory
 
 Sharing is just committing `knowledge/`. The NL→SQL pairs in `knowledge/sql/*.md` are
 plain, reviewable files — commit them and every environment picks them up; the next
-`wren memory index` rebuilds the local index from them. The derived index under
-`.wren/memory/` stays gitignored, because it's reproducible from the markdown rather than
+`janus memory index` rebuilds the local index from them. The derived index under
+`.janus/memory/` stays gitignored, because it's reproducible from the markdown rather than
 the collaboration surface itself.
 
-(Have an older project whose history is still in a LanceDB index? `wren memory export`
+(Have an older project whose history is still in a LanceDB index? `janus memory export`
 writes it out to `knowledge/sql/*.md` — see [Migration](/oss/reference/migration).)
 
 ## In short
@@ -120,4 +120,4 @@ writes it out to `knowledge/sql/*.md` — see [Migration](/oss/reference/migrati
 - **`knowledge/`** captures business rules and confirmed NL→SQL pairs — committed and reviewable.
 - **Memory** is the derived index that retrieves relevant context and recalls proven examples.
 
-Memory is how Wren AI gets better with use while keeping the source of truth inspectable and versionable.
+Memory is how Janus AI gets better with use while keeping the source of truth inspectable and versionable.

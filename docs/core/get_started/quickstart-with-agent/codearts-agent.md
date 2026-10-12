@@ -2,7 +2,7 @@
 sidebar_label: CodeArts Agent
 ---
 
-# Install Wren AI with CodeArts Agent
+# Install Janus AI with CodeArts Agent
 
 Huawei Cloud CodeArts Doer.
 
@@ -11,7 +11,7 @@ Huawei Cloud CodeArts Doer.
 - [CodeArts Agent](https://www.huaweicloud.com/product/codeartsdoer.html) installed and authenticated.
 - Huawei Cloud account required.
 
-## Install Wren skills
+## Install Janus skills
 
 ```bash
 npx skills add Canner/WrenAI --agent codearts-agent
@@ -24,7 +24,7 @@ Open your project in CodeArts IDE, then open the CodeArts Agent panel.
 Then ask:
 
 ```text
-Use the /wren skill to install and set up Wren AI.
+Use the /janus skill to install and set up Janus AI.
 ```
 
 The skill walks the agent through environment checks, profile creation, project scaffolding, and a first query.
@@ -32,4 +32,4 @@ The skill walks the agent through environment checks, profile creation, project 
 ## Next step
 
 - [Quickstart with sample data](../quickstart) — walk through `jaffle_shop` end-to-end
-- [Connect your data](/oss/guides/connect) — point Wren AI at a real database
+- [Connect your data](/oss/guides/connect) — point Janus AI at a real database

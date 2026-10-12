@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Local doc sync: WrenAI/docs/core → doc website via PR
+# Local doc sync: JanusAI/docs/core → doc website via PR
 # Mirrors .github/workflows/sync-docs.yml but runs from your machine
 # using the `gh` CLI.
 #
@@ -87,11 +87,11 @@ fi
 BRANCH="sync/core-docs-${SHORT_SHA}"
 git checkout -b "$BRANCH"
 git add -A
-git commit -m "docs: sync from WrenAI@${SHORT_SHA}"
+git commit -m "docs: sync from JanusAI@${SHORT_SHA}"
 git push origin "$BRANCH"
 
 PR_URL=$(gh pr create \
-  --title "docs: sync Wren AI Core docs from ${SOURCE_REPO}" \
+  --title "docs: sync Janus AI Core docs from ${SOURCE_REPO}" \
   --body "Manual sync from [\`${SOURCE_REPO}@${SHORT_SHA}\`](https://github.com/${SOURCE_REPO}/commit/${SHORT_SHA})." \
   --base "$TARGET_BRANCH")
 

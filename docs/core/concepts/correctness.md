@@ -1,19 +1,19 @@
 ---
-sidebar_label: How does Wren AI keep agents from hallucinating?
+sidebar_label: How does Janus AI keep agents from hallucinating?
 ---
 
-# How does Wren AI keep agents from hallucinating?
+# How does Janus AI keep agents from hallucinating?
 
 Hallucinations on business data are rarely a "model is bad at SQL" problem. They are a missing-context problem. The agent writes a confident-looking query against data it does not actually understand. In GenBI that risk compounds: a dashboard built on a wrong query looks authoritative, so correctness is the whole game.
 
-Wren AI's architecture is designed to **give the agent the context it needs at every step**, and to **fail loudly when the agent guesses**. Here is how the pieces fit.
+Janus AI's architecture is designed to **give the agent the context it needs at every step**, and to **fail loudly when the agent guesses**. Here is how the pieces fit.
 
 ## The shape of the system
 
 ```mermaid
 flowchart TD
   user["User / Agent"] --> skills["Skills<br/>workflow rules"]
-  skills --> cli["Wren CLI"]
+  skills --> cli["Janus CLI"]
   cli --> mdl["MDL<br/>the canonical surface"]
   cli --> memory["Memory<br/>targeted context"]
   mdl --> planner["Plan + validate<br/>before any DB round-trip"]
@@ -37,7 +37,7 @@ Five layers sit between the agent's question and the database:
 
 Raw warehouses give the agent ambiguous joins, near-duplicate tables (`customers` vs `customers_v3` vs `loyalty_v3`), and columns that overlap across schemas. MDL collapses those problems into one canonical surface.
 
-If `email` is not in the `customers` model, the agent cannot query it. It does not exist in Wren AI's view of your data. If the canonical join between `orders` and `customers` is declared once in MDL, the agent does not have to invent it.
+If `email` is not in the `customers` model, the agent cannot query it. It does not exist in Janus AI's view of your data. If the canonical join between `orders` and `customers` is declared once in MDL, the agent does not have to invent it.
 
 ### Memory: targeted retrieval beats dumping the schema
 
@@ -50,7 +50,7 @@ Memory does neither. It indexes MDL + `knowledge/rules/` + confirmed NL-SQL pair
 
 ### Plan + validate: errors fail visibly
 
-`wren dry-plan` takes the agent's modeled SQL and expands it into the exact SQL that will run against the database. The agent, and you, see:
+`janus dry-plan` takes the agent's modeled SQL and expands it into the exact SQL that will run against the database. The agent, and you, see:
 
 - Catalog and schema resolution
 - Relationship joins inlined as CTEs
@@ -70,10 +70,10 @@ This matters because the most common failure mode is "model is fine, but the wor
 For a question like "top 5 customers by lifetime value this quarter", the loop runs:
 
 ```text
-1. wren memory recall  -q "top customers by revenue"
+1. janus memory recall  -q "top customers by revenue"
    → returns 2 similar past NL-SQL pairs
 
-2. wren memory fetch    -q "customer lifetime value"
+2. janus memory fetch    -q "customer lifetime value"
    → returns customers model + customer_lifetime_value column + active-customer instruction
 
 3. agent writes SQL against MDL:
@@ -81,13 +81,13 @@ For a question like "top 5 customers by lifetime value this quarter", the loop r
    FROM customers
    ORDER BY 2 DESC LIMIT 5;
 
-4. wren dry-plan
+4. janus dry-plan
    → expands to planned SQL with the active-customer filter injected
 
-5. wren --sql ...
+5. janus --sql ...
    → executes against the database
 
-6. wren memory store --nl "..." --sql "..."
+6. janus memory store --nl "..." --sql "..."
    → next similar question gets this as a recall
 ```
 

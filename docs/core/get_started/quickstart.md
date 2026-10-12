@@ -4,9 +4,9 @@ sidebar_label: Quickstart (jaffle_shop)
 
 import ArchStrip from '@site/src/components/ArchStrip';
 
-# Quick Start: Wren CLI with jaffle_shop
+# Quick Start: Janus CLI with jaffle_shop
 
-Ask natural-language questions of the **jaffle_shop** dataset using **Wren AI CLI** and **Claude Code**. No cloud database, no Docker, no extra infrastructure.
+Ask natural-language questions of the **jaffle_shop** dataset using **Janus AI CLI** and **Claude Code**. No cloud database, no Docker, no extra infrastructure.
 
 > **Time:** ~15 minutes
 >
@@ -18,10 +18,10 @@ Ask natural-language questions of the **jaffle_shop** dataset using **Wren AI CL
 
 This guide drops three things on you in the first few steps. Skim before you start:
 
-- **Wren CLI (`wren`)**: the Python CLI that runs all of this. Connects to a database, holds your modeling files, executes SQL through the context layer, manages a local memory index. ([CLI reference →](/oss/reference/cli))
-- **MDL (Modeling Definition Language)**: YAML files under `models/`, `views/`, and `relationships.yml` that describe your tables, columns, and joins in business terms. The agent reads MDL instead of guessing from raw schema. ([MDL concept →](/oss/concepts/what_is_mdl) · [Wren project guide →](/oss/reference/mdl))
+- **Janus CLI (`janus`)**: the Python CLI that runs all of this. Connects to a database, holds your modeling files, executes SQL through the context layer, manages a local memory index. ([CLI reference →](/oss/reference/cli))
+- **MDL (Modeling Definition Language)**: YAML files under `models/`, `views/`, and `relationships.yml` that describe your tables, columns, and joins in business terms. The agent reads MDL instead of guessing from raw schema. ([MDL concept →](/oss/concepts/what_is_mdl) · [Janus project guide →](/oss/reference/mdl))
 - **jaffle_shop**: a public sample database from dbt Labs. We use it so you do not need to bring your own database to follow this quickstart. It is a fictional ecommerce business whose raw data is customers, orders, and payments; `dbt build` turns that into two analytics tables, `customers` and `orders`. *(Want to skip jaffle_shop and use your own database? Finish the install in step 2 then jump to [Connect your database](/oss/guides/connect).)*
-- **Skills**: markdown workflow guides that tell an AI coding agent (Claude Code, Openclaw, Hermes, Codex, etc.) how to operate the CLI. You install one `wren` discovery stub; it fetches the guides from the CLI on demand. Two guides drive this quickstart: `generate-mdl` (one-time scaffolding) and `usage` (day-to-day querying). ([Skills concept →](/oss/reference/skills))
+- **Skills**: markdown workflow guides that tell an AI coding agent (Claude Code, Openclaw, Hermes, Codex, etc.) how to operate the CLI. You install one `janus` discovery stub; it fetches the guides from the CLI on demand. Two guides drive this quickstart: `generate-mdl` (one-time scaffolding) and `usage` (day-to-day querying). ([Skills concept →](/oss/reference/skills))
 
 ---
 
@@ -36,14 +36,14 @@ This guide drops three things on you in the first few steps. Skim before you sta
 
 ## Step 0: Create a Python virtual environment
 
-Create and activate a virtual environment before installing any packages. This keeps dbt and wrenai dependencies isolated from your system Python:
+Create and activate a virtual environment before installing any packages. This keeps dbt and janusai dependencies isolated from your system Python:
 
 ```bash
-python3 -m venv ~/.venvs/wren
-source ~/.venvs/wren/bin/activate
+python3 -m venv ~/.venvs/janus
+source ~/.venvs/janus/bin/activate
 ```
 
-> **Tip:** Activate this environment (`source ~/.venvs/wren/bin/activate`) in every new terminal session before running `dbt` or `wren` commands.
+> **Tip:** Activate this environment (`source ~/.venvs/janus/bin/activate`) in every new terminal session before running `dbt` or `janus` commands.
 
 ---
 
@@ -74,7 +74,7 @@ analytics tables on top of them:
 | Raw seeds | `raw_customers`, `raw_orders`, `raw_payments` |
 
 Only `customers` and `orders` matter for this quickstart. The `raw_*` and `stg_*`
-objects are dbt's intermediate layers — leave them out of your Wren project so
+objects are dbt's intermediate layers — leave them out of your Janus project so
 the agent has one unambiguous table per concept.
 
 Note the **absolute path** to this directory. You'll need it when setting up the profile:
@@ -86,15 +86,15 @@ pwd
 
 ---
 
-## Step 2: Install wrenai Python package
+## Step 2: Install janusai Python package
 
 For this quickstart, install with **DuckDB + memory + UI + interactive prompts**:
 
 ```bash
-pip install "wrenai[memory,main]"
+pip install "janusai[memory,main]"
 ```
 
-DuckDB is included by default, so no extra is needed. For other data sources, append the connector extra (e.g. `pip install "wrenai[memory,main,postgres]"`).
+DuckDB is included by default, so no extra is needed. For other data sources, append the connector extra (e.g. `pip install "janusai[memory,main,postgres]"`).
 
 > **Available extras:**
 > - `postgres`, `mysql`, `bigquery`, `snowflake`, `clickhouse`, `trino`, `mssql`, `databricks`, `redshift`, `athena`, `oracle`, `spark`: data source connectors
@@ -104,14 +104,14 @@ DuckDB is included by default, so no extra is needed. For other data sources, ap
 Verify the installation:
 
 ```bash
-wren version
+janus version
 ```
 
 ---
 
 ## Step 3: Install the CLI skill
 
-Skills are workflow guides that tell your AI coding agent how to use the Wren CLI effectively. Install the discovery stub. It fetches the guides from the CLI on demand:
+Skills are workflow guides that tell your AI coding agent how to use the Janus CLI effectively. Install the discovery stub. It fetches the guides from the CLI on demand:
 
 ```bash
 npx skills add Canner/WrenAI
@@ -119,7 +119,7 @@ npx skills add Canner/WrenAI
 curl -fsSL https://raw.githubusercontent.com/Canner/WrenAI/main/skills/install.sh | bash
 ```
 
-The CLI auto-detects your installed agent. To target a specific one, add `--agent <name>` (e.g., `claude-code`, `cursor`, `windsurf`, `cline`). Only one skill (`wren`) is installed; the workflow guides below are served on demand with `wren skills get <name>`.
+The CLI auto-detects your installed agent. To target a specific one, add `--agent <name>` (e.g., `claude-code`, `cursor`, `windsurf`, `cline`). Only one skill (`janus`) is installed; the workflow guides below are served on demand with `janus skills get <name>`.
 
 This quickstart uses two of those guides:
 
@@ -139,7 +139,7 @@ A profile stores your database connection info (like dbt profiles). Create one f
 ### Option A: Browser UI (recommended)
 
 ```bash
-wren profile add jaffle-shop --ui
+janus profile add jaffle-shop --ui
 ```
 
 This opens a browser form. Fill in:
@@ -150,7 +150,7 @@ This opens a browser form. Fill in:
 ### Option B: Interactive CLI
 
 ```bash
-wren profile add jaffle-shop --interactive
+janus profile add jaffle-shop --interactive
 ```
 
 Follow the prompts to enter profile name, data source, and connection fields.
@@ -168,7 +168,7 @@ format: duckdb
 Then import it:
 
 ```bash
-wren profile add jaffle-shop --from-file jaffle-profile.yml
+janus profile add jaffle-shop --from-file jaffle-profile.yml
 ```
 
 ---
@@ -176,31 +176,31 @@ wren profile add jaffle-shop --from-file jaffle-profile.yml
 Verify the profile is active:
 
 ```bash
-wren profile list
+janus profile list
 ```
 
 You should see `jaffle-shop` marked as active. Test the connection:
 
 ```bash
-wren profile debug
+janus profile debug
 ```
 
 ---
 
-## Step 5: Initialize a Wren project
+## Step 5: Initialize a Janus project
 
 Create a new directory for your project and scaffold the project structure:
 
 ```bash
-mkdir -p ~/jaffle-wren && cd ~/jaffle-wren
-wren context init
+mkdir -p ~/jaffle-janus && cd ~/jaffle-janus
+janus context init
 ```
 
 This creates:
 
 ```
-~/jaffle-wren/
-├── wren_project.yml        # project metadata
+~/jaffle-janus/
+├── janus_project.yml        # project metadata
 ├── models/                 # one folder per table
 ├── views/                  # reusable SQL views
 ├── cubes/                  # pre-aggregation metrics
@@ -208,23 +208,23 @@ This creates:
 └── knowledge/              # business rules + NL→SQL pairs for the AI
 ```
 
-The generated `wren_project.yml` contains default values for `catalog` and `schema`:
+The generated `janus_project.yml` contains default values for `catalog` and `schema`:
 
-> **Note:** `catalog` and `schema` in `wren_project.yml` define the **Wren AI namespace**. They have nothing to do with your database's catalog or schema. Keep the defaults (`wren` / `public`). The actual database location of each table is specified per-model in the `table_reference` section.
+> **Note:** `catalog` and `schema` in `janus_project.yml` define the **Janus AI namespace**. They have nothing to do with your database's catalog or schema. Keep the defaults (`janus` / `public`). The actual database location of each table is specified per-model in the `table_reference` section.
 
 Bind the profile you just created to this project:
 
 ```bash
-wren context set-profile jaffle-shop
+janus context set-profile jaffle-shop
 ```
 
-This writes `profile: jaffle-shop` and `data_source: duckdb` into `wren_project.yml`, locking this project to its connection. Future commands (and the SDK) use the bound profile regardless of which profile is globally active, so `wren profile switch` elsewhere can't accidentally redirect this project's queries.
+This writes `profile: jaffle-shop` and `data_source: duckdb` into `janus_project.yml`, locking this project to its connection. Future commands (and the SDK) use the bound profile regardless of which profile is globally active, so `janus profile switch` elsewhere can't accidentally redirect this project's queries.
 
 ---
 
 ## Step 6: Generate MDL with Claude Code
 
-First, remove the example model and view that `wren context init` created. They are placeholders and will be replaced by the generated models:
+First, remove the example model and view that `janus context init` created. They are placeholders and will be replaced by the generated models:
 
 ```bash
 rm -rf models/example_model views/example_view
@@ -233,38 +233,38 @@ rm -rf models/example_model views/example_view
 Now let Claude Code explore the database and generate the MDL project files. Open Claude Code **in the project directory**:
 
 ```bash
-cd ~/jaffle-wren
+cd ~/jaffle-janus
 claude
 ```
 
 Then ask:
 
 ```
-Use the /wren skill to explore the jaffle_shop database and generate the MDL
+Use the /janus skill to explore the jaffle_shop database and generate the MDL
 for the customers and orders tables. Skip the raw_* seeds and stg_* views.
 The data source is DuckDB.
 ```
 
-The `wren` skill recognizes this as a scaffolding task and pulls in the `generate-mdl` guide (`wren skills get generate-mdl`) to drive it.
+The `janus` skill recognizes this as a scaffolding task and pulls in the `generate-mdl` guide (`janus skills get generate-mdl`) to drive it.
 
 Claude Code will:
 
 1. **Discover tables**: `customers` and `orders`
 2. **Introspect columns and types** using SQLAlchemy or `information_schema`
-3. **Normalize types** via `wren utils parse-type`
+3. **Normalize types** via `janus utils parse-type`
 4. **Write model YAML files**, one folder per table under `models/`
 5. **Infer relationships** from foreign keys and naming conventions
 6. **Add descriptions**: Claude may ask you to describe key tables/columns
-7. **Validate and build**: `wren context validate` → `wren context build`
-8. **Index memory**: `wren memory index` (generates seed NL-SQL examples)
+7. **Validate and build**: `janus context validate` → `janus context build`
+8. **Index memory**: `janus memory index` (generates seed NL-SQL examples)
 
-> **Tip:** If `wren memory index` (the indexing step above) seems to hang for tens of seconds on macOS, it hasn't. That first `wren memory` command loads large unsigned native libraries (lancedb and torch, ~800MB), and macOS runs a one-time XProtect security scan the first time they execute. This is expected macOS behavior, not a Wren problem, and it's a one-off: every later `wren memory` command runs at normal speed. To avoid the pause during a live demo, run any `wren memory` command once right after install and let it finish.
+> **Tip:** If `janus memory index` (the indexing step above) seems to hang for tens of seconds on macOS, it hasn't. That first `janus memory` command loads large unsigned native libraries (lancedb and torch, ~800MB), and macOS runs a one-time XProtect security scan the first time they execute. This is expected macOS behavior, not a Janus problem, and it's a one-off: every later `janus memory` command runs at normal speed. To avoid the pause during a live demo, run any `janus memory` command once right after install and let it finish.
 
 After completion, verify the project:
 
 ```bash
-wren context show
-wren memory status
+janus context show
+janus memory status
 ```
 
 ---
@@ -287,11 +287,11 @@ Show me the monthly order count trend.
 
 Behind the scenes, Claude Code uses the **usage** guide to:
 
-1. **Fetch context** (`wren memory fetch`): find relevant tables and columns for your question
-2. **Recall examples** (`wren memory recall`): find similar past queries
+1. **Fetch context** (`janus memory fetch`): find relevant tables and columns for your question
+2. **Recall examples** (`janus memory recall`): find similar past queries
 3. **Write SQL** using the context layer (model names, not raw table names)
-4. **Execute** (`wren --sql "..."`): run through the Wren engine
-5. **Store** (`wren memory store`): save successful NL-SQL pairs for future recall
+4. **Execute** (`janus --sql "..."`): run through the Janus engine
+5. **Store** (`janus memory store`): save successful NL-SQL pairs for future recall
 
 The more you ask, the smarter the system gets. Each stored query improves future recall accuracy.
 
@@ -306,27 +306,27 @@ A **cube** is a semantic aggregation object: a model plus declared measures, dim
 In Claude Code:
 
 ```
-Use the /wren skill to add a cube named "revenue" over the orders model:
+Use the /janus skill to add a cube named "revenue" over the orders model:
 total revenue as SUM(amount), an order count, broken down by status and
 monthly by order_date.
 ```
 
 Claude Code drafts the cube YAML, confirms with you, writes it to `cubes/revenue/metadata.yml`, and rebuilds the manifest.
 
-> **Prefer to write it by hand?** See the [Cube guide](../guides/cubes.md) for the full YAML structure, then run `wren context build`.
+> **Prefer to write it by hand?** See the [Cube guide](../guides/cubes.md) for the full YAML structure, then run `janus context build`.
 
 ### Step 8b: Query the cube
 
 ```bash
-wren cube list
+janus cube list
 
-wren cube query \
+janus cube query \
   --cube revenue \
   --measures total,order_count \
   --time-dimension "order_date:month"
 ```
 
-`--time-dimension` takes `<name>:<granularity>`. Add `--dimensions status` or `--filter "status:eq:completed"` to slice further. See the [Cube guide](../guides/cubes.md) and [CLI reference](../reference/cli.md#wren-cube--pre-aggregation-queries) for all options.
+`--time-dimension` takes `<name>:<granularity>`. Add `--dimensions status` or `--filter "status:eq:completed"` to slice further. See the [Cube guide](../guides/cubes.md) and [CLI reference](../reference/cli.md#janus-cube--pre-aggregation-queries) for all options.
 
 ---
 
@@ -339,17 +339,17 @@ Vercel or Cloudflare Pages account. You drive the whole thing through the agent.
 In Claude Code:
 
 ```
-Use the /wren skill to build a GenBI dashboard from the revenue cube:
+Use the /janus skill to build a GenBI dashboard from the revenue cube:
 monthly revenue and order count, filterable by status. Then preview it locally.
 ```
 
-The `wren` skill pulls in the `genbi` guide (`wren skills get genbi`) and drives
+The `janus` skill pulls in the `genbi` guide (`janus skills get genbi`) and drives
 the build:
 
-1. **Build the instruction** (`wren genbi build`) hydrates the app spec with your MDL and the pinned `wren-core-wasm` version.
+1. **Build the instruction** (`janus genbi build`) hydrates the app spec with your MDL and the pinned `janus-core-wasm` version.
 2. **Author the app** writes a self-contained app under `apps/<name>/`, choosing charts that answer the question.
 3. **Snapshot the data** exports what the dashboard needs (default snapshot mode), so the app runs fully client-side with no backend.
-4. **Verify and preview** (`wren genbi verify`, then `wren genbi open`) runs preflight checks and serves the app locally.
+4. **Verify and preview** (`janus genbi verify`, then `janus genbi open`) runs preflight checks and serves the app locally.
 
 Open the preview URL the agent prints (for example `http://127.0.0.1:8848/`) and
 click through it. Refine in plain language ("make it a bar chart", "drop the
@@ -362,8 +362,8 @@ Deploy the dashboard to Vercel.
 ```
 
 You supply the deploy token: add `VERCEL_TOKEN` (or `CLOUDFLARE_API_TOKEN` plus
-`CLOUDFLARE_ACCOUNT_ID`) to `~/.wren/.env`, then tell the agent to continue. It
-runs `wren genbi deploy` and returns a shareable URL. Deploys go to a preview
+`CLOUDFLARE_ACCOUNT_ID`) to `~/.janus/.env`, then tell the agent to continue. It
+runs `janus genbi deploy` and returns a shareable URL. Deploys go to a preview
 URL by default; say "ship it to production" to promote it.
 
 > **Heads-up:** new Vercel projects return HTTP 401 to logged-out visitors by
@@ -380,8 +380,8 @@ For the full walkthrough, see [Build and deploy a GenBI app](../guides/genbi.md)
 After setup, your project directory looks like this:
 
 ```
-~/jaffle-wren/
-├── wren_project.yml
+~/jaffle-janus/
+├── janus_project.yml
 ├── models/
 │   ├── customers/
 │   │   └── metadata.yml        # table schema and descriptions
@@ -394,8 +394,8 @@ After setup, your project directory looks like this:
 ├── relationships.yml           # e.g. orders → customers (many_to_one)
 ├── knowledge/
 │   ├── rules/                  # your business rules
-│   └── sql/                    # confirmed NL→SQL pairs (wren memory store)
-├── .wren/
+│   └── sql/                    # confirmed NL→SQL pairs (janus memory store)
+├── .janus/
 │   └── memory/                 # LanceDB index (auto-managed)
 └── target/
     └── mdl.json                # compiled manifest
@@ -422,9 +422,9 @@ Key files to customize:
 After editing any file, rebuild and re-index:
 
 ```bash
-wren context validate
-wren context build
-wren memory index
+janus context validate
+janus context build
+janus memory index
 ```
 
 ---
@@ -433,19 +433,19 @@ wren memory index
 
 | Task | Command |
 |------|---------|
-| Run SQL | `wren --sql "SELECT ..." -o table` |
-| Preview planned SQL | `wren dry-plan --sql "SELECT ..."` |
-| Validate SQL | `wren dry-run --sql "SELECT ..."` |
-| Show project context | `wren context show` |
-| Show instructions | `wren context instructions` |
-| Build manifest | `wren context build` |
-| Fetch context for a question | `wren memory fetch --query "..."` |
-| Recall similar queries | `wren memory recall --query "..."` |
-| Store a NL-SQL pair | `wren memory store --nl "..." --sql "..."` |
-| Check memory status | `wren memory status` |
-| Re-index memory | `wren memory index` |
-| Switch profile | `wren profile switch <name>` |
-| List profiles | `wren profile list` |
+| Run SQL | `janus --sql "SELECT ..." -o table` |
+| Preview planned SQL | `janus dry-plan --sql "SELECT ..."` |
+| Validate SQL | `janus dry-run --sql "SELECT ..."` |
+| Show project context | `janus context show` |
+| Show instructions | `janus context instructions` |
+| Build manifest | `janus context build` |
+| Fetch context for a question | `janus memory fetch --query "..."` |
+| Recall similar queries | `janus memory recall --query "..."` |
+| Store a NL-SQL pair | `janus memory store --nl "..." --sql "..."` |
+| Check memory status | `janus memory status` |
+| Re-index memory | `janus memory index` |
+| Switch profile | `janus profile switch <name>` |
+| List profiles | `janus profile list` |
 
 ---
 

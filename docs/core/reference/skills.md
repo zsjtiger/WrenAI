@@ -1,27 +1,27 @@
 # Skills
 
-Wren AI ships **skills** — reusable AI agent workflow guides that teach
-Claude Code (or other AI coding agents) how to use the Wren CLI for
+Janus AI ships **skills** — reusable AI agent workflow guides that teach
+Claude Code (or other AI coding agents) how to use the Janus CLI for
 multi-step tasks. A skill is a structured markdown guide with a decision
 tree, agent-side rules, and references to deeper documentation.
 
 ## The new delivery model
 
-Earlier versions of Wren shipped each skill as a separate folder of
+Earlier versions of Janus shipped each skill as a separate folder of
 markdown installed into the agent's skill directory (`~/.claude/skills/`,
 Cursor `rules/`, etc.). That model had two recurring problems: the bundled
 markdown drifted from the installed CLI version, and the agent loaded all
 the content up-front whether it was needed or not.
 
-Since Wren `0.8`, skill content **lives inside the `wren` CLI** and is
+Since Janus `0.8`, skill content **lives inside the `janus` CLI** and is
 served on demand:
 
 - One ~50-line **discovery stub** is installed into your agent
-  (`skills/wren/SKILL.md`). It teaches the agent that workflow guides and
+  (`skills/janus/SKILL.md`). It teaches the agent that workflow guides and
   shaped prompts are fetched from the CLI.
-- The actual workflow guides live in the `wrenai` Python package and are
-  printed to stdout by `wren skills get <name>`.
-- Prompt templates are served the same way: `wren ask "<q>" --guided|--direct`.
+- The actual workflow guides live in the `janusai` Python package and are
+  printed to stdout by `janus skills get <name>`.
+- Prompt templates are served the same way: `janus ask "<q>" --guided|--direct`.
   Reference docs live on the web under
   [`docs/core/`](https://github.com/Canner/WrenAI/tree/main/docs/core).
 
@@ -32,19 +32,19 @@ always matches the installed CLI.
 
 | Skill | Fetch with | Purpose |
 |-------|-----------|---------|
-| **onboarding** | `wren skills get onboarding` | Entry point: environment checks, project scaffolding, profile setup, first query |
-| **usage** | `wren skills get usage` | Day-to-day workflow: gather schema context, recall past queries, write SQL, execute, store results |
-| **generate-mdl** | `wren skills get generate-mdl` | One-time setup: explore database schema, normalize types, scaffold MDL YAML project |
-| **enrich-context** | `wren skills get enrich-context` | Deepen business context the schema can't carry: enum/unit/null semantics, default filters, synonyms, currency rules, and named aggregation metrics as cubes — via grill or auto-pilot mode |
-| **dlt-connector** | `wren skills get dlt-connector` | Connect SaaS APIs (HubSpot, Stripe, Salesforce, GitHub, Slack, …) into DuckDB via dlt, then auto-generate a Wren project |
-| **genbi** | `wren skills get genbi` | Turn a project's context layer into a shareable, browser-side GenBI web app and deploy it to Vercel or Cloudflare Pages |
+| **onboarding** | `janus skills get onboarding` | Entry point: environment checks, project scaffolding, profile setup, first query |
+| **usage** | `janus skills get usage` | Day-to-day workflow: gather schema context, recall past queries, write SQL, execute, store results |
+| **generate-mdl** | `janus skills get generate-mdl` | One-time setup: explore database schema, normalize types, scaffold MDL YAML project |
+| **enrich-context** | `janus skills get enrich-context` | Deepen business context the schema can't carry: enum/unit/null semantics, default filters, synonyms, currency rules, and named aggregation metrics as cubes — via grill or auto-pilot mode |
+| **dlt-connector** | `janus skills get dlt-connector` | Connect SaaS APIs (HubSpot, Stripe, Salesforce, GitHub, Slack, …) into DuckDB via dlt, then auto-generate a Janus project |
+| **genbi** | `janus skills get genbi` | Turn a project's context layer into a shareable, browser-side GenBI web app and deploy it to Vercel or Cloudflare Pages |
 
-List them with `wren skills list`.
+List them with `janus skills list`.
 
 ## Installation
 
 ```bash
-pip install wrenai                       # core CLI (DuckDB included)
+pip install janusai                       # core CLI (DuckDB included)
 npx skills add Canner/WrenAI             # one-line discovery stub for your agent
 ```
 
@@ -54,27 +54,27 @@ at session start; from then on it pulls workflow guides on demand.
 
 ## How content is delivered
 
-The agent fetches guides using `wren skills get <name>`. The first call
+The agent fetches guides using `janus skills get <name>`. The first call
 returns the SKILL.md body — a focused workflow guide. When the agent
 needs more depth it can ask for:
 
 ```bash
-wren skills get <name> --full             # include the skill's references/ inline
-wren skills get <name> --script <stem>    # print a bundled script's source
+janus skills get <name> --full             # include the skill's references/ inline
+janus skills get <name> --script <stem>    # print a bundled script's source
 ```
 
 Shaped prompts are served the same way:
 
 ```bash
-wren ask "<question>" --guided            # for weaker LLMs
-wren ask "<question>" --direct            # for stronger LLMs
+janus ask "<question>" --guided            # for weaker LLMs
+janus ask "<question>" --direct            # for stronger LLMs
 ```
 
 Reference docs live on the web under
 [`docs/core/`](https://github.com/Canner/WrenAI/tree/main/docs/core).
 
 A bundled CI guard (`tests/unit/test_served_content_guard.py`) scans every
-`wren <cmd>` invocation in served skill content, reference docs, and ask
+`janus <cmd>` invocation in served skill content, reference docs, and ask
 templates against the real CLI command tree — so a guide can't tell an
 agent to run a command or flag that doesn't exist.
 
@@ -91,10 +91,10 @@ per turn, never ask for credentials in chat).
 ### Workflow
 
 ```text
-User says "install wren" / "set up wren"
+User says "install janus" / "set up janus"
   │
   ├── Preflight (read-only)
-  │     Python 3.11+, virtualenv, wren CLI, working dir
+  │     Python 3.11+, virtualenv, janus CLI, working dir
   │
   ├── Branch: bundled demo or own database?
   │     demo → quickstart guide, stop
@@ -104,20 +104,20 @@ User says "install wren" / "set up wren"
   │     (asked together, no credentials yet)
   │
   ├── Step 2. Project setup (batch)
-  │     mkdir, pip install, wren context init,
+  │     mkdir, pip install, janus context init,
   │     generate .env template via connector introspection
   │
   ├── Step 3. User fills .env in editor
   │     (agent never sees credential values)
   │
   ├── Step 4. Validate connection
-  │     wren profile debug
+  │     janus profile debug
   │
   ├── Step 5. Generate MDL
-  │     wren skills get generate-mdl
+  │     janus skills get generate-mdl
   │
   └── Step 6. First query
-        wren --sql "SELECT 1" (sanity)
+        janus --sql "SELECT 1" (sanity)
         then real query against generated MDL
 ```
 
@@ -127,17 +127,17 @@ User says "install wren" / "set up wren"
 |------|-----|
 | **One step per round-trip** | Avoids overwhelming the user; keeps each turn focused |
 | **Never ask for credentials in chat** | Host, port, user, password, tokens all go through `.env` only |
-| **Never invent connection field names** | Always run `wren docs connection-info <ds>` to introspect real fields |
+| **Never invent connection field names** | Always run `janus docs connection-info <ds>` to introspect real fields |
 | **Never query the database before MDL is built** | Forces the agent to scaffold a context layer first |
 
 ### When to trigger
 
 The discovery stub routes the agent here on phrases like:
 
-- "install wren"
-- "set up wren engine"
+- "install janus"
+- "set up janus engine"
 - "connect a new database"
-- "I want to start a Wren project"
+- "I want to start a Janus project"
 
 ### Reference docs (the skill points to these, never duplicates)
 
@@ -158,22 +158,22 @@ complete query lifecycle.
 User asks a question
   │
   ├── 1. Gather context
-  │     wren memory fetch -q "..."
-  │     wren context instructions      (first query only)
+  │     janus memory fetch -q "..."
+  │     janus context instructions      (first query only)
   │
   ├── 2. Recall past queries
-  │     wren memory recall -q "..." --limit 3
+  │     janus memory recall -q "..." --limit 3
   │
   ├── 3. Assess complexity
   │     Simple → write SQL directly
   │     Complex → decompose into sub-questions
   │
   ├── 4. Write and execute SQL
-  │     Simple: wren --sql "..."
-  │     Complex: wren dry-plan first, then execute
+  │     Simple: janus --sql "..."
+  │     Complex: janus dry-plan first, then execute
   │
   └── 5. Store result
-        wren memory store --nl "..." --sql "..."
+        janus memory store --nl "..." --sql "..."
 ```
 
 ### Error recovery
@@ -182,8 +182,8 @@ The skill includes a two-layer error diagnosis strategy:
 
 | Layer | Tool | Diagnoses |
 |-------|------|-----------|
-| **MDL-level** | `wren dry-plan` fails | Wrong model/column names, missing relationships |
-| **DB-level** | `wren dry-plan` succeeds but execution fails | Type mismatch, permissions, dialect issues |
+| **MDL-level** | `janus dry-plan` fails | Wrong model/column names, missing relationships |
+| **DB-level** | `janus dry-plan` succeeds but execution fails | Type mismatch, permissions, dialect issues |
 
 The agent checks `dry-plan` output first to isolate whether the error is
 in the context layer or the database.
@@ -192,17 +192,17 @@ in the context layer or the database.
 
 | Workflow | When |
 |----------|------|
-| **Connect new data source** | `wren profile add` → `wren context init` → build → index |
-| **After MDL changes** | `wren context validate` → `wren context build` → `wren memory index` |
+| **Connect new data source** | `janus profile add` → `janus context init` → build → index |
+| **After MDL changes** | `janus context validate` → `janus context build` → `janus memory index` |
 
 ### Reference files
 
-`wren skills get usage --full` inlines two reference documents:
+`janus skills get usage --full` inlines two reference documents:
 
 - **memory.md** — decision logic for when to `index`, `fetch`, `store`,
   and `recall`. Covers the hybrid retrieval strategy, store-by-default
   policy, and full lifecycle examples.
-- **wren-sql.md** — how the CTE-based rewrite pipeline works. Explains
+- **janus-sql.md** — how the CTE-based rewrite pipeline works. Explains
   how the engine injects model CTEs, what SQL features are supported,
   and how to use `dry-plan` to diagnose errors layer by layer.
 
@@ -237,7 +237,7 @@ semantics a schema can't express:
 | Column `properties.description` (prose + `[tag]` line) | enum value meanings, units (USD vs cents), NULL semantics, magic sentinels, time-grain / TZ conventions |
 | `instructions.md` (fixed `##` sections) | soft-delete default filters, business synonyms, cross-system identifiers, currency rules, canonical-table preferences |
 | `cubes/<name>/metadata.yml` | named aggregation metrics (ARR, churn, DAU) — proposed as cubes, the preferred aggregation primitive |
-| `queries.yml` / `wren memory store` | canonical and ad-hoc NL→SQL pairs |
+| `queries.yml` / `janus memory store` | canonical and ad-hoc NL→SQL pairs |
 
 ### When to trigger
 
@@ -251,7 +251,7 @@ The discovery stub routes the agent here on phrases like:
 
 ### Reference files
 
-`wren skills get enrich-context --full` inlines:
+`janus skills get enrich-context --full` inlines:
 
 - **gap_catalog.md** — the ten gap categories with triggers, default
   sinks, and the prose-first `[tag]` write format.
@@ -270,12 +270,12 @@ project from a live database.
 
 | Phase | Goal | Key actions |
 |-------|------|-------------|
-| **1. Connect** | Confirm database access | Test connection via SQLAlchemy, driver, or `wren profile debug` |
+| **1. Connect** | Confirm database access | Test connection via SQLAlchemy, driver, or `janus profile debug` |
 | **2. Discover** | Collect schema metadata | Introspect tables, columns, types, foreign keys |
-| **3. Normalize** | Convert types | `wren utils parse-type` or Python `parse_type()` |
-| **4. Scaffold** | Write YAML project | `wren context init`, create model files, relationships |
-| **5. Validate** | Check integrity | `wren context validate` → `wren context build` |
-| **6. Index** | Initialize memory | `wren memory index` |
+| **3. Normalize** | Convert types | `janus utils parse-type` or Python `parse_type()` |
+| **4. Scaffold** | Write YAML project | `janus context init`, create model files, relationships |
+| **5. Validate** | Check integrity | `janus context validate` → `janus context build` |
+| **6. Index** | Initialize memory | `janus memory index` |
 | **7. Iterate** | Refine with user | Add descriptions, calculated columns, views |
 
 ### Schema discovery methods
@@ -286,7 +286,7 @@ The skill is tool-agnostic — it uses whatever database access the agent has:
 |--------|----------|
 | **SQLAlchemy** `inspect()` | Most databases — richest metadata (PKs, FKs, types) |
 | **Database driver** | When SQLAlchemy is unavailable — query `information_schema` directly |
-| **Raw SQL via wren** | Bootstrapping when no Python driver is installed |
+| **Raw SQL via janus** | Bootstrapping when no Python driver is installed |
 
 ### Type normalization
 
@@ -294,17 +294,17 @@ Raw database types must be normalized before use in MDL:
 
 ```bash
 # Single type
-wren utils parse-type --type "character varying(255)" --dialect postgres
+janus utils parse-type --type "character varying(255)" --dialect postgres
 # → VARCHAR(255)
 
 # Batch (stdin JSON)
-echo '[{"column":"id","raw_type":"int8"}]' | wren utils parse-types --dialect postgres
+echo '[{"column":"id","raw_type":"int8"}]' | janus utils parse-types --dialect postgres
 ```
 
 Or via Python:
 
 ```python
-from wren.type_mapping import parse_type
+from janus.type_mapping import parse_type
 normalized = parse_type("character varying(255)", "postgres")  # → "VARCHAR(255)"
 ```
 
@@ -315,15 +315,15 @@ normalized = parse_type("character varying(255)", "postgres")  # → "VARCHAR(25
 A specialized skill for users who want to query SaaS data (HubSpot,
 Stripe, Salesforce, GitHub, Slack, …) with SQL. It chains a
 [dlt](https://dlthub.com) extraction pipeline into DuckDB with
-auto-generation of a Wren project on top.
+auto-generation of a Janus project on top.
 
 ### Four-phase workflow
 
 | Phase | Goal | Key actions |
 |-------|------|-------------|
 | **1. Extract** | Pull SaaS data into local DuckDB | `pip install "dlt[duckdb]"`, write a small `pipeline.py`, set source credentials, run `pipeline.run(source)` |
-| **2. Model** | Auto-generate a Wren project | Run the bundled `introspect_dlt` script to scan DuckDB, normalize types via `wren.type_mapping.parse_type()`, write models, relationships, profile |
-| **3. Build & Verify** | Confirm queries work end-to-end | `wren context build`, `wren memory index`, run sample SQL through the engine — not just file generation |
+| **2. Model** | Auto-generate a Janus project | Run the bundled `introspect_dlt` script to scan DuckDB, normalize types via `janus.type_mapping.parse_type()`, write models, relationships, profile |
+| **3. Build & Verify** | Confirm queries work end-to-end | `janus context build`, `janus memory index`, run sample SQL through the engine — not just file generation |
 | **4. Handoff** | Show first results | Run a couple of representative queries and surface them to the user |
 
 The user can enter at any phase. If they already have a `.duckdb` file
@@ -332,19 +332,19 @@ from a prior dlt run, the skill can start from Phase 2.
 The introspection script is fetched separately rather than inlined:
 
 ```bash
-wren skills get dlt-connector --script introspect_dlt > introspect_dlt.py
+janus skills get dlt-connector --script introspect_dlt > introspect_dlt.py
 python introspect_dlt.py --duckdb-path ./pipeline.duckdb --output-dir ./project
 ```
 
 ### Two non-negotiable invariants
 
-1. **DuckDB catalog naming** — when Wren AI `ATTACH`es a `.duckdb` file,
+1. **DuckDB catalog naming** — when Janus AI `ATTACH`es a `.duckdb` file,
    it uses the filename stem as the catalog alias. So every model's
    `table_reference.catalog` **must equal the filename stem**.
    `stripe_data.duckdb` → catalog `stripe_data`. The bundled
    `introspect_dlt` script handles this automatically — never override.
-2. **Type normalization through wren SDK** — column types must go through
-   `wren.type_mapping.parse_type()` (sqlglot-based). Don't hardcode
+2. **Type normalization through janus SDK** — column types must go through
+   `janus.type_mapping.parse_type()` (sqlglot-based). Don't hardcode
    mappings; DuckDB-specific types like `HUGEINT` or `TIMESTAMP WITH
    TIME ZONE` need canonical conversion.
 
@@ -356,7 +356,7 @@ The discovery stub routes the agent here on phrases like:
 - "load data from a SaaS API"
 - "import data from a REST API"
 - "set up a dlt pipeline"
-- "I have a `.duckdb` file from dlt — make a Wren project from it"
+- "I have a `.duckdb` file from dlt — make a Janus project from it"
 
 ### Source coverage
 
@@ -370,25 +370,25 @@ before improvising.
 ## genbi
 
 Turns a project's context layer into a shareable, browser-side GenBI web
-app (powered by `wren-core-wasm`) and deploys it to Vercel or Cloudflare
+app (powered by `janus-core-wasm`) and deploys it to Vercel or Cloudflare
 Pages — from a natural-language request to a public URL in one conversation.
-Full command reference: [`wren genbi`](cli.md#wren-genbi--build--deploy-genbi-apps).
+Full command reference: [`janus genbi`](cli.md#janus-genbi--build--deploy-genbi-apps).
 
 ### CLI ↔ agent split
 
 The CLI owns the authoritative build instruction and all deterministic state
 (the app index, verify, deploy); the agent authors the app code by following
-the instruction. `.wren/apps.yml` is only ever written by the CLI.
+the instruction. `.janus/apps.yml` is only ever written by the CLI.
 
 ### Workflow
 
 | Step | Goal | Key actions |
 |------|------|-------------|
-| **1. Build** | Get the authoritative build instruction | `wren genbi build <name> --prompt "…" --data-mode snapshot\|live` — prints wasm wiring (pinned version), the model/column inventory, acceptance criteria, target folder |
+| **1. Build** | Get the authoritative build instruction | `janus genbi build <name> --prompt "…" --data-mode snapshot\|live` — prints wasm wiring (pinned version), the model/column inventory, acceptance criteria, target folder |
 | **2. Author** | Write the app | Agent writes `apps/<name>/` per the instruction; copies in `mdl.json`; exports the snapshot data to `data/*.parquet` (DuckDB-backed projects — incl. dlt output — export trivially) |
-| **3. Register & verify** | Record + preflight | `wren genbi register <name> --data-mode <mode>`, then `wren genbi verify <name>` (files, parseable MDL, snapshot asset, default-deny secret scan) |
-| **4. Preview** | Local check | `wren genbi open <name>` serves the app for local review |
-| **5. Deploy** | Ship a URL | `wren genbi deploy <name> --provider vercel\|cloudflare [--prod]` — preview by default; confirm before `--prod` |
+| **3. Register & verify** | Record + preflight | `janus genbi register <name> --data-mode <mode>`, then `janus genbi verify <name>` (files, parseable MDL, snapshot asset, default-deny secret scan) |
+| **4. Preview** | Local check | `janus genbi open <name>` serves the app for local review |
+| **5. Deploy** | Ship a URL | `janus genbi deploy <name> --provider vercel\|cloudflare [--prod]` — preview by default; confirm before `--prod` |
 
 ### Data modes
 
@@ -412,7 +412,7 @@ the instruction. `.wren/apps.yml` is only ever written by the CLI.
 
 The discovery stub routes the agent here on phrases like:
 
-- "build a dashboard from my Wren project"
+- "build a dashboard from my Janus project"
 - "make a shareable analytics app"
 - "deploy my context layer as a web app"
 - "host a GenBI app on Vercel / Cloudflare Pages"
@@ -427,17 +427,17 @@ first — its DuckDB output is exactly the snapshot source `genbi` bundles.
 ## Skill bundle layout
 
 Inside the wheel, each skill is a directory under
-`src/wren/skills_content/`:
+`src/janus/skills_content/`:
 
 ```text
-src/wren/skills_content/
+src/janus/skills_content/
 ├── onboarding/
 │   └── SKILL.md
 ├── usage/
 │   ├── SKILL.md
 │   └── references/
 │       ├── memory.md
-│       └── wren-sql.md
+│       └── janus-sql.md
 ├── generate-mdl/
 │   └── SKILL.md
 ├── enrich-context/
@@ -454,8 +454,8 @@ src/wren/skills_content/
 ```
 
 Each `SKILL.md` has YAML frontmatter with name, description, and license.
-`wren skills get <name>` prints `SKILL.md`; `--full` appends every
+`janus skills get <name>` prints `SKILL.md`; `--full` appends every
 `references/*.md` in sorted order; `--script <stem>` prints a single file
-from `scripts/`. The skill bundle is shipped inside the `wrenai` wheel
+from `scripts/`. The skill bundle is shipped inside the `janusai` wheel
 via Hatchling's `[tool.hatch.build.targets.wheel] artifacts` glob, so a
-fresh `pip install wrenai` always carries matching skill content.
+fresh `pip install janusai` always carries matching skill content.

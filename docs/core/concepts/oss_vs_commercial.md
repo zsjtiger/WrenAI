@@ -4,9 +4,9 @@ sidebar_label: Open source vs Commercial
 
 # Open source vs Commercial
 
-Wren AI open source is the full engine: free, self-hosted, and driven by one engineer or agent through the CLI and SDK.
+Janus AI open source is the full engine: free, self-hosted, and driven by one engineer or agent through the CLI and SDK.
 
-Wren AI Commercial is the same engine built for a team. It runs as a hosted cloud service or as a self-hosted enterprise deployment, and it adds a web UI, accounts, managed access control, integrations, and support. Full overview: [Wren AI Commercial](/cp/overview).
+Janus AI Commercial is the same engine built for a team. It runs as a hosted cloud service or as a self-hosted enterprise deployment, and it adds a web UI, accounts, managed access control, integrations, and support. Full overview: [Janus AI Commercial](/cp/overview).
 
 ## Which one fits
 
@@ -47,4 +47,4 @@ Open source is the full engine. Commercial adds the team layer on top:
 
 ## Talk to us
 
-See [Wren AI Commercial](/cp/overview) for details and to reach the team. Open source stays first-class either way.
+See [Janus AI Commercial](/cp/overview) for details and to reach the team. Open source stays first-class either way.

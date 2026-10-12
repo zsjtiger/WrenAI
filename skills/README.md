@@ -1,10 +1,10 @@
-# Wren Engine — Agent Skill Distribution
+# Janus Engine — Agent Skill Distribution
 
 The actual skill content (workflow guides, reference docs, prompt helpers)
-**lives inside the `wren` CLI**. This directory ships a single discovery stub
+**lives inside the `janus` CLI**. This directory ships a single discovery stub
 that an AI client installs once; the stub then tells the agent to fetch
 everything else from the CLI at runtime (so content always matches the
-installed wrenai version).
+installed janusai version).
 
 See [`SKILLS.md`](SKILLS.md) for the full design and command surface.
 
@@ -13,7 +13,7 @@ See [`SKILLS.md`](SKILLS.md) for the full design and command surface.
 ### The CLI itself (where all skill content lives)
 
 ```bash
-pip install wrenai
+pip install janusai
 ```
 
 ### The discovery stub (so an AI client knows the CLI exists)
@@ -22,7 +22,7 @@ pip install wrenai
 
 ```text
 /plugin marketplace add Canner/WrenAI --path skills
-/plugin install wren@wren
+/plugin install janus@janus
 ```
 
 #### Option 2 — `npx skills`
@@ -43,17 +43,17 @@ bash skills/install.sh --force         # overwrite existing
 
 ## What the agent does with the stub
 
-Once installed, the agent reads `wren/SKILL.md` and learns to call:
+Once installed, the agent reads `janus/SKILL.md` and learns to call:
 
 ```bash
-wren skills list                        # discover workflow guides
-wren skills get onboarding              # fetch a guide (one of 5 names)
-wren docs connection-info <ds>          # connection fields for a data source
-wren ask "<question>" --guided|--direct # wrap a prompt for an agent
+janus skills list                        # discover workflow guides
+janus skills get onboarding              # fetch a guide (one of 5 names)
+janus docs connection-info <ds>          # connection fields for a data source
+janus ask "<question>" --guided|--direct # wrap a prompt for an agent
 ```
 
 ## Requirements
 
-- `wren` CLI installed (`pip install wrenai` or `pip install "wrenai[<extras>]"`)
-- A database connection (configured via `wren profile add`)
+- `janus` CLI installed (`pip install janusai` or `pip install "janusai[<extras>]"`)
+- A database connection (configured via `janus profile add`)
 - An AI client that supports skills (Claude Code, Cursor, Cline, etc.)

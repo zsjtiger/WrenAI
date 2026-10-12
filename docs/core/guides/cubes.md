@@ -9,7 +9,7 @@ Cubes are pre-aggregated semantic objects: a base model or view plus declared me
 ## What you'll end up with
 
 - A `cubes/<name>/metadata.yml` per cube, declaring its measures and dimensions
-- A queryable cube name in MDL — `wren cube query --cube revenue --measures total --time-dimension "order_date:month"`
+- A queryable cube name in MDL — `janus cube query --cube revenue --measures total --time-dimension "order_date:month"`
 - An agent that picks structured cube queries instead of inventing aggregation SQL
 
 ## Why this primitive matters
@@ -59,10 +59,10 @@ See the [MDL schema reference](/oss/reference/mdl) for every cube field.
 
 ## Query a cube
 
-The `wren cube query` CLI takes a structured input:
+The `janus cube query` CLI takes a structured input:
 
 ```bash
-wren cube query \
+janus cube query \
   --cube revenue \
   --measures total,order_count \
   --dimensions status \
@@ -72,7 +72,7 @@ wren cube query \
 
 `--time-dimension` takes `<name>:<granularity>`, and `--filter` takes
 `<dimension>:<operator>:<value>`. See the
-[CLI reference](/oss/reference/cli#wren-cube--pre-aggregation-queries) for the
+[CLI reference](/oss/reference/cli#janus-cube--pre-aggregation-queries) for the
 full list of granularities and filter operators.
 
 No hand-written `GROUP BY`. No `DATE_TRUNC`. No join inference.
@@ -102,5 +102,5 @@ Do **not** add a cube when:
 ## See also
 
 - [MDL schema reference](/oss/reference/mdl) — full cube field reference, including hierarchies and pre-aggregations
-- [How does Wren AI keep agents from hallucinating?](/oss/concepts/correctness) — why cubes matter as a correctness primitive
+- [How does Janus AI keep agents from hallucinating?](/oss/concepts/correctness) — why cubes matter as a correctness primitive
 - [Model your business](./model.md) — the modeling step that precedes cubes

@@ -19,7 +19,7 @@ jobs:
     if: ${{ github.repository == 'Canner/WrenAI' }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout WrenAI
+      - name: Checkout JanusAI
         uses: actions/checkout@v4
 
       - name: Checkout doc website
@@ -68,9 +68,9 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git checkout -b "${BRANCH}"
           git add -A
-          git commit -m "docs: sync from WrenAI@${GITHUB_SHA::8}"
+          git commit -m "docs: sync from JanusAI@${GITHUB_SHA::8}"
           git push origin "${BRANCH}"
           gh pr create \
-            --title "docs: sync Wren AI Core docs from WrenAI" \
-            --body "Auto-synced from [WrenAI@\`${GITHUB_SHA::8}\`](https://github.com/Canner/WrenAI/commit/${GITHUB_SHA})." \
+            --title "docs: sync Janus AI Core docs from JanusAI" \
+            --body "Auto-synced from [JanusAI@\`${GITHUB_SHA::8}\`](https://github.com/Canner/WrenAI/commit/${GITHUB_SHA})." \
             --base "${{ vars.DOCS_REPO_BRANCH }}"

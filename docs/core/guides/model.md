@@ -8,7 +8,7 @@ Turn your warehouse schema into an agent-readable MDL project that captures your
 
 ## What you'll end up with
 
-- A Wren project directory with `wren_project.yml`, `models/`, `views/`, `relationships.yml`, and `knowledge/`
+- A Janus project directory with `janus_project.yml`, `models/`, `views/`, `relationships.yml`, and `knowledge/`
 - A compiled `target/mdl.json` ready for the engine
 - A memory index over the modeled schema, so agents can fetch relevant context per question
 - A first query that runs through MDL, not against raw tables
@@ -17,16 +17,16 @@ Turn your warehouse schema into an agent-readable MDL project that captures your
 
 1. **Connect your data source.** See [Connect your data](./connect.md) for profile setup.
 2. **Open your agent in a fresh project directory and ask:**
-   > Use the `/wren` skill to scaffold an MDL project for this database.
+   > Use the `/janus` skill to scaffold an MDL project for this database.
 3. **Review the scaffold.** The agent introspects schema, normalizes types, detects relationships, and writes one model per table. It will ask one focused question whenever it cannot decide alone: naming, canonical tables, ambiguous foreign keys.
 4. **Build and index.** The skill finishes with:
    ```bash
-   wren context build
-   wren memory index
+   janus context build
+   janus memory index
    ```
 5. **Run a first modeled query.**
    ```bash
-   wren --sql "SELECT * FROM customers LIMIT 5"
+   janus --sql "SELECT * FROM customers LIMIT 5"
    ```
 
 ## What scaffolding gives you
@@ -34,7 +34,7 @@ Turn your warehouse schema into an agent-readable MDL project that captures your
 The first pass is rough but functional. The agent produces:
 
 - **One model per physical table** with explicit column declarations (no `SELECT *` ambiguity)
-- **Type normalization** through `wren utils parse-type` so the manifest types are canonical
+- **Type normalization** through `janus utils parse-type` so the manifest types are canonical
 - **Primary keys and relationships** inferred from foreign-key metadata where the connector exposes them
 - **An empty `knowledge/` base** for you to fill with business rules (`knowledge/rules/`)
 
@@ -65,8 +65,8 @@ Once you have a baseline, add depth incrementally:
 Each time you edit, rebuild and re-index:
 
 ```bash
-wren context build
-wren memory index
+janus context build
+janus memory index
 ```
 
 ## When to come back here

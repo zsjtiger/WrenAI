@@ -1,12 +1,12 @@
-# Wren AI Core Documentation
+# Janus AI Core Documentation
 
-This directory is the **single source of truth** for Wren AI Core docs published at [docs.getwren.ai](https://docs.getwren.ai/oss/introduction).
+This directory is the **single source of truth** for Janus AI Core docs published at [docs.getwren.ai](https://docs.getwren.ai/oss/introduction).
 
 Changes merged to `main` are automatically synced to the doc website via GitHub Actions (`.github/workflows/sync-docs.yml`). The sync is **additive overlay** — files are copied and overwritten, but nothing is deleted automatically; stale files left behind by source-side renames or deletions must be cleaned up manually in the docs site repo.
 
 ## Overview
 
-- [Introduction](introduction.mdx) — what Wren AI Core is, problem it solves, core ideas
+- [Introduction](introduction.mdx) — what Janus AI Core is, problem it solves, core ideas
 
 ## Get Started
 
@@ -24,7 +24,7 @@ Changes merged to `main` are automatically synced to the doc website via GitHub 
 ## Guides
 
 - [Data Modeling Overview](guides/modeling/overview.md)
-- [Wren Project Structure](guides/modeling/wren_project.md)
+- [Janus Project Structure](guides/modeling/janus_project.md)
 - [Models](guides/modeling/model.md)
 - [Relations](guides/modeling/relation.md)
 - [Views](guides/modeling/view.md)

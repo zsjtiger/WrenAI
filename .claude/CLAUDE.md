@@ -4,32 +4,32 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Wren is an open-source semantic engine for MCP clients and AI agents. It translates SQL queries through a semantic layer (MDL — Modeling Definition Language) and executes them against 22+ data sources (PostgreSQL, BigQuery, Snowflake, Spark, etc.). The Rust engine is powered by Apache DataFusion (upstream, crates.io v55).
+Janus is an open-source semantic engine for MCP clients and AI agents. It translates SQL queries through a semantic layer (MDL — Modeling Definition Language) and executes them against 22+ data sources (PostgreSQL, BigQuery, Snowflake, Spark, etc.). The Rust engine is powered by Apache DataFusion (upstream, crates.io v55).
 
-The previous WrenAI services (`wren-ui/`, `wren-ai-service/`, `wren-launcher/`, `docker/`, `deployment/`) were moved to the `legacy/v1` branch (tag `v1-final`) as of the wren-engine import. Active development is focused on the Open Context Engine.
+The previous JanusAI services (`janus-ui/`, `janus-ai-service/`, `janus-launcher/`, `docker/`, `deployment/`) were moved to the `legacy/v1` branch (tag `v1-final`) as of the janus-engine import. Active development is focused on the Open Context Engine.
 
 ## Repository Structure
 
 ```
 core/
-├── wren-core/        Rust semantic engine (Cargo workspace; crates.io: wren-semantic-core, lib name wren_core)
-├── wren-core-base/   Shared Rust crate — manifest types (Model, Column, Metric, Relationship, View) + ManifestBuilder (crates.io: wren-core-base)
-├── wren-core-py/     PyO3 bindings exposing wren-core to Python (PyPI: wren-core)
-├── wren-core-wasm/   WebAssembly build of wren-core for in-browser semantic SQL (npm: wren-core-wasm)
-├── wren/             Python SDK and CLI — `wren` command, profile/context/memory management (PyPI: wrenai)
-└── wren-mdl/         MDL JSON schema definition
+├── janus-core/        Rust semantic engine (Cargo workspace; crates.io: janus-semantic-core, lib name janus_core)
+├── janus-core-base/   Shared Rust crate — manifest types (Model, Column, Metric, Relationship, View) + ManifestBuilder (crates.io: janus-core-base)
+├── janus-core-py/     PyO3 bindings exposing janus-core to Python (PyPI: janus-core)
+├── janus-core-wasm/   WebAssembly build of janus-core for in-browser semantic SQL (npm: janus-core-wasm)
+├── janus/             Python SDK and CLI — `janus` command, profile/context/memory management (PyPI: janusai)
+└── janus-mdl/         MDL JSON schema definition
 
 docs/core/            Module documentation
 examples/             Example projects (placeholder — to be populated)
-skills/               CLI-based agent skills (wren-generate-mdl, wren-usage, wren-dlt-connector, wren-onboarding)
+skills/               CLI-based agent skills (janus-generate-mdl, janus-usage, janus-dlt-connector, janus-onboarding)
 scripts/              Repo helper scripts
 ```
 
 ## Build & Development Commands
 
-### core/wren-core (Rust)
+### core/janus-core (Rust)
 ```bash
-cd core/wren-core
+cd core/janus-core
 cargo check --all-targets                                  # compile check
 cargo test --lib --tests --bins                            # tests (set RUST_MIN_STACK=8388608)
 cargo fmt --all                                            # format
@@ -37,11 +37,11 @@ cargo clippy --all-targets --all-features -- -D warnings   # lint
 taplo fmt                                                  # format Cargo.toml files
 ```
 
-Most unit tests live in `core/wren-core/core/src/mdl/mod.rs`. SQL end-to-end tests use sqllogictest files in `core/wren-core/sqllogictest/test_files/`.
+Most unit tests live in `core/janus-core/core/src/mdl/mod.rs`. SQL end-to-end tests use sqllogictest files in `core/janus-core/sqllogictest/test_files/`.
 
-### core/wren-core-py (Python bindings)
+### core/janus-core-py (Python bindings)
 ```bash
-cd core/wren-core-py
+cd core/janus-core-py
 just install      # uv sync (deps only; --no-install-project)
 just develop      # build dev wheel with maturin
 just test-rs      # Rust tests (cargo test --no-default-features)
@@ -50,24 +50,24 @@ just test         # both
 just format       # cargo fmt + ruff + taplo
 ```
 
-### core/wren-core-wasm (WASM)
+### core/janus-core-wasm (WASM)
 ```bash
-cd core/wren-core-wasm
+cd core/janus-core-wasm
 just build        # wasm-pack build (browser target)
 just test         # wasm-pack test
 ```
 Outputs a ~68 MB WASM binary; distributed via npm and unpkg (jsDelivr's 50 MB per-file CDN limit blocks it).
 
-### core/wren (SDK & CLI)
+### core/janus (SDK & CLI)
 ```bash
-cd core/wren
-just install              # uv sync (locked prebuilt wren-core-py wheel from PyPI; no Rust build)
+cd core/janus
+just install              # uv sync (locked prebuilt janus-core-py wheel from PyPI; no Rust build)
 just install-all          # with all optional extras (incl. memory)
 just install-extra <e>    # e.g. just install-extra postgres
 just install-memory       # memory extra (lancedb + sentence-transformers)
 just install-local        # engine dev: uv sync + build local wheel + overlay
 just use-local-core       # rebuild + re-overlay after Rust changes
-just dev                  # run `wren` CLI
+just dev                  # run `janus` CLI
 just test                 # pytest tests/
 just test-memory          # memory-specific tests
 just lint                 # ruff format --check + ruff check
@@ -81,8 +81,8 @@ Uses `uv` (not Poetry). `pyproject.toml` uses `hatchling` as build backend. Opti
 
 ```
 SQL query
-  → wren CLI / wren-core-py
-  → wren-core (Rust): MDL analysis → logical plan → optimization
+  → janus CLI / janus-core-py
+  → janus-core (Rust): MDL analysis → logical plan → optimization
   → DataFusion (query planning, upstream crates.io v55)
   → connector-specific SQL (Ibis / sqlglot)
   → native execution on the target data source
@@ -90,18 +90,18 @@ SQL query
 
 ## Key Architecture Details
 
-**wren-core internals** (`core/wren-core/core/src/`):
-- `mdl/` — Core MDL processing: `WrenMDL` (manifest + symbol table), `AnalyzedWrenMDL` (with lineage), function definitions per dialect (scalar/aggregate/window), type planning
+**janus-core internals** (`core/janus-core/core/src/`):
+- `mdl/` — Core MDL processing: `JanusMDL` (manifest + symbol table), `AnalyzedJanusMDL` (with lineage), function definitions per dialect (scalar/aggregate/window), type planning
 - `logical_plan/analyze/` — DataFusion analyzer rules: `ModelAnalyzeRule` (TableScan → ModelPlanNode), scope tracking, access control (RLAC/CLAC), view expansion, relationship chain resolution
 - `logical_plan/optimize/` — Optimization passes: type coercion, timestamp simplification
 - `sql/` — SQL parsing and analysis
 
-**Manifest types** (`core/wren-core-base/src/mdl/`):
+**Manifest types** (`core/janus-core-base/src/mdl/`):
 - `manifest.rs` — `Manifest`, `Model`, `Column`, `Metric`, `Relationship`, `View`, `RowLevelAccessControl`, `ColumnLevelAccessControl`
 - `builder.rs` — Fluent `ManifestBuilder` API
-- Uses `wren-manifest-macro` for auto-generating Pydantic-compatible Python classes
+- Uses `janus-manifest-macro` for auto-generating Pydantic-compatible Python classes
 
-## Known wren-core Limitations
+## Known janus-core Limitations
 
 **ModelAnalyzeRule — correlated subquery column resolution**: cannot resolve outer column references inside correlated subqueries; only sees the subquery's own table scope. Affects TPCH Q2, Q4, Q15, Q17, Q20, Q21, Q22.
 
@@ -109,9 +109,9 @@ SQL query
 
 - **Commits**: Conventional commits (`feat:`, `fix:`, `chore:`, `refactor:`, `test:`, `docs:`, `perf:`, `deps:`). Releases are automated via release-please with independent release lines per module.
 - **Rust**: format with `cargo fmt`, lint with `clippy -D warnings`, TOML with `taplo`.
-- **Python**: format and lint with `ruff` (line-length 88, target Python 3.11). Both `core/wren-core-py` and `core/wren` use uv.
+- **Python**: format and lint with `ruff` (line-length 88, target Python 3.11). Both `core/janus-core-py` and `core/janus` use uv.
 - **DataFusion**: upstream `datafusion` v55 from crates.io (no longer the Canner fork).
-- **Snapshot testing**: wren-core uses `insta` for Rust snapshot tests.
+- **Snapshot testing**: janus-core uses `insta` for Rust snapshot tests.
 - **CI**: Per-module path-filtered workflows trigger only on changes inside that module.
 
 ## Contribution Bar
@@ -128,7 +128,7 @@ incoming PRs fail them; a PR that violates one will be closed rather than iterat
   have turned out to be false when tested.
 - **Do not add a guard for a state you have not shown to be reachable.** Trace the call
   path and say in the description how the bad value gets there. Where the repo already
-  validates (see "Validation boundaries" in `core/wren/.claude/CLAUDE.md`), re-validating
+  validates (see "Validation boundaries" in `core/janus/.claude/CLAUDE.md`), re-validating
   downstream is dead code.
 - If you cannot reproduce a failure, you have a hypothesis, not a bug. **Open an issue
   with the reproduction attempt, not a PR.**

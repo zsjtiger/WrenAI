@@ -1,4 +1,4 @@
-name: wren-pydantic CI
+name: janus-pydantic CI
 
 # Trigger sources are controlled events (pull_request, push to main,
 # workflow_dispatch). No untrusted issue / comment / external payload is
@@ -13,13 +13,13 @@ permissions:
 on:
   pull_request:
     paths:
-      - 'sdk/wren-pydantic/**'
+      - 'sdk/janus-pydantic/**'
       - '.github/workflows/sdk-pydantic-ci.yml'
   push:
     branches:
       - main
     paths:
-      - 'sdk/wren-pydantic/**'
+      - 'sdk/janus-pydantic/**'
       - '.github/workflows/sdk-pydantic-ci.yml'
   workflow_dispatch:
 
@@ -29,7 +29,7 @@ concurrency:
 
 defaults:
   run:
-    working-directory: sdk/wren-pydantic
+    working-directory: sdk/janus-pydantic
 
 jobs:
   lint:
@@ -87,10 +87,10 @@ jobs:
       - name: Verify LICENSE bundled in wheel
         run: |
           set -euo pipefail
-          unzip -l dist/wren_pydantic-*.whl | grep -q "dist-info/licenses/LICENSE"
+          unzip -l dist/janus_pydantic-*.whl | grep -q "dist-info/licenses/LICENSE"
           echo "LICENSE present in wheel"
       - name: Upload distributions
         uses: actions/upload-artifact@v4
         with:
-          name: wren-pydantic-dist
-          path: sdk/wren-pydantic/dist/
+          name: janus-pydantic-dist
+          path: sdk/janus-pydantic/dist/

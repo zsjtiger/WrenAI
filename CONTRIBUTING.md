@@ -1,4 +1,4 @@
-# Contributing to WrenAI
+# Contributing to JanusAI
 
 Thanks for your interest in contributing. Pull requests, bug reports, and discussion are all welcome.
 
@@ -14,18 +14,18 @@ Each module under `core/` has its own dev setup. Start with the module's own `RE
 
 | Module | Entry point | Stack |
 |---|---|---|
-| [`core/wren-core/`](./core/wren-core) | `cargo check && cargo test` | Rust + DataFusion |
-| [`core/wren-core-base/`](./core/wren-core-base) | `cargo test` | Rust |
-| [`core/wren-core-py/`](./core/wren-core-py) | `just install && just test` | PyO3 + Maturin |
-| [`core/wren-core-wasm/`](./core/wren-core-wasm) | `just build && just test` | wasm-pack |
-| [`core/wren/`](./core/wren) | `just install && just test` | Python + uv |
+| [`core/janus-core/`](./core/janus-core) | `cargo check && cargo test` | Rust + DataFusion |
+| [`core/janus-core-base/`](./core/janus-core-base) | `cargo test` | Rust |
+| [`core/janus-core-py/`](./core/janus-core-py) | `just install && just test` | PyO3 + Maturin |
+| [`core/janus-core-wasm/`](./core/janus-core-wasm) | `just build && just test` | wasm-pack |
+| [`core/janus/`](./core/janus) | `just install && just test` | Python + uv |
 | [`skills/`](./skills) | See `skills/AUTHORING.md` | CLI skill authoring |
 
 ## Conventions
 
 - **Commit messages**: [conventional commits](https://www.conventionalcommits.org/) (`feat:`, `fix:`, `chore:`, `refactor:`, `test:`, `docs:`, `perf:`, `deps:`). Releases are automated via release-please with independent release lines per module.
 - **Rust**: format with `cargo fmt`, lint with `clippy -D warnings`, format `Cargo.toml` with `taplo`.
-- **Python**: format and lint with `ruff` (line length 88, target Python 3.11). Both `core/wren-core-py` and `core/wren` use `uv`.
+- **Python**: format and lint with `ruff` (line length 88, target Python 3.11). Both `core/janus-core-py` and `core/janus` use `uv`.
 - **Tests** must pass and lint must be clean before review. CI is path-filtered per module.
 
 ## Licensing of contributions

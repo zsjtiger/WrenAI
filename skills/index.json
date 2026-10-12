@@ -1,15 +1,15 @@
 {
-  "name": "wrenai",
-  "description": "Discovery stub for the Wren AI agent skill bundle. The actual workflow guides and prompt helpers live inside the wren CLI (`pip install wrenai`) and are served by `wren skills get` / `wren ask`.",
-  "homepage": "https://wren.ai",
+  "name": "janusai",
+  "description": "Discovery stub for the Janus AI agent skill bundle. The actual workflow guides and prompt helpers live inside the janus CLI (`pip install janusai`) and are served by `janus skills get` / `janus ask`.",
+  "homepage": "https://janus.ai",
   "repository": "https://github.com/Canner/WrenAI",
   "license": "Apache-2.0",
   "skills": [
     {
-      "name": "wren",
-      "description": "Wren CLI discovery stub. The actual workflow guides live inside the wren CLI; this stub teaches an AI agent to call `wren skills list`, `wren skills get <name>`, and `wren ask <prompt> --guided|--direct`. Use whenever the user asks a data question, wants to install / set up Wren Engine, connect a new database, load SaaS data via dlt, generate or regenerate an MDL project, enrich a project with business context, or build & deploy a shareable GenBI web app / dashboard from a project's semantic layer (Vercel / Cloudflare).",
+      "name": "janus",
+      "description": "Janus CLI discovery stub. The actual workflow guides live inside the janus CLI; this stub teaches an AI agent to call `janus skills list`, `janus skills get <name>`, and `janus ask <prompt> --guided|--direct`. Use whenever the user asks a data question, wants to install / set up Janus Engine, connect a new database, load SaaS data via dlt, generate or regenerate an MDL project, enrich a project with business context, or build & deploy a shareable GenBI web app / dashboard from a project's semantic layer (Vercel / Cloudflare).",
       "tags": [
-        "wren",
+        "janus",
         "discovery-stub",
         "cli",
         "sql",

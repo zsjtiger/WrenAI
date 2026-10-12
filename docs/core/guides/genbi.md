@@ -5,24 +5,24 @@ sidebar_label: Build & deploy a GenBI app
 # Build & deploy a GenBI app
 
 GenBI turns your project's context layer into a shareable, browser-side
-dashboard, powered by [`wren-core-wasm`](../sdk/wasm.md), and ships it to your
-own Vercel or Cloudflare Pages account. You never type the `wren genbi`
+dashboard, powered by [`janus-core-wasm`](../sdk/wasm.md), and ships it to your
+own Vercel or Cloudflare Pages account. You never type the `janus genbi`
 commands yourself: you describe the dashboard you want in plain language, and
 your agent drives the CLI to produce a public URL.
 
 This guide shows how to **talk to your agent** to get there: how to ask for a
 dashboard and how to ask it to deploy. For the underlying commands and every
-flag, see the [`wren genbi` CLI reference](../reference/cli.md#wren-genbi--build--deploy-genbi-apps).
+flag, see the [`janus genbi` CLI reference](../reference/cli.md#janus-genbi--build--deploy-genbi-apps).
 
 ## Before you start
 
 You need two things:
 
-- **A Wren project**: the context layer the dashboard reads from. If you don't
+- **A Janus project**: the context layer the dashboard reads from. If you don't
   have one yet, [connect a data source](connect.md) first.
-- **An agent with the `wren` CLI**: any coding agent that can run shell
+- **An agent with the `janus` CLI**: any coding agent that can run shell
   commands. The agent loads its own GenBI playbook on demand via
-  `wren skills get genbi`, so you don't have to teach it the workflow.
+  `janus skills get genbi`, so you don't have to teach it the workflow.
 
 That's it. From here on you just have a conversation.
 
@@ -56,7 +56,7 @@ have to run any of it:
   does.
 
 If you want to see exactly which commands these map to, they're all in the
-[CLI reference](../reference/cli.md#wren-genbi--build--deploy-genbi-apps).
+[CLI reference](../reference/cli.md#janus-genbi--build--deploy-genbi-apps).
 
 ## Snapshot vs live data
 
@@ -92,7 +92,7 @@ agent to ship it:
 
 ```text
 User:  Deploy it to Vercel.
-Agent: I need a VERCEL_TOKEN. Add it to ~/.wren/.env, then tell me.
+Agent: I need a VERCEL_TOKEN. Add it to ~/.janus/.env, then tell me.
 User:  Done.
 Agent: Deployed to <preview-url>
 User:  Ship it to production.
@@ -123,7 +123,7 @@ leave it on.
 
 ## See also
 
-- [`wren genbi` CLI reference](../reference/cli.md#wren-genbi--build--deploy-genbi-apps): every subcommand and flag
+- [`janus genbi` CLI reference](../reference/cli.md#janus-genbi--build--deploy-genbi-apps): every subcommand and flag
 - [`genbi` skill](../reference/skills.md#genbi): the agent's workflow playbook
 - [`dlt-connector` skill](../reference/skills.md#dlt-connector): load SaaS data before you build
-- [wren-core-wasm](../sdk/wasm.md): the in-browser engine that powers the app
+- [janus-core-wasm](../sdk/wasm.md): the in-browser engine that powers the app

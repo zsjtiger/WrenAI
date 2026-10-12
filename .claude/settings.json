@@ -1,11 +1,11 @@
 {
   "permissions": {
     "allow": [
-      "Bash(cd wren-ui && yarn:*)",
-      "Bash(cd wren-ai-service && just:*)",
-      "Bash(cd wren-ai-service && poetry run:*)",
-      "Bash(cd wren-ai-service && poetry install:*)",
-      "Bash(cd wren-launcher && make:*)",
+      "Bash(cd janus-ui && yarn:*)",
+      "Bash(cd janus-ai-service && just:*)",
+      "Bash(cd janus-ai-service && poetry run:*)",
+      "Bash(cd janus-ai-service && poetry install:*)",
+      "Bash(cd janus-launcher && make:*)",
       "Bash(git status:*)",
       "Bash(git diff:*)",
       "Bash(git log:*)",

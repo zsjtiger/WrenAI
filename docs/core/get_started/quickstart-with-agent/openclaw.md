@@ -2,7 +2,7 @@
 sidebar_label: OpenClaw
 ---
 
-# Install Wren AI with OpenClaw
+# Install Janus AI with OpenClaw
 
 OpenClaw coding agent.
 
@@ -11,7 +11,7 @@ OpenClaw coding agent.
 - [OpenClaw](https://openclaw.ai) installed and authenticated.
 - Project-scope skills are installed under repo-root `skills/`, **not** under a hidden `.openclaw/` directory.
 
-## Install Wren skills
+## Install Janus skills
 
 ```bash
 npx skills add Canner/WrenAI --agent openclaw
@@ -26,7 +26,7 @@ openclaw
 Then ask:
 
 ```text
-Use the /wren skill to install and set up Wren AI.
+Use the /janus skill to install and set up Janus AI.
 ```
 
 The skill walks the agent through environment checks, profile creation, project scaffolding, and a first query.
@@ -34,4 +34,4 @@ The skill walks the agent through environment checks, profile creation, project 
 ## Next step
 
 - [Quickstart with sample data](../quickstart) — walk through `jaffle_shop` end-to-end
-- [Connect your data](/oss/guides/connect) — point Wren AI at a real database
+- [Connect your data](/oss/guides/connect) — point Janus AI at a real database

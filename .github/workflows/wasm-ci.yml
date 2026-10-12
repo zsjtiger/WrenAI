@@ -7,14 +7,14 @@ on:
     branches:
       - main
     paths:
-      - 'core/wren-core-wasm/**'
-      - 'core/wren-core/core/**'
-      - 'core/wren-core-base/**'
+      - 'core/janus-core-wasm/**'
+      - 'core/janus-core/core/**'
+      - 'core/janus-core-base/**'
   pull_request:
     paths:
-      - 'core/wren-core-wasm/**'
-      - 'core/wren-core/core/**'
-      - 'core/wren-core-base/**'
+      - 'core/janus-core-wasm/**'
+      - 'core/janus-core/core/**'
+      - 'core/janus-core-base/**'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.number || github.sha }}
@@ -40,8 +40,8 @@ jobs:
             ~/.cargo/registry/index/
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
-            core/wren-core-wasm/target/
-          key: wasm-cargo-${{ hashFiles('core/wren-core-wasm/Cargo.toml', 'core/wren-core-wasm/Cargo.lock') }}
+            core/janus-core-wasm/target/
+          key: wasm-cargo-${{ hashFiles('core/janus-core-wasm/Cargo.toml', 'core/janus-core-wasm/Cargo.lock') }}
           restore-keys: wasm-cargo-
 
       - name: Install wasm-pack
@@ -55,26 +55,26 @@ jobs:
           node-version: 20
 
       - name: Install npm dependencies
-        working-directory: core/wren-core-wasm
+        working-directory: core/janus-core-wasm
         run: npm install
 
       - name: Build WASM (wasm-pack)
-        working-directory: core/wren-core-wasm
+        working-directory: core/janus-core-wasm
         run: wasm-pack build --target web --release
 
       - name: Build dist (TypeScript + copy)
-        working-directory: core/wren-core-wasm
+        working-directory: core/janus-core-wasm
         run: npm run build:dist
 
       - name: TypeScript typecheck
-        working-directory: core/wren-core-wasm
+        working-directory: core/janus-core-wasm
         run: npm run typecheck
 
       - name: WASM binary size check
-        working-directory: core/wren-core-wasm
+        working-directory: core/janus-core-wasm
         run: |
-          raw_size=$(stat -c%s dist/wren_core_wasm_bg.wasm)
-          gzip_size=$(gzip -c dist/wren_core_wasm_bg.wasm | wc -c)
+          raw_size=$(stat -c%s dist/janus_core_wasm_bg.wasm)
+          gzip_size=$(gzip -c dist/janus_core_wasm_bg.wasm | wc -c)
           raw_mb=$(echo "scale=1; $raw_size / 1048576" | bc)
           gzip_mb=$(echo "scale=1; $gzip_size / 1048576" | bc)
           echo "WASM binary: ${raw_mb} MB raw, ${gzip_mb} MB gzip"
@@ -87,7 +87,7 @@ jobs:
           fi
 
       - name: Run integration tests
-        working-directory: core/wren-core-wasm
+        working-directory: core/janus-core-wasm
         run: npm test
 
       - name: Upload dist artifact
@@ -95,5 +95,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: wasm-sdk-dist
-          path: core/wren-core-wasm/dist/
+          path: core/janus-core-wasm/dist/
           retention-days: 30

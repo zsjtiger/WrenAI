@@ -7,4 +7,4 @@ directories.
 
 | Doc | What it covers |
 |-----|----------------|
-| [`project-layout-v5.md`](./project-layout-v5.md) | The on-disk structure of a Wren project at `schema_version: 5` — MDL, cubes, knowledge, and GenBI apps. |
+| [`project-layout-v5.md`](./project-layout-v5.md) | The on-disk structure of a Janus project at `schema_version: 5` — MDL, cubes, knowledge, and GenBI apps. |

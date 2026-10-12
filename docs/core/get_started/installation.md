@@ -4,11 +4,11 @@ sidebar_label: Installation
 
 # Installation
 
-Get Wren AI running. Your AI coding agent does the rest.
+Get Janus AI running. Your AI coding agent does the rest.
 
 ## 1. Install the skill
 
-This installs a single **discovery stub** (`wren`) that teaches AI coding agents (Claude Code, Openclaw, Hermes, Codex, etc.) how to drive the Wren CLI for you:
+This installs a single **discovery stub** (`janus`) that teaches AI coding agents (Claude Code, Openclaw, Hermes, Codex, etc.) how to drive the Janus CLI for you:
 
 ```bash
 npx skills add Canner/WrenAI
@@ -26,19 +26,19 @@ Or via the install script:
 curl -fsSL https://raw.githubusercontent.com/Canner/WrenAI/main/skills/install.sh | bash
 ```
 
-> **Only one skill is installed** — `wren` (at `~/.claude/skills/wren/SKILL.md` for Claude Code). This is expected. Since Wren `0.8`, the workflow guides (`onboarding`, `usage`, `generate-mdl`, `dlt-connector`, `enrich-context`) no longer install as separate skills; they live inside the `wren` CLI and the stub fetches them on demand with `wren skills get <name>`. See the [Skills reference](/oss/reference/skills) for the full delivery model and what each guide does.
+> **Only one skill is installed** — `janus` (at `~/.claude/skills/janus/SKILL.md` for Claude Code). This is expected. Since Janus `0.8`, the workflow guides (`onboarding`, `usage`, `generate-mdl`, `dlt-connector`, `enrich-context`) no longer install as separate skills; they live inside the `janus` CLI and the stub fetches them on demand with `janus skills get <name>`. See the [Skills reference](/oss/reference/skills) for the full delivery model and what each guide does.
 
 ## 2. Ask your agent to set things up
 
 **Start a new agent session** (skills load at session start), open your project directory, and ask:
 
-Use the `/wren` skill to install and set up Wren AI.
+Use the `/janus` skill to install and set up Janus AI.
 
 The agent will check your environment, install Python dependencies, create a connection profile for your data source, scaffold the project, and run a first query — all in one flow.
 
 ## 3. Start asking questions
 
-Once onboarding finishes, just ask your agent business questions in natural language. The agent uses Wren AI's context layer to resolve schema, recall similar past queries, and generate accurate SQL.
+Once onboarding finishes, just ask your agent business questions in natural language. The agent uses Janus AI's context layer to resolve schema, recall similar past queries, and generate accurate SQL.
 
 ```text
 How many customers placed more than one order this month?

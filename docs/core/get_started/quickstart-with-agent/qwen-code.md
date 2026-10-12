@@ -2,7 +2,7 @@
 sidebar_label: Qwen Code
 ---
 
-# Install Wren AI with Qwen Code
+# Install Janus AI with Qwen Code
 
 Alibaba Qwen Code CLI.
 
@@ -11,7 +11,7 @@ Alibaba Qwen Code CLI.
 - [Qwen Code](https://qwenlm.github.io/qwen-code-docs) installed and authenticated.
 - Qwen API access required.
 
-## Install Wren skills
+## Install Janus skills
 
 ```bash
 npx skills add Canner/WrenAI --agent qwen-code
@@ -26,7 +26,7 @@ qwen
 Then ask:
 
 ```text
-Use the /wren skill to install and set up Wren AI.
+Use the /janus skill to install and set up Janus AI.
 ```
 
 The skill walks the agent through environment checks, profile creation, project scaffolding, and a first query.
@@ -34,4 +34,4 @@ The skill walks the agent through environment checks, profile creation, project 
 ## Next step
 
 - [Quickstart with sample data](../quickstart) — walk through `jaffle_shop` end-to-end
-- [Connect your data](/oss/guides/connect) — point Wren AI at a real database
+- [Connect your data](/oss/guides/connect) — point Janus AI at a real database

@@ -4,15 +4,15 @@ sidebar_label: MDL schema
 
 # MDL schema reference
 
-This page documents every YAML artifact in a Wren project — `wren_project.yml`, models, relationships, views, cubes, and the `knowledge/` files — with the full field surface for each.
+This page documents every YAML artifact in a Janus project — `janus_project.yml`, models, relationships, views, cubes, and the `knowledge/` files — with the full field surface for each.
 
-> For the conceptual framing of MDL, see [What does MDL do for the agent?](/oss/concepts/what_is_mdl). For the project lifecycle commands, see [Manage project](/oss/guides/manage_project). For the canonical YAML compilation flow, run `wren context build` after editing.
+> For the conceptual framing of MDL, see [What does MDL do for the agent?](/oss/concepts/what_is_mdl). For the project lifecycle commands, see [Manage project](/oss/guides/manage_project). For the canonical YAML compilation flow, run `janus context build` after editing.
 
 ## Project structure
 
 ```text
 my_project/
-├── wren_project.yml               # project metadata
+├── janus_project.yml               # project metadata
 ├── models/
 │   ├── orders/
 │   │   └── metadata.yml           # table_reference mode (physical table)
@@ -38,25 +38,25 @@ my_project/
 │   └── knowledge.yml              # knowledge-axis schema_version (decoupled from MDL)
 ├── instructions.md                # deprecated — move into knowledge/rules/ (still read)
 ├── queries.yml                    # legacy NL-SQL pairs — superseded by knowledge/sql/
-├── .wren/                         # runtime state (gitignored)
+├── .janus/                         # runtime state (gitignored)
 │   └── memory/                    # derived LanceDB index (optional; rebuilt from knowledge/sql/)
 └── target/
     └── mdl.json                   # build output (gitignored)
 ```
 
-`wren_project.yml` carries a `schema_version`; **version 5** is the current layout. To
+`janus_project.yml` carries a `schema_version`; **version 5** is the current layout. To
 upgrade an older project — and migrate `instructions.md` / memory into `knowledge/` — see
 [Migration](./migration.md).
 
 YAML files use **snake_case** field names. The compiled `target/mdl.json` uses **camelCase** — the wire format expected by the engine.
 
-## `wren_project.yml`
+## `janus_project.yml`
 
 ```yaml
 schema_version: 5
 name: my_project
 version: "1.0"
-catalog: wren
+catalog: janus
 schema: public
 data_source: postgres
 profile: my-pg
@@ -64,19 +64,19 @@ profile: my-pg
 
 | Field | Type | Required | Description |
 |---|---|---|---|
-| `schema_version` | int | yes | Project layout version (current: `5` — adds first-class `knowledge/`). `2` = folder-per-entity, `3` = `dialect` support, `4` = composite primary keys, `5` = `knowledge/`. Owned by the CLI — bump with `wren context upgrade` (see [Migration](./migration.md)). |
+| `schema_version` | int | yes | Project layout version (current: `5` — adds first-class `knowledge/`). `2` = folder-per-entity, `3` = `dialect` support, `4` = composite primary keys, `5` = `knowledge/`. Owned by the CLI — bump with `janus context upgrade` (see [Migration](./migration.md)). |
 | `name` | string | yes | Project identifier. |
 | `version` | string | no | User-defined project version (free-form, no parsing effect). |
-| `catalog` | string | no | **Wren AI namespace** — not your database catalog. Defaults to `wren`. |
-| `schema` | string | no | **Wren AI namespace** — not your database schema. Defaults to `public`. |
-| `data_source` | string | no | Data source type (`postgres`, `bigquery`, `snowflake`, ...). Set by `wren context set-profile`. |
-| `profile` | string | no | The bound connection profile name. Set by `wren context set-profile`. |
+| `catalog` | string | no | **Janus AI namespace** — not your database catalog. Defaults to `janus`. |
+| `schema` | string | no | **Janus AI namespace** — not your database schema. Defaults to `public`. |
+| `data_source` | string | no | Data source type (`postgres`, `bigquery`, `snowflake`, ...). Set by `janus context set-profile`. |
+| `profile` | string | no | The bound connection profile name. Set by `janus context set-profile`. |
 
-> **Two levels of `catalog` and `schema`.** The same field names appear in two places with completely different meanings. The project-level fields are Wren AI's internal namespace; the model-level `table_reference.catalog` and `table_reference.schema` point at the underlying database location.
+> **Two levels of `catalog` and `schema`.** The same field names appear in two places with completely different meanings. The project-level fields are Janus AI's internal namespace; the model-level `table_reference.catalog` and `table_reference.schema` point at the underlying database location.
 >
 > | Location | Refers to | Example |
 > |---|---|---|
-> | `wren_project.yml` → `catalog`, `schema` | Wren AI namespace | `wren`, `public` |
+> | `janus_project.yml` → `catalog`, `schema` | Janus AI namespace | `janus`, `public` |
 > | `models/*/metadata.yml` → `table_reference.catalog`, `table_reference.schema` | Database location | `jaffle_shop`, `main` |
 
 ## Models (`models/<name>/metadata.yml`)
@@ -213,7 +213,7 @@ When `is_calculated` is `false` but an `expression` is present, the expression m
 
 A model does not have to expose every column in the underlying table. Omitted columns are physically invisible to clients — no SQL can reference them, and they do not appear in schema introspection.
 
-This matters for AI agents: any column you omit from the model cannot be retrieved through Wren AI, regardless of what the agent asks.
+This matters for AI agents: any column you omit from the model cannot be retrieved through Janus AI, regardless of what the agent asks.
 
 ## Relationships (`relationships.yml`)
 
@@ -244,7 +244,7 @@ For `TO_MANY` relationships, calculated columns that traverse the relationship m
 name: top_customers
 statement: |
   SELECT customer_id, SUM(total) AS lifetime_value
-  FROM wren.public.orders
+  FROM janus.public.orders
   GROUP BY 1
   ORDER BY 2 DESC
   LIMIT 100
@@ -295,12 +295,12 @@ hierarchies:
 | `base_object` | yes | Model or view this cube aggregates over. |
 | `measures[]` | yes | Aggregated values (`expression` + `type`). |
 | `dimensions[]` | no | Categorical group-bys. |
-| `time_dimensions[]` | no | Time-based group-bys. Granularity is applied at query time via `--time-dimension name:granularity` (see [CLI reference](/oss/reference/cli#wren-cube--pre-aggregation-queries)). |
+| `time_dimensions[]` | no | Time-based group-bys. Granularity is applied at query time via `--time-dimension name:granularity` (see [CLI reference](/oss/reference/cli#janus-cube--pre-aggregation-queries)). |
 | `hierarchies` | no | Map of hierarchy name to ordered dimension or time-dimension names for drill-down. |
 | `refresh_time` | no | Cache refresh interval. |
 | `properties` | no | Arbitrary metadata. |
 
-Cubes are queried structurally via `wren cube query`, not by writing raw `GROUP BY` SQL. See [Pre-aggregate with cubes](/oss/guides/cubes) for the agent-facing recipe.
+Cubes are queried structurally via `janus cube query`, not by writing raw `GROUP BY` SQL. See [Pre-aggregate with cubes](/oss/guides/cubes) for the agent-facing recipe.
 
 ## Business rules (`knowledge/rules/`)
 
@@ -324,8 +324,8 @@ chunk in memory.
 Rules are consumed by agents, not by the engine — they are excluded from `target/mdl.json`.
 Agents access them via:
 
-- `wren context instructions` — full text, run once at session start
-- `wren memory fetch -q "..."` — relevant chunks per query
+- `janus context instructions` — full text, run once at session start
+- `janus memory fetch -q "..."` — relevant chunks per query
 
 > A top-level `instructions.md` is still read (alongside `knowledge/rules/`) but is
 > **deprecated** — move it into `knowledge/rules/`. See [Migration](./migration.md).
@@ -347,13 +347,13 @@ datasource: postgres-prod
 ---
 ```
 
-`wren memory store` writes these files; `wren memory index` (re)builds the index from them.
+`janus memory store` writes these files; `janus memory index` (re)builds the index from them.
 A legacy top-level `queries.yml` is still auto-loaded on `index` for the transition, but new
 pairs land in `knowledge/sql/`. See [Migration](./migration.md).
 
 ## Snake_case to camelCase mapping
 
-`wren context build` converts YAML field names to camelCase in `target/mdl.json`:
+`janus context build` converts YAML field names to camelCase in `target/mdl.json`:
 
 | YAML | JSON |
 |---|---|
@@ -371,7 +371,7 @@ pairs land in `knowledge/sql/`. See [Migration](./migration.md).
 
 Generic rule: split on `_`, capitalize each word after the first, join. All other fields (`name`, `type`, `catalog`, `schema`, `table`, `condition`, `models`, `columns`, `cached`, `dialect`, `properties`) are identical in both formats.
 
-`layoutVersion` is stamped automatically by `wren context build` based on the project's `schema_version` — you do not set it manually in YAML.
+`layoutVersion` is stamped automatically by `janus context build` based on the project's `schema_version` — you do not set it manually in YAML.
 
 ## Dialect override
 
@@ -394,20 +394,20 @@ Valid dialect values: `athena`, `bigquery`, `canner`, `clickhouse`, `databricks`
 | 4 | 3 | Adds composite (list-form) primary keys. |
 | 5 | 3 | Adds the first-class `knowledge/` base. Current. |
 
-Use `wren context upgrade` to bump. The upgrade is dry-runnable with `--dry-run`.
+Use `janus context upgrade` to bump. The upgrade is dry-runnable with `--dry-run`.
 
 ## Recommended `.gitignore`
 
 ```text
 target/
-.wren/memory/
+.janus/memory/
 ```
 
-Source YAML and the `knowledge/` base (rules, glossary, metrics, caveats, and the NL→SQL pairs under `knowledge/sql/`) are committed. `target/mdl.json` is derived; `.wren/memory/` is a binary LanceDB index rebuilt from `knowledge/sql/` — commit the `knowledge/sql/*.md` pairs, not the index.
+Source YAML and the `knowledge/` base (rules, glossary, metrics, caveats, and the NL→SQL pairs under `knowledge/sql/`) are committed. `target/mdl.json` is derived; `.janus/memory/` is a binary LanceDB index rebuilt from `knowledge/sql/` — commit the `knowledge/sql/*.md` pairs, not the index.
 
 ## See also
 
 - [Manage project](/oss/guides/manage_project) — lifecycle commands, profile binding, multi-env workflow
-- [CLI reference](./cli.md) — every `wren` command
+- [CLI reference](./cli.md) — every `janus` command
 - [Operational reference](./operational.md) — all paths, env vars, and discovery rules
 - [What does MDL do for the agent?](/oss/concepts/what_is_mdl) — the conceptual framing

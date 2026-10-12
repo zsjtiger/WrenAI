@@ -6,12 +6,12 @@ permissions:
 on:
   pull_request:
     paths:
-      - 'core/wren-core-py/**'
-      - 'core/wren-core/**'
+      - 'core/janus-core-py/**'
+      - 'core/janus-core/**'
 
 defaults:
   run:
-    working-directory: core/wren-core-py
+    working-directory: core/janus-core-py
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.number }}
@@ -35,7 +35,7 @@ jobs:
             ~/.cargo/registry/index/
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
-            ./core/wren-core-py/target/
+            ./core/janus-core-py/target/
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
       - name: Install dependencies
         run: uv sync --locked --no-install-project

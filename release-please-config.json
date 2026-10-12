@@ -2,10 +2,10 @@
   "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
   "separate-pull-requests": true,
   "include-component-in-tag": true,
-  "group-pull-request-title-pattern": "chore${scope}: release wren-rust-core ${version}",
+  "group-pull-request-title-pattern": "chore${scope}: release janus-rust-core ${version}",
   "packages": {
-    "core/wren-core-py": {
-      "component": "wren-core-py",
+    "core/janus-core-py": {
+      "component": "janus-core-py",
       "release-type": "python",
       "bump-minor-pre-major": true,
       "extra-files": [
@@ -13,65 +13,65 @@
         {
           "path": "uv.lock",
           "type": "toml",
-          "jsonpath": "$.package[?(@.name.value=='wren-core-py')].version"
+          "jsonpath": "$.package[?(@.name.value=='janus-core-py')].version"
         }
       ]
     },
-    "core/wren": {
-      "component": "wren",
+    "core/janus": {
+      "component": "janus",
       "release-type": "python",
       "bump-minor-pre-major": true,
       "extra-files": [
         {
           "path": "uv.lock",
           "type": "toml",
-          "jsonpath": "$.package[?(@.name.value=='wrenai')].version"
+          "jsonpath": "$.package[?(@.name.value=='janusai')].version"
         }
       ]
     },
-    "core/wren-core-wasm": {
-      "component": "wren-core-wasm",
+    "core/janus-core-wasm": {
+      "component": "janus-core-wasm",
       "release-type": "node",
       "bump-minor-pre-major": true,
       "extra-files": [
         "Cargo.toml"
       ]
     },
-    "sdk/wren-langchain": {
-      "component": "wren-langchain",
+    "sdk/janus-langchain": {
+      "component": "janus-langchain",
       "release-type": "python",
       "bump-minor-pre-major": true,
       "extra-files": [
-        "src/wren_langchain/__init__.py"
+        "src/janus_langchain/__init__.py"
       ]
     },
-    "sdk/wren-pydantic": {
-      "component": "wren-pydantic",
+    "sdk/janus-pydantic": {
+      "component": "janus-pydantic",
       "release-type": "python",
       "bump-minor-pre-major": true,
       "extra-files": [
-        "src/wren_pydantic/__init__.py"
+        "src/janus_pydantic/__init__.py"
       ]
     },
-    "core/wren-core-base/manifest-macro": {
-      "component": "wren-manifest-macro",
+    "core/janus-core-base/manifest-macro": {
+      "component": "janus-manifest-macro",
       "release-type": "rust",
       "bump-minor-pre-major": true
     },
-    "core/wren-core-base": {
-      "component": "wren-core-base",
+    "core/janus-core-base": {
+      "component": "janus-core-base",
       "release-type": "rust",
       "bump-minor-pre-major": true,
       "extra-files": [
         {
           "path": "Cargo.toml",
           "type": "toml",
-          "jsonpath": "$.dependencies.wren-manifest-macro.version"
+          "jsonpath": "$.dependencies.janus-manifest-macro.version"
         }
       ]
     },
-    "core/wren-core": {
-      "component": "wren-semantic-core",
+    "core/janus-core": {
+      "component": "janus-semantic-core",
       "release-type": "simple",
       "bump-minor-pre-major": true,
       "extra-files": [
@@ -83,12 +83,12 @@
         {
           "path": "Cargo.toml",
           "type": "toml",
-          "jsonpath": "$.workspace.dependencies.wren-core-base.version"
+          "jsonpath": "$.workspace.dependencies.janus-core-base.version"
         },
         {
-          "path": "/core/wren-core-py/Cargo.toml",
+          "path": "/core/janus-core-py/Cargo.toml",
           "type": "toml",
-          "jsonpath": "$.dependencies.wren-core.version"
+          "jsonpath": "$.dependencies.janus-core.version"
         }
       ]
     }
@@ -96,11 +96,11 @@
   "plugins": [
     {
       "type": "linked-versions",
-      "groupName": "wren-rust-core",
+      "groupName": "janus-rust-core",
       "components": [
-        "wren-manifest-macro",
-        "wren-core-base",
-        "wren-semantic-core"
+        "janus-manifest-macro",
+        "janus-core-base",
+        "janus-semantic-core"
       ]
     }
   ]

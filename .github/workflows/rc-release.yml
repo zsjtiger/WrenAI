@@ -8,11 +8,11 @@ on:
         required: true
         type: choice
         options:
-          - wren-core-py
-          - wren
-          - wren-core-wasm
-          - wren-langchain
-          - wren-pydantic
+          - janus-core-py
+          - janus
+          - janus-core-wasm
+          - janus-langchain
+          - janus-pydantic
       rc_version:
         description: "RC version override (e.g. 0.25.0-rc.2). Leave empty to auto-increment."
         required: false
@@ -53,7 +53,7 @@ jobs:
         run: |
           # The base version for an RC is the *next* release version, which
           # release-please stores in the manifest on its per-component release
-          # branch (e.g. release-please--branches--main--components--wren).
+          # branch (e.g. release-please--branches--main--components--janus).
           # main's manifest only holds the *last released* version.
           RELEASE_BRANCH="release-please--branches--main--components--${COMPONENT}"
           if git ls-remote --exit-code --heads origin "$RELEASE_BRANCH" >/dev/null 2>&1; then
@@ -65,7 +65,7 @@ jobs:
             exit 1
           fi
 
-          # Manifest is keyed by package path (e.g. "core/wren-core-py"), so
+          # Manifest is keyed by package path (e.g. "core/janus-core-py"), so
           # resolve the path from release-please-config.json by component name.
           BASE_VERSION=$(MANIFEST_JSON="$MANIFEST_JSON" python3 -c "
           import json, os, sys
@@ -100,7 +100,7 @@ jobs:
             if [ -z "$LATEST_RC" ]; then
               RC_NUM=1
             else
-              # Extract RC number from tag like "wren-core-py-v0.5.0-rc.3"
+              # Extract RC number from tag like "janus-core-py-v0.5.0-rc.3"
               RC_NUM=$(echo "$LATEST_RC" | grep -oP 'rc\.\K[0-9]+')
               RC_NUM=$((RC_NUM + 1))
             fi
@@ -124,10 +124,10 @@ jobs:
           git tag "$TAG_NAME"
           git push origin "$TAG_NAME"
 
-  publish-wren-core-py:
+  publish-janus-core-py:
     needs: create-rc
-    if: inputs.component == 'wren-core-py'
-    uses: ./.github/workflows/publish-wren-core-py.yml
+    if: inputs.component == 'janus-core-py'
+    uses: ./.github/workflows/publish-janus-core-py.yml
     with:
       version: ${{ needs.create-rc.outputs.pypi_version }}
       tag_name: ${{ needs.create-rc.outputs.tag_name }}
@@ -135,10 +135,10 @@ jobs:
       contents: read
       id-token: write
 
-  publish-wren:
+  publish-janus:
     needs: create-rc
-    if: inputs.component == 'wren'
-    uses: ./.github/workflows/publish-wren.yml
+    if: inputs.component == 'janus'
+    uses: ./.github/workflows/publish-janus.yml
     with:
       version: ${{ needs.create-rc.outputs.pypi_version }}
       tag_name: ${{ needs.create-rc.outputs.tag_name }}
@@ -146,13 +146,13 @@ jobs:
       contents: read
       id-token: write
 
-  publish-wren-core-wasm:
+  publish-janus-core-wasm:
     needs: create-rc
-    if: inputs.component == 'wren-core-wasm'
+    if: inputs.component == 'janus-core-wasm'
     # RC publishes use the token-based variant. The OIDC variant is reserved
     # for stable releases driven by release-please.yml — npm only allows one
     # Trusted Publisher per package.
-    uses: ./.github/workflows/publish-wren-core-wasm-rc.yml
+    uses: ./.github/workflows/publish-janus-core-wasm-rc.yml
     with:
       version: ${{ needs.create-rc.outputs.version }}
       tag_name: ${{ needs.create-rc.outputs.tag_name }}
@@ -160,10 +160,10 @@ jobs:
     secrets:
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-  publish-wren-langchain:
+  publish-janus-langchain:
     needs: create-rc
-    if: inputs.component == 'wren-langchain'
-    uses: ./.github/workflows/publish-wren-langchain.yml
+    if: inputs.component == 'janus-langchain'
+    uses: ./.github/workflows/publish-janus-langchain.yml
     with:
       version: ${{ needs.create-rc.outputs.pypi_version }}
       tag_name: ${{ needs.create-rc.outputs.tag_name }}
@@ -171,10 +171,10 @@ jobs:
       contents: read
       id-token: write
 
-  publish-wren-pydantic:
+  publish-janus-pydantic:
     needs: create-rc
-    if: inputs.component == 'wren-pydantic'
-    uses: ./.github/workflows/publish-wren-pydantic.yml
+    if: inputs.component == 'janus-pydantic'
+    uses: ./.github/workflows/publish-janus-pydantic.yml
     with:
       version: ${{ needs.create-rc.outputs.pypi_version }}
       tag_name: ${{ needs.create-rc.outputs.tag_name }}
@@ -183,7 +183,7 @@ jobs:
       id-token: write
 
   create-release:
-    needs: [create-rc, publish-wren-core-py, publish-wren, publish-wren-core-wasm, publish-wren-langchain, publish-wren-pydantic]
+    needs: [create-rc, publish-janus-core-py, publish-janus, publish-janus-core-wasm, publish-janus-langchain, publish-janus-pydantic]
     if: always() && needs.create-rc.result == 'success' && !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled')
     runs-on: ubuntu-latest
     permissions:

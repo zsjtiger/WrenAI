@@ -1,4 +1,4 @@
-name: wren-langchain CI
+name: janus-langchain CI
 
 # Trigger sources are controlled events (pull_request, push to main,
 # workflow_dispatch). No untrusted issue / comment / external payload is
@@ -13,13 +13,13 @@ permissions:
 on:
   pull_request:
     paths:
-      - 'sdk/wren-langchain/**'
+      - 'sdk/janus-langchain/**'
       - '.github/workflows/sdk-langchain-ci.yml'
   push:
     branches:
       - main
     paths:
-      - 'sdk/wren-langchain/**'
+      - 'sdk/janus-langchain/**'
       - '.github/workflows/sdk-langchain-ci.yml'
   workflow_dispatch:
 
@@ -29,7 +29,7 @@ concurrency:
 
 defaults:
   run:
-    working-directory: sdk/wren-langchain
+    working-directory: sdk/janus-langchain
 
 jobs:
   lint:
@@ -87,10 +87,10 @@ jobs:
       - name: Verify LICENSE bundled in wheel
         run: |
           set -euo pipefail
-          unzip -l dist/wren_langchain-*.whl | grep -q "dist-info/licenses/LICENSE"
+          unzip -l dist/janus_langchain-*.whl | grep -q "dist-info/licenses/LICENSE"
           echo "LICENSE present in wheel"
       - name: Upload distributions
         uses: actions/upload-artifact@v4
         with:
-          name: wren-langchain-dist
-          path: sdk/wren-langchain/dist/
+          name: janus-langchain-dist
+          path: sdk/janus-langchain/dist/

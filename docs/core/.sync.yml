@@ -1,4 +1,4 @@
-# Declarative sync config: WrenAI/docs/core → doc website
+# Declarative sync config: JanusAI/docs/core → doc website
 # Actual repo name and branch are stored in GitHub repository variables
 # (vars.DOCS_REPO, vars.DOCS_REPO_BRANCH) — not hardcoded here.
 target_dir: docs/oss

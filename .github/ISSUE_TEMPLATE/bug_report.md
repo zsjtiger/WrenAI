@@ -27,18 +27,18 @@ If applicable, add screenshots to help explain your problem.
 - OS: [e.g. iOS]
 - Browser [e.g. chrome, safari]
 
-**Wren AI Information**
+**Janus AI Information**
 - Version: [e.g, 0.1.0]
 
 **Additional context**
 Add any other context about the problem here.
 
 **Relevant log output**
-- Please share `config.yaml` with us, it should be located at `~/.wrenai/config.yaml`.
+- Please share `config.yaml` with us, it should be located at `~/.janusai/config.yaml`.
 - Please share your logs with us with the following command:
     ```bash
-    docker logs wrenai-wren-ui-1 >& wrenai-wren-ui.log && \
-    docker logs wrenai-wren-ai-service-1 >& wrenai-wren-ai-service.log && \
-    docker logs wrenai-wren-engine-1 >& wrenai-wren-engine.log && \
-    docker logs wrenai-ibis-server-1 >& wrenai-ibis-server.log
+    docker logs janusai-janus-ui-1 >& janusai-janus-ui.log && \
+    docker logs janusai-janus-ai-service-1 >& janusai-janus-ai-service.log && \
+    docker logs janusai-janus-engine-1 >& janusai-janus-engine.log && \
+    docker logs janusai-ibis-server-1 >& janusai-ibis-server.log
     ```

@@ -8,10 +8,10 @@ on:
     branches:
       - main
     paths:
-      - 'core/wren-core/**'
+      - 'core/janus-core/**'
   pull_request:
     paths:
-      - 'core/wren-core/**'
+      - 'core/janus-core/**'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.number || github.sha }}
@@ -19,7 +19,7 @@ concurrency:
 
 defaults:
   run:
-    working-directory: core/wren-core
+    working-directory: core/janus-core
 
 jobs:
   # Check crate compiles
@@ -43,9 +43,9 @@ jobs:
             ~/.cargo/registry/index/
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
-            ./core/wren-core/target/
+            ./core/janus-core/target/
           # this key equals the ones on `linux-build-lib` for re-use
-          key: cargo-cache-benchmark-${{ hashFiles('core/wren-core/Cargo.toml') }}
+          key: cargo-cache-benchmark-${{ hashFiles('core/janus-core/Cargo.toml') }}
 
       - name: Check datafusion-common without default features
         run: cargo check --all-targets

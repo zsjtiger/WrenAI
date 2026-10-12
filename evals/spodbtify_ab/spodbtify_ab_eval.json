@@ -2,7 +2,7 @@
   "id": "spodbtify_ab",
   "name": "Spodbtify A/B Eval",
   "version": 1,
-  "description": "Compare schema-only Wren context against dbt-imported Wren context for analytical Spotify playlist questions.",
+  "description": "Compare schema-only Janus context against dbt-imported Janus context for analytical Spotify playlist questions.",
   "dataset": {
     "name": "Spodbtify",
     "description": "Spotify Million Playlist Dataset materialized in DuckDB.",
@@ -44,17 +44,17 @@
       "name": "Project A - schema-only agent",
       "description": "The agent sees only physical DuckDB schema metadata: table names and column names/types. It does not inspect dbt models, dbt docs, lineage, or layer metadata.",
       "setup_steps": [
-        "Configure a Wren DuckDB profile against the directory containing spodbtify.duckdb.",
-        "Run `wren context init --empty` in a fresh Wren project directory.",
-        "Use `wren-generate-mdl` or an equivalent schema introspection workflow to generate MDL from DuckDB schema only.",
-        "Run `wren context build`.",
-        "Run `wren memory index` if memory is enabled."
+        "Configure a Janus DuckDB profile against the directory containing spodbtify.duckdb.",
+        "Run `janus context init --empty` in a fresh Janus project directory.",
+        "Use `janus-generate-mdl` or an equivalent schema introspection workflow to generate MDL from DuckDB schema only.",
+        "Run `janus context build`.",
+        "Run `janus memory index` if memory is enabled."
       ],
       "allowed_context": [
         "DuckDB table names",
         "DuckDB column names",
         "DuckDB column types",
-        "Wren generated MDL from raw schema"
+        "Janus generated MDL from raw schema"
       ],
       "forbidden_context": [
         "dbt model descriptions",
@@ -70,13 +70,13 @@
     {
       "id": "dbt_integrated",
       "name": "Project B - dbt-integrated agent",
-      "description": "The agent gets dbt project metadata imported into Wren: model descriptions, column descriptions, dbt refs, layer classification, tests, and compiled SQL where available.",
+      "description": "The agent gets dbt project metadata imported into Janus: model descriptions, column descriptions, dbt refs, layer classification, tests, and compiled SQL where available.",
       "setup_steps": [
-        "Run `wren profile import dbt --project-dir $SPODBTIFY_DBT_PROJECT_DIR --profiles-path $SPODBTIFY_DBT_PROJECT_DIR/profiles.yml`.",
-        "Run `wren context import dbt --project-dir $SPODBTIFY_DBT_PROJECT_DIR --profiles-path $SPODBTIFY_DBT_PROJECT_DIR/profiles.yml --path <fresh-project-dir>`.",
+        "Run `janus profile import dbt --project-dir $SPODBTIFY_DBT_PROJECT_DIR --profiles-path $SPODBTIFY_DBT_PROJECT_DIR/profiles.yml`.",
+        "Run `janus context import dbt --project-dir $SPODBTIFY_DBT_PROJECT_DIR --profiles-path $SPODBTIFY_DBT_PROJECT_DIR/profiles.yml --path <fresh-project-dir>`.",
         "Confirm compiled SQL enrichment is present from dbt target artifacts where available.",
-        "Run `wren context build --path <fresh-project-dir>`.",
-        "Run `wren memory index --path <fresh-project-dir>` if memory is enabled."
+        "Run `janus context build --path <fresh-project-dir>`.",
+        "Run `janus memory index --path <fresh-project-dir>` if memory is enabled."
       ],
       "allowed_context": [
         "DuckDB schema metadata",
@@ -86,7 +86,7 @@
         "dbt layer classifications",
         "dbt test metadata",
         "dbt compiled SQL",
-        "Wren generated MDL from dbt import"
+        "Janus generated MDL from dbt import"
       ],
       "forbidden_context": [
         "prior answers from another workflow",

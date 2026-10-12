@@ -1,6 +1,6 @@
-# wren-core-wasm
+# janus-core-wasm
 
-Browser-native semantic SQL engine. The Rust wren-core engine compiled to
+Browser-native semantic SQL engine. The Rust janus-core engine compiled to
 WebAssembly, plus a TypeScript SDK that runs queries through an MDL semantic
 layer entirely in the browser — no server, no roundtrip.
 
@@ -8,23 +8,23 @@ layer entirely in the browser — no server, no roundtrip.
 or an LLM-in-the-browser experience where the data lives in static Parquet
 files (or can be inlined as JSON/CSV) and you want the agent to write SQL
 against an MDL model. For server-side Python agents, use
-[`wren-langchain`](./langchain.md) or [`wren-pydantic`](./pydantic.md)
+[`janus-langchain`](./langchain.md) or [`janus-pydantic`](./pydantic.md)
 instead — they wrap the same engine but talk to your real database.
 
 ---
 
 ## How it differs from the other SDKs
 
-| | `wren-core-wasm` | `wren-langchain` / `wren-pydantic` |
+| | `janus-core-wasm` | `janus-langchain` / `janus-pydantic` |
 |---|---|---|
 | **Runtime** | Browser (WebAssembly) | Python server |
 | **Data source** | Remote Parquet, inline JSON/CSV, or uploaded files | Any datasource the CLI supports (Postgres, BigQuery, …) |
-| **Connection profile** | None — data is fetched / registered client-side | Required (built via `wren profile add`) |
+| **Connection profile** | None — data is fetched / registered client-side | Required (built via `janus profile add`) |
 | **MDL source** | Passed as a JS object per page load | Read from `target/mdl.json` per tool call |
-| **Memory / agent tools** | Not in the WASM SDK | Built-in tools (`wren_query`, `wren_recall_queries`, …) |
+| **Memory / agent tools** | Not in the WASM SDK | Built-in tools (`janus_query`, `janus_recall_queries`, …) |
 | **Query path** | DataFusion executes the SQL in-browser | Engine plans SQL, target database executes |
 
-There is no `WrenToolkit` here — the WASM SDK exposes the engine primitives
+There is no `JanusToolkit` here — the WASM SDK exposes the engine primitives
 (`registerJson` / `registerParquet` / `registerCsv` / `loadMDL` / `query` /
 `cubeQuery` / `listCubes`) and you wire them into your own UI or agent loop.
 
@@ -35,18 +35,18 @@ There is no `WrenToolkit` here — the WASM SDK exposes the engine primitives
 ### npm
 
 ```bash
-npm install @wrenai/wren-core-wasm
+npm install @janusai/janus-core-wasm
 ```
 
 ```javascript
-import { WrenEngine } from '@wrenai/wren-core-wasm';
+import { JanusEngine } from '@janusai/janus-core-wasm';
 ```
 
 ### CDN
 
 ```html
 <script type="module">
-  import { WrenEngine } from 'https://unpkg.com/@wrenai/wren-core-wasm@0.3.0/dist/index.js';
+  import { JanusEngine } from 'https://unpkg.com/@janusai/janus-core-wasm@0.3.0/dist/index.js';
 </script>
 ```
 
@@ -58,7 +58,7 @@ import { WrenEngine } from '@wrenai/wren-core-wasm';
 
 ## Quickstart
 
-The same `WrenEngine` instance handles three data-loading modes. Pick the one
+The same `JanusEngine` instance handles three data-loading modes. Pick the one
 that fits your data:
 
 ### 1. URL mode (remote Parquet)
@@ -67,10 +67,10 @@ DataFusion fetches Parquet files via HTTP range requests; no registration
 needed.
 
 ```javascript
-const engine = await WrenEngine.init();
+const engine = await JanusEngine.init();
 
 const mdl = {
-  catalog: 'wren',
+  catalog: 'janus',
   schema: 'public',
   models: [{
     name: 'Orders',
@@ -101,7 +101,7 @@ tables (see [`loadMDL`](#engineloadmdlmdl-profile) for the full mode
 matrix).
 
 ```javascript
-const engine = await WrenEngine.init();
+const engine = await JanusEngine.init();
 
 // JSON
 await engine.registerJson('orders', [
@@ -161,24 +161,24 @@ schema).
 
 ## API Reference
 
-### `WrenEngine.init(options?)`
+### `JanusEngine.init(options?)`
 
 Initialize the engine and load the WASM binary. Call once per page lifecycle.
 
 ```typescript
-static async init(options?: WrenEngineOptions): Promise<WrenEngine>
+static async init(options?: JanusEngineOptions): Promise<JanusEngine>
 ```
 
 | Option | Type | Description |
 |---|---|---|
-| `wasmUrl` | `string \| URL \| BufferSource` | WASM binary source. Defaults to the sibling `wren_core_wasm_bg.wasm` resolved via `import.meta.url`. |
+| `wasmUrl` | `string \| URL \| BufferSource` | WASM binary source. Defaults to the sibling `janus_core_wasm_bg.wasm` resolved via `import.meta.url`. |
 
 ### `engine.loadMDL(mdl, profile)`
 
-Load an MDL manifest and reconfigure the session with Wren analyzer rules.
+Load an MDL manifest and reconfigure the session with Janus analyzer rules.
 
 ```typescript
-async loadMDL(mdl: object, profile: WrenProfile): Promise<void>
+async loadMDL(mdl: object, profile: JanusProfile): Promise<void>
 ```
 
 | `profile.source` | Mode | Behaviour |
@@ -306,8 +306,8 @@ Bundlers must copy the `.wasm` file into your output. Most setups handle this
 automatically; if not, pass the URL explicitly:
 
 ```javascript
-import wasmUrl from '@wrenai/wren-core-wasm/dist/wren_core_wasm_bg.wasm?url';
-const engine = await WrenEngine.init({ wasmUrl });
+import wasmUrl from '@janusai/janus-core-wasm/dist/janus_core_wasm_bg.wasm?url';
+const engine = await JanusEngine.init({ wasmUrl });
 ```
 
 Vite recognises the `?url` suffix. Webpack 5 needs `experiments.asyncWebAssembly`.
@@ -315,7 +315,7 @@ For other bundlers, fetch the binary yourself and pass the `ArrayBuffer`.
 
 ### Multiple engines per page
 
-`WrenEngine.init()` is safe to call more than once — each call returns an
+`JanusEngine.init()` is safe to call more than once — each call returns an
 independent engine with its own catalog. Useful for sandboxing per-tenant
 data on the same page. The WASM module itself is shared via the standard
 `import` cache, so only the first init pays the binary fetch.
@@ -347,7 +347,7 @@ Runnable browser demos in [`examples/`](https://github.com/Canner/WrenAI/tree/ma
 | `cube-explorer.html` | Form-driven `CubeQuery` builder |
 
 ```bash
-cd core/wren-core-wasm
+cd core/janus-core-wasm
 just build-wasm-dev
 just serve              # http://localhost:8787
 ```
@@ -369,7 +369,7 @@ just serve              # http://localhost:8787
 
 ## Compatibility
 
-| `@wrenai/wren-core-wasm` | wren-core | Browser |
+| `@janusai/janus-core-wasm` | janus-core | Browser |
 |---|---|---|
 | 0.3.x | 0.5.x | Any with WASM + ES modules (Chrome 91+, Firefox 89+, Safari 15+) |
 
@@ -392,8 +392,8 @@ binary. There is no UMD or CommonJS build.
   `target_partitions = 1` — no Web Worker pool. Long queries block the main
   thread; consider running the engine in a Worker if responsiveness matters.
 - **Upstream DataFusion (not the Canner fork).** WASM doesn't need the
-  unparser fixes; the trade-off is that some advanced wren-core analyzer
+  unparser fixes; the trade-off is that some advanced janus-core analyzer
   paths that depend on fork-only behaviour aren't exercised here.
 - **No memory module.** Semantic-search memory (LanceDB) is a server-side
-  feature exposed by `wren-langchain` / `wren-pydantic` — not available in
+  feature exposed by `janus-langchain` / `janus-pydantic` — not available in
   the WASM SDK.

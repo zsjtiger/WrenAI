@@ -4,17 +4,17 @@ sidebar_label: Connect your database
 
 # Connect your database
 
-Wren AI talks to your database through a **profile** — credentials and connection details stored in `~/.wren/profiles.yml`. Once a profile is bound to a project, every CLI command and SDK call uses it.
+Janus AI talks to your database through a **profile** — credentials and connection details stored in `~/.janus/profiles.yml`. Once a profile is bound to a project, every CLI command and SDK call uses it.
 
 The flow is the same regardless of which database you use:
 
 1. **Install the connector extra** for your data source.
-2. **Create a profile** with `wren profile add` (or let the `onboarding` guide do it).
-3. **Bind the profile** to your project with `wren context set-profile`.
+2. **Create a profile** with `janus profile add` (or let the `onboarding` guide do it).
+3. **Bind the profile** to your project with `janus context set-profile`.
 4. **Generate the MDL** with the `generate-mdl` guide (or manually).
 5. **Start querying.**
 
-If you have an AI coding agent installed, the `/wren` skill drives the whole thing — see [Installation](/oss/get_started/installation).
+If you have an AI coding agent installed, the `/janus` skill drives the whole thing — see [Installation](/oss/get_started/installation).
 
 ## Supported data sources
 
@@ -37,7 +37,7 @@ If you have an AI coding agent installed, the `/wren` skill drives the whole thi
 Install one or more extras together:
 
 ```bash
-pip install "wrenai[postgres,bigquery,main]"
+pip install "janusai[postgres,bigquery,main]"
 ```
 
 ## Inspecting connection fields
@@ -45,15 +45,15 @@ pip install "wrenai[postgres,bigquery,main]"
 To see the exact fields required and accepted by a connector, run:
 
 ```bash
-wren docs connection-info <ds>
+janus docs connection-info <ds>
 ```
 
-The output is generated directly from the engine's connection schema, so it always matches the version of `wrenai` you have installed. Examples:
+The output is generated directly from the engine's connection schema, so it always matches the version of `janusai` you have installed. Examples:
 
 ```bash
-wren docs connection-info postgres
-wren docs connection-info bigquery
-wren docs connection-info snowflake
+janus docs connection-info postgres
+janus docs connection-info bigquery
+janus docs connection-info snowflake
 ```
 
 Use this instead of memorizing field names — the CLI is the source of truth.
@@ -63,26 +63,26 @@ Use this instead of memorizing field names — the CLI is the source of truth.
 The browser UI is the easiest way:
 
 ```bash
-wren profile add my-db --ui
+janus profile add my-db --ui
 ```
 
 Or use the interactive flow:
 
 ```bash
-wren profile add my-db --interactive
+janus profile add my-db --interactive
 ```
 
 Or import from a YAML file (recommended for agent-driven setups so secrets live in `.env`):
 
 ```bash
-wren profile add my-db --from-file connection.yml
+janus profile add my-db --from-file connection.yml
 ```
 
 ## Verifying the connection
 
 ```bash
-wren profile debug   # show resolved config (secrets masked)
-wren --sql "SELECT 1"
+janus profile debug   # show resolved config (secrets masked)
+janus --sql "SELECT 1"
 ```
 
 If the connection fails, check credentials, network reachability, SSL settings, and IP allowlists on the cloud-database side.
@@ -91,10 +91,10 @@ If the connection fails, check credentials, network reachability, SSL settings, 
 
 ```bash
 cd ~/my-project
-wren context set-profile my-db
+janus context set-profile my-db
 ```
 
-This writes `profile: my-db` and `data_source: <ds>` into `wren_project.yml`. Future commands in this project always use this profile, regardless of which profile is globally active.
+This writes `profile: my-db` and `data_source: <ds>` into `janus_project.yml`. Future commands in this project always use this profile, regardless of which profile is globally active.
 
 ## Next steps
 

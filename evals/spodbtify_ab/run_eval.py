@@ -211,7 +211,7 @@ Workflow: {workflow['name']} ({workflow_id})
 Question: {question_id}
 
 You are answering one analytical question against the Spodbtify DuckDB dataset
-through Wren. Treat this as a fresh eval session for this workflow.
+through Janus. Treat this as a fresh eval session for this workflow.
 
 Dataset path:
 {dataset['duckdb_path']}

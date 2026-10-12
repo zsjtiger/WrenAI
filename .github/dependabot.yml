@@ -1,7 +1,7 @@
 version: 2
 updates:
   - package-ecosystem: "pip"
-    directory: "/core/wren-core-py"
+    directory: "/core/janus-core-py"
     schedule:
       interval: "weekly"
     groups:
@@ -15,21 +15,21 @@ updates:
       - "core"
 
   - package-ecosystem: "pip"
-    directory: "/core/wren"
+    directory: "/core/janus"
     schedule:
       interval: "weekly"
     groups:
       all:
         patterns: ["*"]
     commit-message:
-      prefix: "deps(wren)"
+      prefix: "deps(janus)"
     labels:
       - "dependencies"
       - "python"
       - "core"
 
   - package-ecosystem: "cargo"
-    directory: "/core/wren-core"
+    directory: "/core/janus-core"
     schedule:
       interval: "weekly"
     groups:
@@ -43,7 +43,7 @@ updates:
       - "core"
 
   - package-ecosystem: "cargo"
-    directory: "/core/wren-core-base"
+    directory: "/core/janus-core-base"
     schedule:
       interval: "weekly"
     groups:
@@ -57,7 +57,7 @@ updates:
       - "core"
 
   - package-ecosystem: "cargo"
-    directory: "/core/wren-core-wasm"
+    directory: "/core/janus-core-wasm"
     schedule:
       interval: "weekly"
     groups:

@@ -4,31 +4,31 @@ sidebar_label: OSI (Open Semantic Interchange)
 
 # Build MDL from an OSI semantic model
 
-[Open Semantic Interchange](https://github.com/open-semantic-interchange/OSI) (OSI) is a vendor-neutral specification for semantic models, backed by Snowflake, Salesforce, dbt Labs, Databricks, Cube, AtScale, and others. If your team already publishes one OSI YAML as the single source of truth for analytics definitions, Wren can read it directly and build `target/mdl.json` without forking the model into a parallel wren project.
+[Open Semantic Interchange](https://github.com/open-semantic-interchange/OSI) (OSI) is a vendor-neutral specification for semantic models, backed by Snowflake, Salesforce, dbt Labs, Databricks, Cube, AtScale, and others. If your team already publishes one OSI YAML as the single source of truth for analytics definitions, Janus can read it directly and build `target/mdl.json` without forking the model into a parallel janus project.
 
 ```bash
-wren context build --from-osi semantic_model.yaml --data-source postgres
+janus context build --from-osi semantic_model.yaml --data-source postgres
 # → ./target/mdl.json
 ```
 
-## OSI project vs. wren project
+## OSI project vs. janus project
 
-|  | Wren project (native) | OSI project, kept as source | OSI project, migrated once |
+|  | Janus project (native) | OSI project, kept as source | OSI project, migrated once |
 |---|---|---|---|
-| **Source files** | `wren_project.yml` + `models/<name>/metadata.yml` + `views/` + `relationships.yml` | A single `*.yaml` OSI file | After migration: wren project layout |
+| **Source files** | `janus_project.yml` + `models/<name>/metadata.yml` + `views/` + `relationships.yml` | A single `*.yaml` OSI file | After migration: janus project layout |
 | **Author** | You (or the `generate-mdl` agent guide) | OSI tooling / vendor / external team | You take ownership after `init` |
-| **Wren commands** | `wren context init` → edit → `build` | `wren context build --from-osi <file>` | `wren context init --from-osi <file>` → edit → `build` |
-| **Editable inside Wren?** | Yes — that's the point | No — Wren reads the file as-is | Yes after migration |
-| **Where wren-specific hints live** | Each model's YAML | OSI's `custom_extensions[vendor_name=WREN]` block | Each model's YAML (lifted from OSI at migration time) |
+| **Janus commands** | `janus context init` → edit → `build` | `janus context build --from-osi <file>` | `janus context init --from-osi <file>` → edit → `build` |
+| **Editable inside Janus?** | Yes — that's the point | No — Janus reads the file as-is | Yes after migration |
+| **Where janus-specific hints live** | Each model's YAML | OSI's `custom_extensions[vendor_name=JANUS]` block | Each model's YAML (lifted from OSI at migration time) |
 | **Stays in sync with OSI?** | n/a | Yes — every build re-reads OSI | No — one-way snapshot |
 
 Three places you might land:
 
-- **You own the semantic model from day one** → use the native wren project flow.
-- **The OSI file is shared with other tools (Snowflake Cortex, Salesforce, Cube, …) and you want Wren to be one of many consumers without forking** → use `wren context build --from-osi`. Every build re-reads the OSI file.
-- **You started with an OSI file but now want full control inside Wren (cubes, views, RLAC, custom calculations OSI doesn't model)** → use `wren context init --from-osi` to migrate once, then edit the generated YAML directly. See [Migrate to a native wren project](#migrate-to-a-native-wren-project).
+- **You own the semantic model from day one** → use the native janus project flow.
+- **The OSI file is shared with other tools (Snowflake Cortex, Salesforce, Cube, …) and you want Janus to be one of many consumers without forking** → use `janus context build --from-osi`. Every build re-reads the OSI file.
+- **You started with an OSI file but now want full control inside Janus (cubes, views, RLAC, custom calculations OSI doesn't model)** → use `janus context init --from-osi` to migrate once, then edit the generated YAML directly. See [Migrate to a native janus project](#migrate-to-a-native-janus-project).
 
-All three paths produce the same `target/mdl.json` shape — Wren doesn't care how you got there.
+All three paths produce the same `target/mdl.json` shape — Janus doesn't care how you got there.
 
 ## Quick start
 
@@ -72,22 +72,22 @@ semantic_model:
 Run:
 
 ```bash
-wren context build --from-osi semantic_model.yaml --data-source postgres
+janus context build --from-osi semantic_model.yaml --data-source postgres
 ```
 
-Wren reads the file, converts each dataset to a model, synthesizes relationship join conditions, packs OSI's `ai_context.instructions` into the manifest, and writes `./target/mdl.json` — ready for `wren --sql` or any agent skill.
+Janus reads the file, converts each dataset to a model, synthesizes relationship join conditions, packs OSI's `ai_context.instructions` into the manifest, and writes `./target/mdl.json` — ready for `janus --sql` or any agent skill.
 
-You'll also see warnings telling you what's missing for an ideal manifest — see [What needs a `WREN` block](#what-needs-a-wren-block) below.
+You'll also see warnings telling you what's missing for an ideal manifest — see [What needs a `JANUS` block](#what-needs-a-janus-block) below.
 
-## The `WREN` extension block
+## The `JANUS` extension block
 
-OSI has no file-system convention for vendor extensions. Its [only sanctioned extension mechanism](https://github.com/open-semantic-interchange/OSI/blob/main/core-spec/spec.md) is the in-document `custom_extensions: [{vendor_name, data}]` field, present at every level of the document. Wren reads `vendor_name: WREN` entries and ignores everything else.
+OSI has no file-system convention for vendor extensions. Its [only sanctioned extension mechanism](https://github.com/open-semantic-interchange/OSI/blob/main/core-spec/spec.md) is the in-document `custom_extensions: [{vendor_name, data}]` field, present at every level of the document. Janus reads `vendor_name: JANUS` entries and ignores everything else.
 
 A typical extension block at the OSI document root:
 
 ```yaml
 custom_extensions:
-  - vendor_name: WREN
+  - vendor_name: JANUS
     data: |
       {
         "dialect": "SNOWFLAKE",
@@ -102,7 +102,7 @@ datasets:
   - name: store_sales
     source: tpcds.public.store_sales
     custom_extensions:
-      - vendor_name: WREN
+      - vendor_name: JANUS
         data: |
           {
             "column_types": {
@@ -116,11 +116,11 @@ datasets:
       - name: amount_eur
         expression: { dialects: [{dialect: ANSI_SQL, expression: amount * 0.92}] }
         custom_extensions:
-          - vendor_name: WREN
+          - vendor_name: JANUS
             data: '{"type": "DECIMAL(18,2)", "not_null": true}'
 ```
 
-The `data` field is per spec a JSON string. Wren also tolerates a raw YAML dict for hand-authored files.
+The `data` field is per spec a JSON string. Janus also tolerates a raw YAML dict for hand-authored files.
 
 ### Supported keys
 
@@ -138,42 +138,42 @@ The `data` field is per spec a JSON string. Wren also tolerates a raw YAML dict 
 Resolution order, highest to lowest:
 
 1. CLI flag (`--data-source`, `--semantic-model`, `--dialect`, …)
-2. `semantic_model[i].custom_extensions[vendor_name=WREN]`
-3. `custom_extensions[vendor_name=WREN]` at the document root
-4. Dataset / field `custom_extensions[vendor_name=WREN]` (for per-dataset / per-field keys only)
+2. `semantic_model[i].custom_extensions[vendor_name=JANUS]`
+3. `custom_extensions[vendor_name=JANUS]` at the document root
+4. Dataset / field `custom_extensions[vendor_name=JANUS]` (for per-dataset / per-field keys only)
 5. Built-in defaults
 
 Two-level support (root + semantic_model) means you can write a global default once and only add overrides on individual `semantic_model` entries that need to differ — for example, when the file contains multiple semantic models.
 
 ## Mapping summary
 
-| OSI | Wren MDL |
+| OSI | Janus MDL |
 |---|---|
 | `dataset.source: a.b.c` | `model.table_reference: {catalog: a, schema: b, table: c}` |
 | `dataset.source` containing `SELECT`/`FROM`/newlines | `model.ref_sql` |
-| `dataset.fields[*].name` + `expression` | `model.columns[]` — dialect-picked expression, type from WREN block or `is_time` hint |
+| `dataset.fields[*].name` + `expression` | `model.columns[]` — dialect-picked expression, type from JANUS block or `is_time` hint |
 | `dataset.primary_key: [x]` | `model.primary_key: x` (composite arrays warn + take the first column unless overridden) |
-| `relationships[]` (always many-to-one in OSI) | wren `relationships` with synthesized `condition` and `MANY_TO_ONE` |
+| `relationships[]` (always many-to-one in OSI) | janus `relationships` with synthesized `condition` and `MANY_TO_ONE` |
 | `field.dimension.is_time: true` | `column.type: TIMESTAMP` (when no explicit type override) |
 | `semantic_model.ai_context.instructions` | MDL `_instructions` |
 | `metrics[]` (top-level OSI) | Rendered as markdown notes appended to instructions |
-| `unique_keys` | _Not converted_ — Wren has no equivalent |
+| `unique_keys` | _Not converted_ — Janus has no equivalent |
 | `custom_extensions` for other vendors | _Ignored_ |
 
-## What needs a `WREN` block
+## What needs a `JANUS` block
 
 For each of these cases, `validate --from-osi` emits a warning with a **copy-pasteable YAML snippet** you can paste straight into your OSI file.
 
 ### Untyped fields
 
-OSI doesn't carry column types. Without a `WREN` override, every field defaults to `VARCHAR` (or `TIMESTAMP` if `dimension.is_time: true`). Validate prints, per dataset:
+OSI doesn't carry column types. Without a `JANUS` override, every field defaults to `VARCHAR` (or `TIMESTAMP` if `dimension.is_time: true`). Validate prints, per dataset:
 
 ```text
 [WARNING] dataset 'store_sales': 8 field(s) have no type — defaulted to VARCHAR.
   Add to dataset 'store_sales' in the OSI file:
 
     custom_extensions:
-      - vendor_name: WREN
+      - vendor_name: JANUS
         data: |
           {
             "column_types": {
@@ -186,39 +186,39 @@ OSI doesn't carry column types. Without a `WREN` override, every field defaults 
 
 ### Composite primary keys
 
-OSI allows `primary_key: [col_a, col_b]`; Wren MDL takes one column. Wren picks the first column and emits a snippet so you can override:
+OSI allows `primary_key: [col_a, col_b]`; Janus MDL takes one column. Janus picks the first column and emits a snippet so you can override:
 
 ```text
 [WARNING] dataset 'store_sales': composite primary_key
-  ['ss_item_sk', 'ss_ticket_number'] — Wren MDL takes one column.
-  Wren picked 'ss_item_sk'. To override, add to dataset 'store_sales':
+  ['ss_item_sk', 'ss_ticket_number'] — Janus MDL takes one column.
+  Janus picked 'ss_item_sk'. To override, add to dataset 'store_sales':
 
     custom_extensions:
-      - vendor_name: WREN
+      - vendor_name: JANUS
         data: '{"primary_key": "<one of: ss_item_sk, ss_ticket_number>"}'
 ```
 
 ### Cross-dataset metrics
 
-Wren cubes are bound to a single base object, so OSI top-level metrics that aggregate across multiple datasets cannot become first-class cubes. They are rendered as markdown notes appended to `instructions`, available to the LLM but not as queryable measures:
+Janus cubes are bound to a single base object, so OSI top-level metrics that aggregate across multiple datasets cannot become first-class cubes. They are rendered as markdown notes appended to `instructions`, available to the LLM but not as queryable measures:
 
 ```text
 [WARNING] metric 'customer_lifetime_value': expression references 2 datasets
   (customer, store_sales) — emitted as instruction note only.
 ```
 
-Metrics that reference a single dataset get the same treatment by default (`metrics: note`); set `metrics: skip` in the WREN block to drop them entirely.
+Metrics that reference a single dataset get the same treatment by default (`metrics: note`); set `metrics: skip` in the JANUS block to drop them entirely.
 
 ### Multiple `semantic_model` entries
 
-OSI allows multiple `semantic_model[]` entries in one file. Wren builds one MDL per invocation, so an ambiguous file is a hard error:
+OSI allows multiple `semantic_model[]` entries in one file. Janus builds one MDL per invocation, so an ambiguous file is a hard error:
 
 ```text
 [ERROR] OSI file has 2 semantic_models: model_a, model_b.
   Pass --semantic-model <name> or add at the OSI document root:
 
     custom_extensions:
-      - vendor_name: WREN
+      - vendor_name: JANUS
         data: '{"default_semantic_model": "<name>"}'
 ```
 
@@ -226,40 +226,40 @@ OSI allows multiple `semantic_model[]` entries in one file. Wren builds one MDL 
 
 ```bash
 # Build (writes ./target/mdl.json by default)
-wren context build --from-osi semantic_model.yaml --data-source postgres
-wren context build --from-osi semantic_model.yaml --data-source snowflake \
+janus context build --from-osi semantic_model.yaml --data-source postgres
+janus context build --from-osi semantic_model.yaml --data-source snowflake \
   --output build/mdl.json
 
-# Migrate to a native wren project (one-way)
-wren context init --from-osi semantic_model.yaml --data-source postgres \
+# Migrate to a native janus project (one-way)
+janus context init --from-osi semantic_model.yaml --data-source postgres \
   --path my_project
 
 # Validate — lints the conversion and prints actionable snippets
-wren context validate --from-osi semantic_model.yaml --data-source postgres
-wren context validate --from-osi semantic_model.yaml --data-source postgres --strict
-wren context validate --from-osi semantic_model.yaml --data-source postgres --verbose
+janus context validate --from-osi semantic_model.yaml --data-source postgres
+janus context validate --from-osi semantic_model.yaml --data-source postgres --strict
+janus context validate --from-osi semantic_model.yaml --data-source postgres --verbose
 
 # Show — preview the resulting manifest without writing it
-wren context show --from-osi semantic_model.yaml --data-source postgres
-wren context show --from-osi semantic_model.yaml --data-source postgres --output json
-wren context show --from-osi semantic_model.yaml --data-source postgres --output yaml
+janus context show --from-osi semantic_model.yaml --data-source postgres
+janus context show --from-osi semantic_model.yaml --data-source postgres --output json
+janus context show --from-osi semantic_model.yaml --data-source postgres --output yaml
 ```
 
 `--data-source` is required because OSI deliberately does not carry connection or dialect environment information. Pair `--from-osi` with `--semantic-model` if the file contains more than one model.
 
-## Migrate to a native wren project
+## Migrate to a native janus project
 
-When OSI's surface area isn't enough — you need cubes, views, RLAC/CLAC, or calculated columns OSI doesn't model — convert the OSI file into a native wren project once and edit the YAML from there:
+When OSI's surface area isn't enough — you need cubes, views, RLAC/CLAC, or calculated columns OSI doesn't model — convert the OSI file into a native janus project once and edit the YAML from there:
 
 ```bash
-wren context init --from-osi semantic_model.yaml --data-source postgres --path my_project
+janus context init --from-osi semantic_model.yaml --data-source postgres --path my_project
 ```
 
-This reuses the same converter as `build --from-osi`, then scaffolds the standard wren layout:
+This reuses the same converter as `build --from-osi`, then scaffolds the standard janus layout:
 
 ```text
 my_project/
-├── wren_project.yml          # name lifted from OSI semantic_model.name
+├── janus_project.yml          # name lifted from OSI semantic_model.name
 ├── models/
 │   ├── customers/metadata.yml
 │   └── orders/metadata.yml
@@ -270,28 +270,28 @@ my_project/
 
 After migration:
 
-- The OSI file is **no longer referenced**. You can delete it, archive it, or keep it for diffing — Wren never reads it again.
+- The OSI file is **no longer referenced**. You can delete it, archive it, or keep it for diffing — Janus never reads it again.
 - Edit the generated YAML directly. Add cubes under `cubes/`, views under `views/`, RLAC under each model's `properties`, etc.
-- Use the standard flow: `wren context validate` → `wren context build`.
+- Use the standard flow: `janus context validate` → `janus context build`.
 
 Any warnings the OSI conversion would normally emit (untyped fields, composite primary keys, cross-dataset metrics) are printed once during init so you know which spots in the generated YAML need a human review.
 
 ### When *not* to migrate
 
-If your OSI file is updated by an upstream team and you want Wren to stay in sync, **do not** migrate — use `build --from-osi` instead. A migrated project is a snapshot; later OSI edits won't reach Wren without manually merging or re-running `init --from-osi --force` (which loses your post-migration edits).
+If your OSI file is updated by an upstream team and you want Janus to stay in sync, **do not** migrate — use `build --from-osi` instead. A migrated project is a snapshot; later OSI edits won't reach Janus without manually merging or re-running `init --from-osi --force` (which loses your post-migration edits).
 
 ## Limitations
 
-- **No round-trip.** Wren reads OSI but never writes back. Edits to the OSI file are made in your OSI tooling; Wren re-reads on the next `build`.
-- **No cubes / measures.** OSI metrics map to instruction notes, not Wren cubes. If you need first-class cubes, model them in a native wren project instead.
+- **No round-trip.** Janus reads OSI but never writes back. Edits to the OSI file are made in your OSI tooling; Janus re-reads on the next `build`.
+- **No cubes / measures.** OSI metrics map to instruction notes, not Janus cubes. If you need first-class cubes, model them in a native janus project instead.
 - **No views.** OSI has no view concept; the generated MDL has an empty `views` array.
-- **No `unique_keys`, no row/column-level access controls.** OSI 0.2.x doesn't model these; if you need them, either author them in a sidecar wren project or wait for an upcoming OSI spec version.
+- **No `unique_keys`, no row/column-level access controls.** OSI 0.2.x doesn't model these; if you need them, either author them in a sidecar janus project or wait for an upcoming OSI spec version.
 
-For features OSI doesn't yet cover, the suggested pattern is to use the OSI file for what it does well (datasets, fields, relationships, instructions) and add a small wren-native overlay on top for the gaps. This is currently a manual merge — there is no automatic union of two sources.
+For features OSI doesn't yet cover, the suggested pattern is to use the OSI file for what it does well (datasets, fields, relationships, instructions) and add a small janus-native overlay on top for the gaps. This is currently a manual merge — there is no automatic union of two sources.
 
 ## See also
 
 - [OSI specification](https://github.com/open-semantic-interchange/OSI/blob/main/core-spec/spec.md) — the upstream schema and field reference
-- [Manage project](./manage_project.md) — the native wren-project flow
-- [MDL reference](/oss/reference/mdl) — what Wren produces on the other side of the conversion
+- [Manage project](./manage_project.md) — the native janus-project flow
+- [MDL reference](/oss/reference/mdl) — what Janus produces on the other side of the conversion
 - [Connect your database](./connect.md) — choosing and binding a profile
