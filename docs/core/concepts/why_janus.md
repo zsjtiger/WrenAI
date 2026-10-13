@@ -66,4 +66,3 @@ A few distinctions worth being precise about:
 
 - [Install](/oss/get_started/installation) and the [Quickstart](/oss/get_started/quickstart)
 - [What does Janus AI mean by context?](/oss/concepts/what_is_context): the idea underneath CReport
-- [Build & deploy a CReport app](/oss/guides/genbi): see the payoff

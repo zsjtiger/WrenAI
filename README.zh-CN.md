@@ -95,7 +95,7 @@ pip install janusai -i https://pypi.tuna.tsinghua.edu.cn/simple
 
 <div align="center">
 
-**[查看完整快速开始 →](https://docs.crossnow.cn/oss/get_started/quickstart)** &nbsp;·&nbsp; [构建并部署 CReport 应用 →](https://docs.crossnow.cn/oss/guides/genbi)
+**[查看完整快速开始 →](https://docs.crossnow.cn/oss/get_started/quickstart)**
 
 </div>
 
@@ -239,7 +239,6 @@ janus ask "<question>" --direct     # 为能力较强的智能体包装问题
 ## 文档
 
 - [快速开始](https://docs.crossnow.cn/oss/get_started/quickstart)：从安装 Skill 到得到第一个答案
-- [构建并部署 CReport 应用](https://docs.crossnow.cn/oss/guides/genbi)：生成仪表盘并上线
 - [核心概念](https://docs.crossnow.cn/oss/concepts/what_is_context)：什么是上下文、什么是 MDL、记忆如何工作
 - [连接数据库](https://docs.crossnow.cn/oss/guides/connect)：Postgres、BigQuery、Snowflake、DuckDB 等
 - [智能体 SDK](https://docs.crossnow.cn/oss/sdk/overview)：当前已发布的内容和下一步计划

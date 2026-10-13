@@ -89,4 +89,3 @@ The agent is not getting smarter. The context layer it reads from is getting ric
 - [How does memory get smarter over time?](./memory_system.md): the mechanics of recall and indexing.
 - [What does MDL do for the agent?](./what_is_mdl.md): the semantic contract the agent reads.
 - [Refine answer quality](/oss/guides/refine): the recipe for running the enrich loop.
-- [Build & deploy a CReport app](/oss/guides/genbi): turn this knowledge into a dashboard.

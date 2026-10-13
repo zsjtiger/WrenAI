@@ -86,7 +86,7 @@ Jennifer     1086.45
 4. 应用 `knowledge/rules/` 中的业务规则（默认过滤条件、标准表、业务定义）
 5. 返回结果行
 
-在此基础上，同一份上下文也驱动 *Deploy* 环节：让智能体把答案做成仪表盘，它会基于项目构建一个浏览器端 CReport 应用，并部署到你自己的托管环境中。参见[构建并部署 CReport 应用](/oss/guides/genbi)。
+在此基础上，同一份上下文也驱动 *Deploy* 环节：让智能体把答案做成仪表盘，它会基于项目构建一个浏览器端 CReport 应用，并部署到你自己的托管环境中。。
 
 ## 开源核心包含什么
 
@@ -95,7 +95,7 @@ Jennifer     1086.45
 - **[MDL（建模定义语言）](/oss/concepts/what_is_mdl)**：语义契约。MDL 在你可以阅读、审阅、版本化和分叉的文件中定义模型、关联关系、计算字段、视图以及面向智能体的元数据。
 - **Rust 语义引擎**：基于 Apache DataFusion。它在 PostgreSQL、MySQL、BigQuery、Snowflake、DuckDB、ClickHouse、Trino、SQL Server、Databricks、Redshift、Oracle、Athena、Apache Spark 等受支持的数据源上规划并执行基于模型的 SQL。
 - **[`janus` CLI](/oss/reference/cli)**：用于查询、规划、校验、构建上下文、数据画像、管理记忆，以及构建和部署 CReport 应用的命令。
-- **[CReport 应用](/oss/guides/genbi)**：由智能体构建、在浏览器端运行的仪表盘，由 [`janus-core-wasm`](/oss/sdk/wasm) 驱动，可部署到 Vercel 或 Cloudflare Pages。
+- **CReport 应用**：由智能体构建、在浏览器端运行的仪表盘，由 [`janus-core-wasm`](/oss/sdk/wasm) 驱动，可部署到 Vercel 或 Cloudflare Pages。
 - **[Skills](/oss/reference/skills)**：结构化的工作流，例如 `generate-mdl`、`onboarding`、`enrich-context` 和 `creport`，由 `janus` CLI 按需提供，使 AI 编码智能体能够安全、可复现地操作 Janus AI。
 - **框架 SDK**：[LangChain](/oss/sdk/langchain) 和 [Pydantic AI](/oss/sdk/pydantic) 集成，用于将 Janus 项目接入智能体框架。
 - **[janus-core-wasm](/oss/sdk/wasm)**：编译为 WebAssembly 的语义引擎，使理解 MDL 的 SQL（以及 CReport 仪表盘）可以在浏览器中运行。
@@ -109,7 +109,7 @@ Jennifer     1086.45
 1. [安装](/oss/get_started/installation)
 2. [使用 `jaffle_shop` 示例数据快速开始](/oss/get_started/quickstart)
 3. [连接你自己的数据库](/oss/guides/connect)
-4. [构建并部署 CReport 应用](/oss/guides/genbi)：*Generate* + *Deploy* 的成果
+4. 构建并部署 CReport 应用：*Generate* + *Deploy* 的成果
 5. [核心概念](/oss/concepts/what_is_context)：*Know* 环节背后的设计理念
 
 ## 关于 "CReport" 名称的说明

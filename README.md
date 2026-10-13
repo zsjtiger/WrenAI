@@ -95,7 +95,7 @@ Once you're connected, these three prompts cover the whole CReport loop:
 
 <div align="center">
 
-**[Follow the full quickstart →](https://docs.crossnow.cn/oss/get_started/quickstart)** &nbsp;·&nbsp; [Build & deploy a CReport app →](https://docs.crossnow.cn/oss/guides/genbi)
+**[Follow the full quickstart →](https://docs.crossnow.cn/oss/get_started/quickstart)**
 
 </div>
 
@@ -239,7 +239,6 @@ On 2026-05-07 Janus Engine merged into this repo under [`core/`](./core), and th
 ## Documentation
 
 - [Quickstart](https://docs.crossnow.cn/oss/get_started/quickstart): from skill install to first answer
-- [Build & deploy a CReport app](https://docs.crossnow.cn/oss/guides/genbi): generate a dashboard and ship it
 - [Concepts](https://docs.crossnow.cn/oss/concepts/what_is_context): what context is, what MDL is, how memory works
 - [Connect a database](https://docs.crossnow.cn/oss/guides/connect): Postgres, BigQuery, Snowflake, DuckDB, and more
 - [Agent SDKs](https://docs.crossnow.cn/oss/sdk/overview): what's shipping today, what's next
