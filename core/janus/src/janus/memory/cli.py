@@ -6,7 +6,7 @@ import json
 import os
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Annotated, Optional
+from typing import Annotated, Callable, Optional
 
 import typer
 import yaml
@@ -636,6 +636,78 @@ def check(
         )
 
 
+def _check_mdl_within_project(mdl: str | None, project_path: Path) -> None:
+    """Fail fast if an explicit --mdl lies outside the watched project root.
+
+    The watcher polls <project_path>/target/mdl.json + <project_path>/knowledge/sql,
+    but the reindex reads --mdl and load_query_pairs(project_path). If an explicit
+    --mdl points outside the watched project root we'd watch one tree and index a
+    mixed one — fail fast instead of silently building a cross-project index.
+    """
+    if not mdl:
+        return
+    mdl_path = Path(mdl).expanduser().resolve()
+    root = project_path.resolve()
+    if root != mdl_path and root not in mdl_path.parents:
+        typer.echo(
+            f"Error: --mdl ({mdl_path}) is outside the watched project "
+            f"root ({root}).\n"
+            "  `watch` monitors target/mdl.json + knowledge/sql/ under the "
+            "project root and reindexes from that same tree, so an --mdl "
+            "from another project would watch and index mismatched files.\n"
+            "  Run from the project that owns this MDL, or point --mdl at a "
+            "file under this root.",
+            err=True,
+        )
+        raise typer.Exit(1)
+
+
+def _make_reindex(
+    mdl: str | None, path: str | None, project_path: Path
+) -> Callable[[], None]:
+    """Build the reindex callable used by ``watch``: schema index + markdown pairs."""
+
+    def _reindex() -> None:
+        manifest = _load_manifest(mdl)
+        mem_store = _get_store(path)
+        result = mem_store.index_schema(manifest, seed_queries=True)
+        from janus.memory.markdown import load_query_pairs  # noqa: PLC0415
+
+        md_pairs = load_query_pairs(project_path)
+        res = mem_store.sync_markdown_queries(md_pairs)
+        loaded = res["loaded"] + res["updated"]
+        typer.echo(
+            f"Reindexed {result['schema_items']} schema item(s)"
+            + (f", {loaded} pair(s)" if loaded else "")
+            + (f", forgot {res['forgotten']} stale pair(s)" if res["forgotten"] else "")
+            + "."
+        )
+
+    return _reindex
+
+
+def _on_watch_event(event: str) -> None:
+    if event == "change-detected":
+        typer.echo("Change detected — reindexing...", err=True)
+    elif event == "stopped":
+        typer.echo("Stopped watching.", err=True)
+
+
+def _on_watch_error(event: str, exc: BaseException) -> None:
+    if event == "reindex-error":
+        # The reason is the actionable half of this message, and the only
+        # half the event name cannot carry — except for typer.Exit, where
+        # _reindex has already echoed the real error and str(exc) would
+        # only repeat the exit code ("Reindex failed: 1").
+        reason = (
+            "" if isinstance(exc, typer.Exit) else f": {str(exc) or type(exc).__name__}"
+        )
+        typer.echo(
+            f"Reindex failed{reason}; change kept pending, will retry next poll.",
+            err=True,
+        )
+
+
 @memory_app.command()
 def watch(
     mdl: MdlOpt = None,
@@ -687,78 +759,16 @@ def watch(
         raise typer.Exit(1)
 
     project_path = resolve_project_path()
+    _check_mdl_within_project(mdl, project_path)
 
-    # The watcher polls <project_path>/target/mdl.json + <project_path>/knowledge/sql,
-    # but the reindex reads --mdl and load_query_pairs(project_path). If an explicit
-    # --mdl points outside the watched project root we'd watch one tree and index a
-    # mixed one — fail fast instead of silently building a cross-project index.
-    if mdl:
-        mdl_path = Path(mdl).expanduser().resolve()
-        root = project_path.resolve()
-        if root != mdl_path and root not in mdl_path.parents:
-            typer.echo(
-                f"Error: --mdl ({mdl_path}) is outside the watched project "
-                f"root ({root}).\n"
-                "  `watch` monitors target/mdl.json + knowledge/sql/ under the "
-                "project root and reindexes from that same tree, so an --mdl "
-                "from another project would watch and index mismatched files.\n"
-                "  Run from the project that owns this MDL, or point --mdl at a "
-                "file under this root.",
-                err=True,
-            )
-            raise typer.Exit(1)
-
-    def _reindex() -> None:
-        manifest = _load_manifest(mdl)
-        mem_store = _get_store(path)
-        result = mem_store.index_schema(manifest, seed_queries=True)
-        from janus.memory.markdown import load_query_pairs  # noqa: PLC0415
-
-        md_pairs = load_query_pairs(project_path)
-        res = mem_store.sync_markdown_queries(md_pairs)
-        loaded = res["loaded"] + res["updated"]
-        typer.echo(
-            f"Reindexed {result['schema_items']} schema item(s)"
-            + (f", {loaded} pair(s)" if loaded else "")
-            + (f", forgot {res['forgotten']} stale pair(s)" if res["forgotten"] else "")
-            + "."
-        )
-
-    def _on_event(event: str) -> None:
-        if event == "change-detected":
-            typer.echo("Change detected — reindexing...", err=True)
-        elif event == "stopped":
-            typer.echo("Stopped watching.", err=True)
-
-    def _on_error(event: str, exc: BaseException) -> None:
-        if event == "reindex-error":
-            # The reason is the actionable half of this message, and the only
-            # half the event name cannot carry — except for typer.Exit, where
-            # _reindex has already echoed the real error and str(exc) would
-            # only repeat the exit code ("Reindex failed: 1").
-            reason = (
-                ""
-                if isinstance(exc, typer.Exit)
-                else f": {str(exc) or type(exc).__name__}"
-            )
-            typer.echo(
-                f"Reindex failed{reason}; change kept pending, will retry next poll.",
-                err=True,
-            )
-
-    typer.echo(
-        f"Watching {project_path} every {max(interval, 1.0):g}s "
-        "(target/mdl.json + knowledge/sql/). Ctrl+C to stop.",
-        err=True,
-    )
     state = watch_loop(
         project_path,
-        _reindex,
+        _make_reindex(mdl, path, project_path),
         interval=interval,
         max_polls=max_polls,
         reindex_on_start=reindex_on_start,
-        on_event=_on_event,
-        on_error=_on_error,
+        on_event=_on_watch_event,
+        on_error=_on_watch_error,
     )
     if max_polls is not None:
         typer.echo(
