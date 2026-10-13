@@ -1,6 +1,6 @@
 # Audit: janus-ai-architecture (English)
 
-Reference: `misc/janus-ai-architecture.png` (2560×2000, rendered at 2× from a 1280×1000 layout).
+Reference: `assets/janus-ai-architecture.png` (2560×2000, rendered at 2× from a 1280×1000 layout).
 Output: `janus-ai-architecture.drawio` (native mxGraph cells), `janus-ai-architecture.png` (preview).
 
 ## Method

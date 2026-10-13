@@ -1,8 +1,8 @@
 <div align="center" id="top">
 <a href="https://crossnow.cn">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="./misc/janus-ai-banner-dark.png">
-    <img src="./misc/janus-ai-banner.png" width="100%" alt="JanusAI: open-source CReport for AI agents">
+    <source media="(prefers-color-scheme: dark)" srcset="./assets/janus-ai-banner-dark.png">
+    <img src="./assets/janus-ai-banner.png" width="100%" alt="JanusAI: open-source CReport for AI agents">
   </picture>
 </a>
 
@@ -27,8 +27,8 @@ JanusAI is the open-source **generative BI (CReport) engine**. It gives the AI a
 Schemas tell an agent where data lives. Janus tells it what the data *means*: approved metric definitions, enums, units, joins, worked examples, and the tribal knowledge buried in docs and chat threads. All of it lives as reviewable YAML and Markdown in a repo you own.
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="./misc/janus-ai-architecture-dark.png">
-  <img src="./misc/janus-ai-architecture.png" width="100%" alt="Janus AI generative BI architecture — semantic layer and AI context layer for AI agents">
+  <source media="(prefers-color-scheme: dark)" srcset="./assets/janus-ai-architecture-dark.png">
+  <img src="./assets/janus-ai-architecture.png" width="100%" alt="Janus AI generative BI architecture — semantic layer and AI context layer for AI agents">
 </picture>
 
 ## Quickstart

@@ -1,8 +1,8 @@
 <div align="center" id="top">
 <a href="https://crossnow.cn">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="./misc/janus-ai-banner-dark.zh-CN.png">
-    <img src="./misc/janus-ai-banner.zh-CN.png" width="100%" alt="JanusAI：面向 AI 智能体的开源 CReport">
+    <source media="(prefers-color-scheme: dark)" srcset="./assets/janus-ai-banner-dark.zh-CN.png">
+    <img src="./assets/janus-ai-banner.zh-CN.png" width="100%" alt="JanusAI：面向 AI 智能体的开源 CReport">
   </picture>
 </a>
 
@@ -27,8 +27,8 @@ JanusAI 是开源的**生成式 BI（CReport）引擎**。它为你已经在用�
 Schema 只能告诉智能体数据存放在哪里。Janus 则告诉它数据**意味着什么**：经过批准的指标定义、枚举值、单位、关联关系、示例，以及埋在文档和聊天记录里的隐性知识。这些内容都以可审阅的 YAML 和 Markdown 文件保存在你自己的代码仓库中。
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="./misc/janus-ai-architecture-dark.zh-CN.png">
-  <img src="./misc/janus-ai-architecture.zh-CN.png" width="100%" alt="Janus AI 生成式 BI 架构：面向 AI 智能体的语义层与 AI 上下文层">
+  <source media="(prefers-color-scheme: dark)" srcset="./assets/janus-ai-architecture-dark.zh-CN.png">
+  <img src="./assets/janus-ai-architecture.zh-CN.png" width="100%" alt="Janus AI 生成式 BI 架构：面向 AI 智能体的语义层与 AI 上下文层">
 </picture>
 
 ## 快速开始
