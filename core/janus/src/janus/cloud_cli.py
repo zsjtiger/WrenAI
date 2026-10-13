@@ -465,32 +465,69 @@ def create(  # noqa: PLR0913
         )
         raise typer.Exit(1)
 
-    def _read_json_option(raw: str, *, source: str) -> dict:
-        import json  # noqa: PLC0415
+    parsed_connection_info = _parse_connection_info(
+        connection_info, connection_info_file
+    )
+    type_ = _normalize_type(type_)
+    _require_type_and_connection(type_, parsed_connection_info)
+    resolved_org_key = _resolve_org_key(org_key, org, host)
 
-        try:
-            parsed = json.loads(raw)
-        except json.JSONDecodeError as exc:
-            typer.echo(f"Error: {source} is not valid JSON: {exc}", err=True)
-            raise typer.Exit(1) from exc
-        if not isinstance(parsed, dict):
-            typer.echo(f"Error: {source} must be a JSON object.", err=True)
-            raise typer.Exit(1)
-        return parsed
+    resolved_display_name = display_name or directory.resolve().name
 
-    parsed_connection_info: Optional[dict] = None
+    try:
+        project, outcome = cloud.create(
+            directory,
+            host=host,
+            org_id=org,
+            org_key=resolved_org_key,
+            display_name=resolved_display_name,
+            git_host=git_host,
+            connection_type=type_,
+            connection_info=parsed_connection_info,
+            test_connection=test_connection,
+            language=language,
+            timezone=timezone,
+        )
+    except cloud.CloudError as exc:
+        typer.echo(f"Error: {exc}", err=True)
+        raise typer.Exit(1) from exc
+
+    _report_created(project, outcome, directory, host)
+
+
+def _read_json_object(raw: str, *, source: str) -> dict:
+    """Parse ``raw`` as a JSON object, exiting with a message otherwise."""
+    import json  # noqa: PLC0415
+
+    try:
+        parsed = json.loads(raw)
+    except json.JSONDecodeError as exc:
+        typer.echo(f"Error: {source} is not valid JSON: {exc}", err=True)
+        raise typer.Exit(1) from exc
+    if not isinstance(parsed, dict):
+        typer.echo(f"Error: {source} must be a JSON object.", err=True)
+        raise typer.Exit(1)
+    return parsed
+
+
+def _parse_connection_info(
+    connection_info: Optional[str], connection_info_file: Optional[Path]
+) -> Optional[dict]:
+    """The connection info from whichever of the two options was given."""
     if connection_info_file is not None:
         try:
             raw = connection_info_file.read_text(encoding="utf-8")
         except OSError as exc:
             typer.echo(f"Error: could not read {connection_info_file}: {exc}", err=True)
             raise typer.Exit(1) from exc
-        parsed_connection_info = _read_json_option(raw, source="--connection-info-file")
-    elif connection_info is not None:
-        parsed_connection_info = _read_json_option(
-            connection_info, source="--connection-info"
-        )
+        return _read_json_object(raw, source="--connection-info-file")
+    if connection_info is not None:
+        return _read_json_object(connection_info, source="--connection-info")
+    return None
 
+
+def _normalize_type(type_: Optional[str]) -> Optional[str]:
+    """Upper-case the data source type, as the server's enum lookup requires."""
     # The server matches the type against its enum by exact key lookup, and
     # `POST /api/v1/projects` does not validate it up front: an unrecognized
     # value strips the connection info to `{}` and surfaces as a 207 with a
@@ -498,8 +535,14 @@ def create(  # noqa: PLR0913
     # a client can fix without mirroring the server's enum here, and `big_query`
     # for `BIG_QUERY` is the mistake it actually costs people.
     if type_ is not None:
-        type_ = type_.strip().upper()
+        return type_.strip().upper()
+    return None
 
+
+def _require_type_and_connection(
+    type_: Optional[str], parsed_connection_info: Optional[dict]
+) -> None:
+    """Refuse before anything is created when either required option is missing."""
     # Both are required, not merely consistent with each other. A project with
     # no data source is reported by Janus Cloud as still needing setup, and
     # nothing in this CLI can finish it: the only way to attach a connection
@@ -524,6 +567,9 @@ def create(  # noqa: PLR0913
         )
         raise typer.Exit(1)
 
+
+def _resolve_org_key(org_key: Optional[str], org: str, host: str) -> str:
+    """The org key from the flag, the environment, or an interactive prompt."""
     resolved_org_key = (org_key or os.environ.get("JANUS_CLOUD_ORG_KEY") or "").strip()
     if not resolved_org_key:
         resolved_org_key = typer.prompt(
@@ -533,26 +579,12 @@ def create(  # noqa: PLR0913
     if not resolved_org_key:
         typer.echo("Error: an organization API key is required.", err=True)
         raise typer.Exit(1)
+    return resolved_org_key
 
-    resolved_display_name = display_name or directory.resolve().name
 
-    try:
-        project, outcome = cloud.create(
-            directory,
-            host=host,
-            org_id=org,
-            org_key=resolved_org_key,
-            display_name=resolved_display_name,
-            git_host=git_host,
-            connection_type=type_,
-            connection_info=parsed_connection_info,
-            test_connection=test_connection,
-            language=language,
-            timezone=timezone,
-        )
-    except cloud.CloudError as exc:
-        typer.echo(f"Error: {exc}", err=True)
-        raise typer.Exit(1) from exc
+def _report_created(project, outcome, directory: Path, host: str) -> None:
+    """Print the outcome of a successful create."""
+    from janus import cloud  # noqa: PLC0415
 
     typer.echo(f"Created project {project.id} ({project.display_name}) on {host}.")
     if project.status == "partial":
