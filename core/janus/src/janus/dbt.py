@@ -8,11 +8,14 @@ import os
 import re
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import yaml
 
 from janus.type_mapping import parse_type
+
+if TYPE_CHECKING:
+    from janus.context import ProjectFile
 
 _DEFAULT_DBT_TARGET_PATH = "target"
 _COMPILED_DIR = "compiled"
@@ -322,11 +325,6 @@ def convert_dbt_project_to_janus_project(
     target_name: str | None = None,
 ) -> DbtProjectImport:
     """Convert dbt artifacts into Janus project files."""
-    from janus.context import (  # noqa: PLC0415
-        _AGENTS_MD_TEMPLATE,
-        ProjectFile,
-    )
-
     target = resolve_dbt_target(
         project_dir,
         profiles_path=profiles_path,
@@ -354,6 +352,41 @@ def convert_dbt_project_to_janus_project(
         datasource=target.datasource,
     )
 
+    files = _core_project_files(
+        artifacts,
+        target,
+        project_root,
+        relationships=relationships,
+        test_events=test_events,
+        model_count=model_count,
+        source_count=source_count,
+    )
+    files.extend(_query_pair_files(query_pairs))
+    files.extend(_model_files(imported_models))
+
+    return DbtProjectImport(
+        files=files,
+        model_count=model_count,
+        source_count=source_count,
+        skipped_ephemeral=skipped_ephemeral,
+        skipped_without_columns=skipped_no_columns,
+        relationship_count=len(relationships),
+    )
+
+
+def _core_project_files(
+    artifacts: Any,
+    target: DbtTarget,
+    project_root: Path,
+    *,
+    relationships: list[dict[str, Any]],
+    test_events: list[dict[str, Any]],
+    model_count: int,
+    source_count: int,
+) -> list[ProjectFile]:
+    """janus_project.yml, relationships.yml, knowledge/ and AGENTS.md."""
+    from janus.context import _AGENTS_MD_TEMPLATE, ProjectFile  # noqa: PLC0415
+
     dbt_binding_dir = _relative_or_absolute_path(target.project_dir, project_root)
     project_config = {
         "schema_version": 5,
@@ -371,7 +404,7 @@ def convert_dbt_project_to_janus_project(
         },
     }
 
-    files = [
+    return [
         ProjectFile(
             relative_path="janus_project.yml",
             content=yaml.dump(
@@ -407,9 +440,13 @@ def convert_dbt_project_to_janus_project(
         ProjectFile(relative_path="AGENTS.md", content=_AGENTS_MD_TEMPLATE),
     ]
 
-    # NL→SQL pairs live one-per-file under knowledge/sql/ (v5 source of truth).
+
+def _query_pair_files(query_pairs: list[dict[str, Any]]) -> list[ProjectFile]:
+    """NL→SQL pairs live one-per-file under knowledge/sql/ (v5 source of truth)."""
+    from janus.context import ProjectFile  # noqa: PLC0415
     from janus.memory.markdown import render_query_markdown, slugify  # noqa: PLC0415
 
+    files: list[ProjectFile] = []
     used_slugs: set[str] = set()
     for pair in query_pairs:
         base = slugify(pair["nl"])
@@ -429,8 +466,13 @@ def convert_dbt_project_to_janus_project(
                 ),
             )
         )
+    return files
 
-    files.extend(
+
+def _model_files(imported_models: list[dict[str, Any]]) -> list[ProjectFile]:
+    from janus.context import ProjectFile  # noqa: PLC0415
+
+    return [
         ProjectFile(
             relative_path=f"models/{model['name']}/metadata.yml",
             content=yaml.dump(
@@ -438,16 +480,7 @@ def convert_dbt_project_to_janus_project(
             ),
         )
         for model in imported_models
-    )
-
-    return DbtProjectImport(
-        files=files,
-        model_count=model_count,
-        source_count=source_count,
-        skipped_ephemeral=skipped_ephemeral,
-        skipped_without_columns=skipped_no_columns,
-        relationship_count=len(relationships),
-    )
+    ]
 
 
 def convert_dbt_target_to_janus_profile(target: DbtTarget) -> dict[str, Any]:
