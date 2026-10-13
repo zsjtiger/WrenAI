@@ -1001,59 +1001,8 @@ def link(
     if not is_repo_here:
         run_git(["init"], cwd=target)
 
-    # Whether the existing files still need a local commit is decided by
-    # asking git directly ("does HEAD resolve to a real commit?"), not by
-    # whether `.git` exists. `.git` existing only tells us *some* previous
-    # attempt got as far as `init` — if that attempt then failed inside
-    # `commit` (e.g. missing git identity) and the caller retries, `.git`
-    # is already there but HEAD is still unborn. Keying off `.git` alone
-    # would skip straight to the remote merge below against that unborn
-    # HEAD, silently turning the unrelated-history merge this command
-    # exists to do safely into a trivial fast-forward instead.
-    head_is_born = (
-        run_git(
-            ["rev-parse", "--verify", "-q", "HEAD"], cwd=target, check=False
-        ).returncode
-        == 0
-    )
-    if not head_is_born:
-        # Give the existing files a local commit so the merge below has an
-        # actual history to reconcile against — otherwise an unborn HEAD
-        # would just fast-forward onto the remote instead of exercising the
-        # unrelated-history path this command exists to handle safely.
-        run_git(["add", "-A"], cwd=target)
-        run_git(["commit", "-m", "Existing local project", "--allow-empty"], cwd=target)
-
-    # An `origin` that already exists is NOT assumed to be the right one.
-    # This function used to only ever *add* the remote, never check it, which
-    # meant a directory bound to project A could be handed project B's repo
-    # and silently stay on A — while the caller reported success for B. Via
-    # `create` that also left B orphaned server-side: created, keyed, and
-    # referenced by nothing.
-    added_origin = False
-    remotes = run_git(["remote"], cwd=target).stdout.split()
-    if "origin" in remotes:
-        existing = current_remote_url(target)
-        if not _same_remote(existing, remote_url):
-            bound = binding_from_remote_url(existing or "")
-            bound_desc = (
-                f"project {bound[2]}" if bound else f"{existing or 'an unknown remote'}"
-            )
-            raise CloudError(
-                f"{target} already has an `origin` pointing at {bound_desc}, "
-                f"so it cannot be bound to this one.\n"
-                f"  origin:    {existing}\n"
-                f"  requested: {remote_url}\n"
-                "The git remote *is* the binding, so binding elsewhere means "
-                "replacing it. Run `janus cloud unlink` here first if you meant "
-                "to move this directory to another project — and note that "
-                "switching projects wants a clean directory, because this "
-                "directory's history belongs to the project it came from."
-            )
-    else:
-        run_git(["remote", "add", "origin", remote_url], cwd=target)
-        added_origin = True
-
+    _commit_existing_files_if_unborn(target)
+    added_origin = _ensure_origin(target, remote_url)
     run_git(["fetch", "origin"], cwd=target)
 
     branch = _default_branch(remote_url)
@@ -1063,30 +1012,14 @@ def link(
     try:
         _align_branch_name(target, branch)
     except CloudError:
-        if added_origin:
-            # Same rule as the foreign-history refusal below: a refusal must
-            # not leave the directory pointing at a project it was never
-            # bound to, or the next attempt refuses "already bound" for a
-            # bind that never happened.
-            run_git(["remote", "remove", "origin"], cwd=target, check=False)
+        # Same rule as the foreign-history refusal below: a refusal must
+        # not leave the directory pointing at a project it was never
+        # bound to, or the next attempt refuses "already bound" for a
+        # bind that never happened.
+        _drop_added_origin(target, added_origin)
         raise
 
-    # If `origin/<branch>` is already an ancestor of HEAD, merging it would
-    # add nothing: either a previous `link` already did the reconciling
-    # merge (HEAD contains it from there), or this directory was a plain
-    # clone to begin with. Either way there is nothing to reconcile, and
-    # re-merging would misrepresent a no-op as a fresh bind. This is the
-    # one case `link` treats as "already done" rather than "do it again" —
-    # the merge below still happens exactly once.
-    already_linked = (
-        run_git(
-            ["merge-base", "--is-ancestor", f"origin/{branch}", "HEAD"],
-            cwd=target,
-            check=False,
-        ).returncode
-        == 0
-    )
-    if already_linked:
+    if _is_already_linked(target, branch):
         # Nothing to merge — but "already linked" must not mean "already
         # working". The reachable case is a user who hit a conflict on the
         # merge below, resolved it and committed as that error tells them
@@ -1108,13 +1041,6 @@ def link(
     # Refuse rather than offering a flag: no directory wants two projects at
     # once, and the damage only becomes visible once it is published.
     #
-    # "Not an ancestor" (above) is NOT sufficient to detect that: it is also
-    # false when the local clone is merely behind, or has diverged from, the
-    # *same* project's remote — which is the ordinary re-bind-after-unlink
-    # case and must keep working. Ask git whether the histories share any
-    # ancestor at all; `merge-base` without `--is-ancestor` fails exactly
-    # when they do not.
-    #
     # `remote_is_fresh` exempts one case, and only one: the caller just created
     # this project, so the remote holds nothing but its own seed commit. There
     # is no other project's content for a merge to mix in, and the merge is
@@ -1122,17 +1048,11 @@ def link(
     # and the local history becomes the new project's starting content. The
     # refusal below is about protecting a remote that has content; a remote
     # that has none does not need protecting.
-    unrelated = (
-        run_git(
-            ["merge-base", f"origin/{branch}", "HEAD"], cwd=target, check=False
-        ).returncode
-        != 0
-    )
+    unrelated = _histories_unrelated(target, branch)
     if unrelated and not remote_is_fresh and head_has_seeded_hooks(target):
-        if added_origin:
-            # Leave nothing behind: this refusal must not strand the target
-            # pointing at a project it was never bound to.
-            run_git(["remote", "remove", "origin"], cwd=target, check=False)
+        # Leave nothing behind: this refusal must not strand the target
+        # pointing at a project it was never bound to.
+        _drop_added_origin(target, added_origin)
         raise CloudError(
             f"{target} already contains a Janus Cloud project's history — its "
             "commits carry the `.hooks/deploy-modeling.yaml` that project "
@@ -1145,6 +1065,123 @@ def link(
             "copy is behind — that does not reach this point."
         )
 
+    _merge_remote_history(target, branch)
+    _set_upstream(target, branch)
+    return LinkOutcome.LINKED
+
+
+def _commit_existing_files_if_unborn(target: Path) -> None:
+    """Give pre-existing files a local commit when HEAD is unborn.
+
+    Whether the existing files still need a local commit is decided by
+    asking git directly ("does HEAD resolve to a real commit?"), not by
+    whether `.git` exists. `.git` existing only tells us *some* previous
+    attempt got as far as `init` — if that attempt then failed inside
+    `commit` (e.g. missing git identity) and the caller retries, `.git`
+    is already there but HEAD is still unborn. Keying off `.git` alone
+    would skip straight to the remote merge below against that unborn
+    HEAD, silently turning the unrelated-history merge this command
+    exists to do safely into a trivial fast-forward instead.
+    """
+    head_is_born = (
+        run_git(
+            ["rev-parse", "--verify", "-q", "HEAD"], cwd=target, check=False
+        ).returncode
+        == 0
+    )
+    if head_is_born:
+        return
+    # Give the existing files a local commit so the merge has an actual
+    # history to reconcile against — otherwise an unborn HEAD would just
+    # fast-forward onto the remote instead of exercising the
+    # unrelated-history path this command exists to handle safely.
+    run_git(["add", "-A"], cwd=target)
+    run_git(["commit", "-m", "Existing local project", "--allow-empty"], cwd=target)
+
+
+def _ensure_origin(target: Path, remote_url: str) -> bool:
+    """Make `origin` point at `remote_url`; return True when it was added here.
+
+    An `origin` that already exists is NOT assumed to be the right one.
+    This function used to only ever *add* the remote, never check it, which
+    meant a directory bound to project A could be handed project B's repo
+    and silently stay on A — while the caller reported success for B. Via
+    `create` that also left B orphaned server-side: created, keyed, and
+    referenced by nothing.
+    """
+    remotes = run_git(["remote"], cwd=target).stdout.split()
+    if "origin" not in remotes:
+        run_git(["remote", "add", "origin", remote_url], cwd=target)
+        return True
+
+    existing = current_remote_url(target)
+    if _same_remote(existing, remote_url):
+        return False
+    bound = binding_from_remote_url(existing or "")
+    bound_desc = (
+        f"project {bound[2]}" if bound else f"{existing or 'an unknown remote'}"
+    )
+    raise CloudError(
+        f"{target} already has an `origin` pointing at {bound_desc}, "
+        f"so it cannot be bound to this one.\n"
+        f"  origin:    {existing}\n"
+        f"  requested: {remote_url}\n"
+        "The git remote *is* the binding, so binding elsewhere means "
+        "replacing it. Run `janus cloud unlink` here first if you meant "
+        "to move this directory to another project — and note that "
+        "switching projects wants a clean directory, because this "
+        "directory's history belongs to the project it came from."
+    )
+
+
+def _drop_added_origin(target: Path, added_origin: bool) -> None:
+    """Remove `origin` again when this attempt was the one that added it."""
+    if added_origin:
+        run_git(["remote", "remove", "origin"], cwd=target, check=False)
+
+
+def _is_already_linked(target: Path, branch: str) -> bool:
+    """True when `origin/<branch>` is already an ancestor of HEAD.
+
+    Either a previous `link` already did the reconciling merge (HEAD contains
+    it from there), or this directory was a plain clone to begin with. Either
+    way there is nothing to reconcile, and re-merging would misrepresent a
+    no-op as a fresh bind. This is the one case `link` treats as "already
+    done" rather than "do it again" — the merge still happens exactly once.
+    """
+    return (
+        run_git(
+            ["merge-base", "--is-ancestor", f"origin/{branch}", "HEAD"],
+            cwd=target,
+            check=False,
+        ).returncode
+        == 0
+    )
+
+
+def _histories_unrelated(target: Path, branch: str) -> bool:
+    """True when HEAD and `origin/<branch>` share no ancestor at all.
+
+    "Not an ancestor" is NOT sufficient to detect a foreign project: it is also
+    false when the local clone is merely behind, or has diverged from, the
+    *same* project's remote — which is the ordinary re-bind-after-unlink case
+    and must keep working. `merge-base` without `--is-ancestor` fails exactly
+    when the histories do not share an ancestor.
+    """
+    return (
+        run_git(
+            ["merge-base", f"origin/{branch}", "HEAD"], cwd=target, check=False
+        ).returncode
+        != 0
+    )
+
+
+def _merge_remote_history(target: Path, branch: str) -> None:
+    """Merge `origin/<branch>` into HEAD, allowing unrelated histories.
+
+    A conflict raises with resolve-and-commit guidance; the merge is never
+    forced, so the eventual push cannot delete the server's seed content.
+    """
     merge = run_git(
         [
             "merge",
@@ -1169,9 +1206,6 @@ def link(
             "created for this project.\n\n"
             f"{detail}"
         )
-
-    _set_upstream(target, branch)
-    return LinkOutcome.LINKED
 
 
 def _has_upstream(target: Path) -> bool:
