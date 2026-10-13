@@ -166,70 +166,22 @@ def serve_mcp(
 
     Backed by an in-process JanusEngine — no ibis-server, no HTTP engine.
     """
-    if transport not in {"stdio", "http"}:
-        typer.echo(
-            f"Error: unsupported --transport '{transport}'. Use stdio or http.",
-            err=True,
-        )
-        raise typer.Exit(1)
-
-    try:
-        import mcp  # noqa: F401, PLC0415
-    except ImportError:
-        typer.echo(
-            "Install the MCP extra: pip install 'janusai[mcp]'",
-            err=True,
-        )
-        raise typer.Exit(1)
+    _check_transport(transport)
+    _ensure_mcp_installed()
 
     from loguru import logger  # noqa: PLC0415
 
     from janus.cli import _build_engine  # noqa: PLC0415
 
     project_path = resolve_project_path(str(project) if project else None)
-
-    # Resolve the MDL path from the already-discovered project root rather
-    # than delegating to cli._require_mdl(None), which re-discovers the
-    # project from cwd and would silently ignore --project.
-    mdl_path = project_path / "target" / "mdl.json"
-    if not mdl_path.exists():
-        typer.echo(
-            f"Error: project found at {project_path} but target/mdl.json missing.\n"
-            "  Hint: run `janus context build` first.",
-            err=True,
-        )
-        raise typer.Exit(1)
+    mdl_path = _require_mdl_file(project_path)
 
     if _mdl_is_stale(project_path, mdl_path):
         logger.warning(
             "MDL may be stale — re-run `janus context build`",
         )
 
-    connection_info = None
-    if profile is not None:
-        import json  # noqa: PLC0415
-
-        from janus.profile import (  # noqa: PLC0415
-            MissingSecretError,
-            expand_profile_secrets,
-            list_profiles,
-        )
-
-        profiles = list_profiles()
-        if profile not in profiles:
-            typer.echo(f"Error: profile '{profile}' not found.", err=True)
-            raise typer.Exit(1)
-        prof_dict = dict(profiles[profile])
-        ds = prof_dict.pop("datasource", None)
-        if ds is None:
-            typer.echo(f"Error: profile '{profile}' has no datasource.", err=True)
-            raise typer.Exit(1)
-        try:
-            prof_dict = expand_profile_secrets(prof_dict)
-        except MissingSecretError as e:
-            typer.echo(f"Error: {e}", err=True)
-            raise typer.Exit(1)
-        connection_info = json.dumps({"datasource": ds, **prof_dict})
+    connection_info = _profile_connection_info(profile) if profile is not None else None
 
     engine = _build_engine(
         str(mdl_path), connection_info, None, conn_required=not no_connect
@@ -255,3 +207,67 @@ def serve_mcp(
             no_connect=no_connect,
         )
     run_server(ctx, transport=transport, host=host, port=port)
+
+
+def _check_transport(transport: str) -> None:
+    if transport not in {"stdio", "http"}:
+        typer.echo(
+            f"Error: unsupported --transport '{transport}'. Use stdio or http.",
+            err=True,
+        )
+        raise typer.Exit(1)
+
+
+def _ensure_mcp_installed() -> None:
+    try:
+        import mcp  # noqa: F401, PLC0415
+    except ImportError:
+        typer.echo(
+            "Install the MCP extra: pip install 'janusai[mcp]'",
+            err=True,
+        )
+        raise typer.Exit(1)
+
+
+def _require_mdl_file(project_path: Path) -> Path:
+    """Resolve the MDL from the already-discovered project root.
+
+    Not via cli._require_mdl(None): that re-discovers the project from cwd and
+    would silently ignore --project.
+    """
+    mdl_path = project_path / "target" / "mdl.json"
+    if not mdl_path.exists():
+        typer.echo(
+            f"Error: project found at {project_path} but target/mdl.json missing.\n"
+            "  Hint: run `janus context build` first.",
+            err=True,
+        )
+        raise typer.Exit(1)
+    return mdl_path
+
+
+def _profile_connection_info(profile: str) -> str:
+    """Build the connection JSON for a named profile, with secrets expanded."""
+    import json  # noqa: PLC0415
+
+    from janus.profile import (  # noqa: PLC0415
+        MissingSecretError,
+        expand_profile_secrets,
+        list_profiles,
+    )
+
+    profiles = list_profiles()
+    if profile not in profiles:
+        typer.echo(f"Error: profile '{profile}' not found.", err=True)
+        raise typer.Exit(1)
+    prof_dict = dict(profiles[profile])
+    ds = prof_dict.pop("datasource", None)
+    if ds is None:
+        typer.echo(f"Error: profile '{profile}' has no datasource.", err=True)
+        raise typer.Exit(1)
+    try:
+        prof_dict = expand_profile_secrets(prof_dict)
+    except MissingSecretError as e:
+        typer.echo(f"Error: {e}", err=True)
+        raise typer.Exit(1)
+    return json.dumps({"datasource": ds, **prof_dict})
