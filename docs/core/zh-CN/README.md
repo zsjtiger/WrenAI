@@ -1,6 +1,6 @@
 # Janus AI Core 文档（中文）
 
-本目录是 Janus AI Core 中文文档的**当前版本**，对应 [docs.crossnow.cn](https://docs.crossnow.cn/oss/introduction) 上的英文站点。英文文档仍是权威版本，中文文档尚未全部翻译。
+本目录是 Janus AI Core 中文文档的**当前版本**，对应 [docs.crossnow.cn](https://docs.crossnow.cn/oss/introduction) 上的英文站点。中文文档已覆盖全部英文页面，英文文档仍是权威版本。
 
 🌐 [English](../README.md) · **简体中文**
 
@@ -13,17 +13,15 @@
 | 部分 | 页面 | 状态 |
 |---|---|---|
 | 介绍 | [introduction.mdx](introduction.mdx) | ✅ 已翻译 |
-| 快速开始 | [安装](get_started/installation.md) | ✅ 已翻译（快速开始正文仍待翻译） |
+| 快速开始 | [安装](get_started/installation.md)、[快速开始](get_started/quickstart.md) | ✅ 已翻译 |
 | 指南 | [连接数据库](guides/connect.md)、[建模](guides/model.md)、[Cube 预聚合](guides/cubes.md)、[MCP 服务器](guides/mcp.md)、[CReport 应用](guides/creport.md) | ✅ 已翻译 |
-| 指南 | 提升回答质量、项目管理、dbt 集成、OSI | ⏳ 待翻译（见英文版） |
-| 概念 | 上下文、MDL、记忆、正确性等 | ⏳ 待翻译（见英文版） |
+| 指南 | [提升回答质量](guides/refine.md)、[项目管理](guides/manage_project.md)、[dbt 集成](guides/dbt-integration.md)、[OSI](guides/osi.md) | ✅ 已翻译 |
+| 概念 | [为什么选择 Janus](concepts/why_janus.md)、[上下文](concepts/what_is_context.md)、[MDL](concepts/what_is_mdl.md)、[记忆](concepts/memory_system.md)、[正确性](concepts/correctness.md) 等 | ✅ 已翻译 |
 | 参考 | [CLI](reference/cli.md)、[MDL Schema](reference/mdl.md) | ✅ 已翻译 |
 | 参考 | [Skills](reference/skills.md) | ✅ 已翻译 |
 | 参考 | [架构](reference/architecture.md)、[迁移](reference/migration.md)、[运维参考](reference/operational.md) | ✅ 已翻译 |
-| SDK | 概览、LangChain、Pydantic AI、WASM | ⏳ 待翻译（见英文版） |
-| 快速开始（Agent 配置） | `get_started/quickstart-with-agent/` | ⏳ 待翻译（按 Agent 分别的配置页，共 50+ 个） |
-
-在英文页面翻译完成之前，中文页面中指向未翻译页面的链接会指向英文站点（`/oss/...`），以保证链接有效。
+| SDK | [概览](sdk/overview.md)、[LangChain](sdk/langchain.md)、[Pydantic AI](sdk/pydantic.md)、[WASM](sdk/wasm.md) | ✅ 已翻译 |
+| 快速开始（Agent 配置） | `get_started/quickstart-with-agent/` 下按 Agent 分别的配置页 | ✅ 已翻译 |
 
 ## 注意
 

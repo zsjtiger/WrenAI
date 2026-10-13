@@ -245,7 +245,7 @@ export interface CubeOrderByInput {
 
 省略 `orderBy`（或传入空数组）时，默认按第一个时间维度排序。指定 `orderBy` 时，`member` 必须是该查询所选中的某个度量、维度或时间维度，并且每个成员最多只能出现一次。
 
-完整的输入结构和过滤运算符列表，请参见 [`docs/co../guides/cubes.md`](../guides/cubes.md)。
+完整的输入结构和过滤运算符列表，请参见 [Cube 指南](../guides/cubes.md)。
 
 ### `engine.listCubes()`
 
