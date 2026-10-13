@@ -8,20 +8,14 @@ from typing import Annotated, Optional
 
 import typer
 
+from janus.cli_common import ProjectPathOpt, resolve_project_path
+
 context_app = typer.Typer(
     name="context",
     help="Manage MDL context — models, views, relationships, and instructions.",
 )
 
 
-ProjectPathOpt = Annotated[
-    Optional[str],
-    typer.Option(
-        "--path",
-        "-p",
-        help="Project directory. Auto-detected via JANUS_PROJECT_HOME, cwd walk, or ~/.janus/config.yml.",
-    ),
-]
 
 FromOsiOpt = Annotated[
     Optional[str],
@@ -470,7 +464,6 @@ def validate(
 
     from janus.context import (  # noqa: PLC0415
         build_json,
-        discover_project_path,
         load_models,
         load_project_config,
         load_relationships,
@@ -479,11 +472,7 @@ def validate(
         validate_project,
     )
 
-    try:
-        project_path = discover_project_path(path)
-    except SystemExit as e:
-        typer.echo(str(e), err=True)
-        raise typer.Exit(1)
+    project_path = resolve_project_path(path)
 
     # ── Structural validation ────────────────────────────────────────────
     struct_errors = validate_project(project_path)
@@ -652,16 +641,11 @@ def build(
 
     from janus.context import (  # noqa: PLC0415
         build_json,
-        discover_project_path,
         save_target,
         validate_project,
     )
 
-    try:
-        project_path = discover_project_path(path)
-    except SystemExit as e:
-        typer.echo(str(e), err=True)
-        raise typer.Exit(1)
+    project_path = resolve_project_path(path)
 
     if validate_first:
         errors = validate_project(project_path)
@@ -727,16 +711,11 @@ def show(
     from janus.context import (  # noqa: PLC0415
         build_json,
         build_manifest,
-        discover_project_path,
         load_project_config,
         load_rules,
     )
 
-    try:
-        project_path = discover_project_path(path)
-    except SystemExit as e:
-        typer.echo(str(e), err=True)
-        raise typer.Exit(1)
+    project_path = resolve_project_path(path)
 
     if output == "json":
         # JSON output uses camelCase
@@ -802,13 +781,9 @@ def instructions(
     path: ProjectPathOpt = None,
 ) -> None:
     """Print business rules (knowledge/rules/ + legacy instructions.md) for LLM consumption."""
-    from janus.context import discover_project_path, load_rules  # noqa: PLC0415
+    from janus.context import load_rules  # noqa: PLC0415
 
-    try:
-        project_path = discover_project_path(path)
-    except SystemExit as e:
-        typer.echo(str(e), err=True)
-        raise typer.Exit(1)
+    project_path = resolve_project_path(path)
 
     content, used_legacy = load_rules(project_path)
     if used_legacy:
@@ -833,17 +808,12 @@ def set_profile(
     profile regardless of which profile is globally active.
     """
     from janus.context import (  # noqa: PLC0415
-        discover_project_path,
         load_project_config,
         save_project_config,
     )
     from janus.profile import list_profiles  # noqa: PLC0415
 
-    try:
-        project_path = discover_project_path(path)
-    except SystemExit as e:
-        typer.echo(str(e), err=True)
-        raise typer.Exit(1)
+    project_path = resolve_project_path(path)
 
     # discover_project_path() with explicit --path returns it un-checked, so
     # confirm the project actually exists before binding a profile to nothing.
@@ -932,16 +902,11 @@ def upgrade(
     from janus.context import (  # noqa: PLC0415
         UpgradeError,
         apply_upgrade,
-        discover_project_path,
         get_schema_version,
         plan_upgrade,
     )
 
-    try:
-        project_path = discover_project_path(path)
-    except SystemExit as e:
-        typer.echo(str(e), err=True)
-        raise typer.Exit(1)
+    project_path = resolve_project_path(path)
 
     current = get_schema_version(project_path)
 

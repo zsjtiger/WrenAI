@@ -12,6 +12,8 @@ import typer
 import yaml
 from typer.core import TyperGroup
 
+from janus.cli_common import resolve_project_path
+
 
 class _MemoryGroup(TyperGroup):
     """Report an embedding backend that cannot serve the model, from any command.
@@ -206,11 +208,7 @@ def index(
         from janus.context import discover_project_path  # noqa: PLC0415
         from janus.memory.markdown import load_query_pairs  # noqa: PLC0415
 
-        try:
-            project_path = discover_project_path()
-        except SystemExit as e:
-            typer.echo(str(e), err=True)
-            raise typer.Exit(1)
+        project_path = resolve_project_path()
         n = len(load_query_pairs(project_path))
         typer.echo(
             f"grep backend: {n} pair(s) in knowledge/sql/ — no index build needed."
@@ -406,14 +404,9 @@ def store(
     The markdown file is always written (no extra required). When the ``memory``
     extra is installed, the pair is also indexed into LanceDB for semantic recall.
     """
-    from janus.context import discover_project_path  # noqa: PLC0415
     from janus.memory.markdown import write_query_markdown  # noqa: PLC0415
 
-    try:
-        project_path = discover_project_path()
-    except SystemExit as e:
-        typer.echo(str(e), err=True)
-        raise typer.Exit(1)
+    project_path = resolve_project_path()
 
     tag_list = [t.strip() for t in tags.split(",") if t.strip()] if tags else None
     md_path = write_query_markdown(
@@ -666,7 +659,6 @@ def watch(
     Requires the ``memory`` extra (the index it maintains is LanceDB-backed).
     With the grep backend there is no derived index to keep fresh.
     """
-    from janus.context import discover_project_path  # noqa: PLC0415
     from janus.memory.index_backend import resolve_backend  # noqa: PLC0415
     from janus.memory.watch import watch_loop  # noqa: PLC0415
 
@@ -678,11 +670,7 @@ def watch(
         )
         raise typer.Exit(1)
 
-    try:
-        project_path = discover_project_path()
-    except SystemExit as e:
-        typer.echo(str(e), err=True)
-        raise typer.Exit(1)
+    project_path = resolve_project_path()
 
     # The watcher polls <project_path>/target/mdl.json + <project_path>/knowledge/sql,
     # but the reindex reads --mdl and load_query_pairs(project_path). If an explicit

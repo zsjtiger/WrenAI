@@ -7,6 +7,8 @@ from typing import Annotated, Optional
 
 import typer
 
+from janus.cli_common import ProjectPathOpt, resolve_project_path
+
 creport_app = typer.Typer(
     name="creport",
     help="Build and deploy CReport apps from this project's context layer.",
@@ -50,14 +52,6 @@ def _resolve_prompt(prompt: str | None, prompt_file: str | None) -> str | None:
     return prompt
 
 
-ProjectPathOpt = Annotated[
-    Optional[str],
-    typer.Option(
-        "--path",
-        "-p",
-        help="Project directory. Auto-detected via JANUS_PROJECT_HOME, cwd walk, or ~/.janus/config.yml.",
-    ),
-]
 
 
 @creport_app.command()
@@ -87,17 +81,12 @@ def build(
     Writes no app files; only compiles target/mdl.json if it's missing.
     """
     from janus.context import (  # noqa: PLC0415
-        discover_project_path,
         load_models,
         load_project_config,
     )
     from janus.creport.composer import compose_build_instruction  # noqa: PLC0415
 
-    try:
-        project_path = discover_project_path(path)
-    except SystemExit as e:
-        typer.echo(str(e), err=True)
-        raise typer.Exit(1)
+    project_path = resolve_project_path(path)
 
     user_prompt = _resolve_prompt(prompt, prompt_file)
     if user_prompt is None:
@@ -147,13 +136,8 @@ def build(
 
 
 def _discover(path: str | None):
-    from janus.context import discover_project_path  # noqa: PLC0415
 
-    try:
-        return discover_project_path(path)
-    except SystemExit as e:
-        typer.echo(str(e), err=True)
-        raise typer.Exit(1)
+    return resolve_project_path(path)
 
 
 @creport_app.command()

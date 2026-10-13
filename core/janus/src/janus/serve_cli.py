@@ -13,6 +13,8 @@ from typing import Annotated, Optional
 
 import typer
 
+from janus.cli_common import resolve_project_path
+
 serve_app = typer.Typer(
     name="serve",
     help="Serve janus capabilities to external clients (MCP, ...).",
@@ -183,13 +185,8 @@ def serve_mcp(
     from loguru import logger  # noqa: PLC0415
 
     from janus.cli import _build_engine  # noqa: PLC0415
-    from janus.context import discover_project_path  # noqa: PLC0415
 
-    try:
-        project_path = discover_project_path(str(project) if project else None)
-    except SystemExit as e:
-        typer.echo(str(e), err=True)
-        raise typer.Exit(1)
+    project_path = resolve_project_path(str(project) if project else None)
 
     # Resolve the MDL path from the already-discovered project root rather
     # than delegating to cli._require_mdl(None), which re-discovers the
