@@ -390,40 +390,78 @@ def query(
     SQL by janus-core, then executed through JanusEngine just like a regular
     ``janus query``.
     """
-    if from_json:
-        cube_query = _load_cube_query_from(from_json)
-    else:
-        if not cube or not measures:
-            typer.echo(
-                "Error: --cube and --measures are required (or use --from).",
-                err=True,
-            )
-            raise typer.Exit(1)
-        cube_query = _build_cube_query(
-            cube,
-            measures,
-            dimensions or "",
-            time_dimension,
-            filter_ or [],
-            order_by or [],
-            limit,
-            offset,
-        )
-
-    mdl_json = _load_mdl_json(mdl)
-
-    from janus_core import cube_query_to_sql  # noqa: PLC0415
-
-    try:
-        sql = cube_query_to_sql(json.dumps(cube_query), mdl_json)
-    except ValueError as e:
-        typer.echo(f"Error: {e}", err=True)
-        raise typer.Exit(1) from e
+    cube_query = _resolve_cube_query(
+        from_json=from_json,
+        cube=cube,
+        measures=measures,
+        dimensions=dimensions,
+        time_dimension=time_dimension,
+        filter_=filter_,
+        order_by=order_by,
+        limit=limit,
+        offset=offset,
+    )
+    sql = _cube_query_to_sql(cube_query, mdl)
 
     if sql_only:
         typer.echo(sql)
         return
 
+    _execute_cube_sql(sql, mdl, connection_info, connection_file, output)
+
+
+def _resolve_cube_query(
+    *,
+    from_json: str | None,
+    cube: str | None,
+    measures: str | None,
+    dimensions: str | None,
+    time_dimension: str | None,
+    filter_: list[str] | None,
+    order_by: list[str] | None,
+    limit: int | None,
+    offset: int | None,
+) -> dict:
+    """Load the CubeQuery from ``--from`` or build it from the CLI flags."""
+    if from_json:
+        return _load_cube_query_from(from_json)
+    if not cube or not measures:
+        typer.echo(
+            "Error: --cube and --measures are required (or use --from).",
+            err=True,
+        )
+        raise typer.Exit(1)
+    return _build_cube_query(
+        cube,
+        measures,
+        dimensions or "",
+        time_dimension,
+        filter_ or [],
+        order_by or [],
+        limit,
+        offset,
+    )
+
+
+def _cube_query_to_sql(cube_query: dict, mdl: str | None) -> str:
+    mdl_json = _load_mdl_json(mdl)
+
+    from janus_core import cube_query_to_sql  # noqa: PLC0415
+
+    try:
+        return cube_query_to_sql(json.dumps(cube_query), mdl_json)
+    except ValueError as e:
+        typer.echo(f"Error: {e}", err=True)
+        raise typer.Exit(1) from e
+
+
+def _execute_cube_sql(
+    sql: str,
+    mdl: str | None,
+    connection_info: str | None,
+    connection_file: str | None,
+    output: str,
+) -> None:
     from janus.cli import _build_engine, _print_result  # noqa: PLC0415
 
     with _build_engine(mdl, connection_info, connection_file) as engine:
