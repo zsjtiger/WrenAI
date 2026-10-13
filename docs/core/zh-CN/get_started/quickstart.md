@@ -353,7 +353,7 @@ monthly revenue and order count, filterable by status. Then preview it locally.
 Deploy the dashboard to Vercel.
 ```
 
-你需要提供部署令牌：将 `VERCEL_TOKEN`（或 `CLOUDFLARE_API_TOKEN` 加上 `CLOUDFLARE_ACCOUNT_ID`）添加到 `~/.janus/.env`，然后告诉智能体继续。它会运行 `janus creport deploy` 并返回一个可分享的 URL。部署默认发布到预览 URL；如需正式发布，请说"发布到生产环境"（ship it to production）。
+你需要提供部署令牌：将 `VERCEL_TOKEN`（或 `CLOUDFLARE_API_TOKEN` 加上 `CLOUDFLARE_ACCOUNT_ID`）添加到 `~/.janus/.env`，然后告诉智能体继续。它会运行 `janus creport deploy` 并返回一个可分享的 URL。部署默认发布到预览 URL；如需正式发布，请说"发布到生产环境"。
 
 > **注意：** 新建的 Vercel 项目默认会对未登录的访问者返回 HTTP 401。部署本身已成功；要让 URL 公开，请在 Project → Settings → Deployment Protection → Vercel Authentication → Disabled 中一次性关闭 Vercel Authentication。
 
