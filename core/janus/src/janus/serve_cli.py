@@ -164,7 +164,7 @@ def serve_mcp(
 ) -> None:
     """Serve janus's query + context/knowledge tools as an MCP server.
 
-    Backed by an in-process JanusEngine — no ibis-server, no HTTP engine.
+    Backed by an in-process JanusEngine — no HTTP engine.
     """
     _check_transport(transport)
     _ensure_mcp_installed()

@@ -16,8 +16,7 @@ class DataFusionConnector(ConnectorABC):
     """DataFusion-native connector for local file analysis.
 
     Uses janus-core-py's LocalRuntime mode to execute SQL directly
-    via DataFusion, without unparsing to SQL or routing through
-    ibis-server.
+    via DataFusion, without unparsing to SQL.
     """
 
     def __init__(self, connection_info: DataFusionConnectionInfo):

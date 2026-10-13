@@ -207,7 +207,7 @@ def test_clickhouse_arrow_table_preserves_duplicate_column_names() -> None:
 # 4. Nullable(...) and LowCardinality(...) type parsing
 #
 # Regression for CrossNow/JanusAI#2184: Nullable(T) columns were mapped to
-# UNKNOWN in older ibis-server; the current SDK uses sqlglot which strips
+# UNKNOWN in an older implementation; the current SDK uses sqlglot which strips
 # the Nullable wrapper automatically. These tests prevent silent regressions.
 # ---------------------------------------------------------------------------
 
