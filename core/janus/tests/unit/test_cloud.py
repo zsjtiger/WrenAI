@@ -2442,3 +2442,64 @@ def test_scaffold_keeps_an_existing_gitignore(tmp_path, monkeypatch):
     CliRunner().invoke(context_cli.context_app, ["init", "--empty"])
 
     assert (tmp_path / ".gitignore").read_text() == "mine\n"
+
+
+# ── link(): branches without direct coverage (pin current behaviour) ──────────
+
+
+def test_link_clones_into_a_fresh_directory(tmp_path):
+    """A target that does not exist yet is cloned from the remote."""
+    git_host = str(tmp_path / "host")
+    _seed_remote(tmp_path / "host" / "git" / "shared-data.git")
+    target = tmp_path / "new-dir"
+
+    assert _link(target, git_host=git_host) is cloud.LinkOutcome.LINKED
+    assert (target / "seed.txt").read_text() == "seeded by project creation"
+    assert cloud.current_remote_url(target) == (
+        f"{git_host}/git/shared-data.git"
+    )
+
+
+def test_link_conflict_keeps_origin_and_leaves_upstream_unset(tmp_path):
+    """A merge conflict raises with the resolve-and-commit guidance.
+
+    The origin is kept (the conflict is the user's to resolve, not a refusal
+    that should undo the bind), and upstream is not set until the merge
+    succeeds.
+    """
+    git_host = str(tmp_path / "host")
+    _seed_remote(tmp_path / "host" / "git" / "shared-data.git")
+    target = _make_janus_project(tmp_path / "proj")
+    (target / "seed.txt").write_text("local version of the same file")
+
+    with pytest.raises(cloud.CloudError, match="conflict") as exc:
+        _link(target, git_host=git_host)
+    assert "--force" in str(exc.value)
+    assert cloud.current_remote_url(target) == (
+        f"{git_host}/git/shared-data.git"
+    )
+    assert cloud._has_upstream(target) is False
+
+
+def test_link_remote_is_fresh_merges_an_unrelated_seeded_history(tmp_path):
+    """`remote_is_fresh` exempts the unrelated-history refusal.
+
+    The same setup refuses without the flag (see the foreign-history test);
+    with it, the just-created project's seed history is merged in.
+    """
+    git_host = str(tmp_path / "host")
+    _seed_hooked_remote(tmp_path / "host" / "git" / "shared-data.git", marker="fresh")
+    target = _make_janus_project(tmp_path / "proj")
+
+    outcome = cloud.link(
+        target,
+        git_host=git_host,
+        api_host="unused",
+        project_id="16",
+        org_id="2",
+        repo="shared-data.git",
+        remote_is_fresh=True,
+    )
+    assert outcome is cloud.LinkOutcome.LINKED
+    assert (target / ".hooks" / "deploy-modeling.yaml").exists()
+    assert (target / "janus_project.yml").exists()
