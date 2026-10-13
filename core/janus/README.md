@@ -284,9 +284,10 @@ uv run --no-sync pytest tests/test_profile_web.py -v
 ## Publishing
 
 ```bash
-./scripts/publish.sh            # Build + publish to PyPI
-./scripts/publish.sh --test     # Build + publish to TestPyPI
-./scripts/publish.sh --build    # Build only
+make build                       # Build sdist + wheel into dist/
+make check                       # Build and validate with twine
+make publish-test                # Upload to TestPyPI
+CONFIRM=yes make publish         # Upload to PyPI
 ```
 
 ## License
