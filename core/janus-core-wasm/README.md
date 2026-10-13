@@ -1,5 +1,7 @@
 # janus-core-wasm
 
+🌐 **English** · [简体中文](./README.zh-CN.md)
+
 Browser-native semantic SQL engine powered by [Apache DataFusion](https://datafusion.apache.org/) compiled to WebAssembly.
 
 Query Parquet files directly in the browser through a semantic layer (MDL), with no server required.

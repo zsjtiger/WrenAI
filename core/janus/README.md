@@ -1,5 +1,7 @@
 # janusai
 
+🌐 **English** · [简体中文](./README.zh-CN.md)
+
 [![PyPI version](https://img.shields.io/pypi/v/janusai.svg)](https://pypi.org/project/janusai/)
 [![Python](https://img.shields.io/pypi/pyversions/janusai.svg)](https://pypi.org/project/janusai/)
 [![License](https://img.shields.io/pypi/l/janusai.svg)](https://github.com/CrossNow/JanusAI/blob/main/LICENSE)
@@ -286,18 +288,6 @@ uv run --no-sync pytest tests/test_profile_web.py -v
 ./scripts/publish.sh --test     # Build + publish to TestPyPI
 ./scripts/publish.sh --build    # Build only
 ```
-
-## Package history
-
-- **`wren-engine` → `wrenai`**: releases up to 0.6.x were published on PyPI as
-  [`wren-engine`](https://pypi.org/project/wren-engine/). From 0.7.0 the
-  distribution was renamed to [`wrenai`](https://pypi.org/project/wrenai/).
-  The legacy `wren-engine` project is frozen at 0.6.x and will not receive
-  further updates. The Python import path was `import wren` and the CLI was
-  `wren`, with configuration under `~/.wren/`.
-- **`wrenai` → `janusai`**: this source tree renames the package to `janusai`
-  (import path `janus`, CLI `janus`, configuration under `~/.janus/`). Until
-  `janusai` is published, install from this repository.
 
 ## License
 

@@ -1,4 +1,5 @@
 # janus-semantic-core
+🌐 **English** · [简体中文](./README.zh-CN.md)
 
 The Rust semantic engine at the heart of [Janus AI](https://crossnow.cn) — an open-source
 semantic layer for MCP clients and AI agents.

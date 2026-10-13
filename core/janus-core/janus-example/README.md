@@ -1,4 +1,5 @@
 # Janus Engine Examples
+🌐 **English** · [简体中文](./README.zh-CN.md)
 The crate includes several examples of how to use Janus Engine APIs and help you on your way.
 
 ## Running Examples

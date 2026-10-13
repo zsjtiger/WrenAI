@@ -1,4 +1,5 @@
 # Janus Core Module
+🌐 **English** · [简体中文](./README.zh-CN.md)
 
 The Janus Core module serves as the semantic core of the Janus engine. To understand the concept of the Janus engine, refer to the [Janus engine documentation](https://docs.crossnow.cn/oss/engine/concept/what_is_semantics). 
 

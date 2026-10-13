@@ -1,5 +1,7 @@
 # Janus Core Python Binding
 
+🌐 **English** · [简体中文](./README.zh-CN.md)
+
 Python bindings for [janus-core](../janus-core), the Rust semantic engine behind [Janus Engine](https://github.com/CrossNow/JanusAI). Built with [PyO3](https://github.com/PyO3/pyo3) and [Maturin](https://github.com/PyO3/maturin).
 
 Janus Engine translates SQL queries through a semantic layer (MDL - Modeling Definition Language) and executes them against 22+ data sources (PostgreSQL, BigQuery, Snowflake, etc.).

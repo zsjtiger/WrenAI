@@ -1,4 +1,5 @@
 # Janus Core Base Module
+🌐 **English** · [简体中文](./README.zh-CN.md)
 This module is the base module for Janus Core. It contains the common utilities, the base traits and structs for the Janus Core.
 
 ## Crate Features

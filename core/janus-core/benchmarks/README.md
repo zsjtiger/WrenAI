@@ -1,4 +1,5 @@
 # Janus Core Benchmarks
+🌐 **English** · [简体中文](./README.zh-CN.md)
 
 This crate contains benchmarks for the Janus core library, based on industry-standard open source benchmarks, designed to help measure and improve the performance of Janus core.
 
