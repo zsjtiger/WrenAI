@@ -12,22 +12,9 @@
 
 <br/>
 
-**[Get started in 3 commands ↓](#quickstart)** &nbsp;·&nbsp; **[Read the docs →](https://docs.crossnow.cn)** &nbsp;·&nbsp; **[Join Discord →](https://discord.gg/5DvshJqG8Z)**
-
-<br/>
-
 🌐 **English** · [简体中文](./README.zh-CN.md)
 
 <br/>
-
-[![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://github.com/CrossNow/JanusAI/blob/main/LICENSE)
-[![PyPI](https://img.shields.io/pypi/v/janusai?label=janusai)](https://pypi.org/project/janusai/)
-[![GitHub Release](https://img.shields.io/github/v/release/CrossNow/JanusAI?logo=github&label=release)](https://github.com/CrossNow/JanusAI/releases)
-[![Discord](https://img.shields.io/discord/1227143286951514152?logo=discord&label=Discord)](https://discord.gg/5DvshJqG8Z)
-[![Follow on X](https://img.shields.io/badge/follow-@getwrenai-blue?logo=x&logoColor=white)](https://x.com/getwrenai)
-![Stars](https://img.shields.io/github/stars/CrossNow/JanusAI?style=social)
-
-<a href="https://trendshift.io/repositories/9263" target="_blank"><img src="https://trendshift.io/api/badge/repositories/9263" alt="CrossNow/JanusAI | Trendshift" width="250" height="55" /></a>
 
 </div>
 
