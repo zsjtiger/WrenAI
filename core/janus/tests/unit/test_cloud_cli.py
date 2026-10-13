@@ -1151,3 +1151,130 @@ def test_auth_list_says_so_when_nothing_is_stored(monkeypatch):
     assert result.exit_code == 0
     assert "No stored" in result.output
     assert "auth add" in result.output, "must say how to add one"
+# ── cloud create: input-validation branches without direct coverage ──────────
+
+
+def _create_must_not_run(monkeypatch):
+    def fail_if_called(*args, **kwargs):
+        raise AssertionError("cloud.create must not be reached")
+
+    monkeypatch.setattr(cloud, "create", fail_if_called)
+
+
+def test_create_rejects_connection_info_that_is_not_json(monkeypatch, tmp_path):
+    _create_must_not_run(monkeypatch)
+    result = runner.invoke(
+        app,
+        [
+            "cloud",
+            "create",
+            str(tmp_path),
+            "--host",
+            "h",
+            "--org",
+            "2",
+            "--type",
+            "BIG_QUERY",
+            "--connection-info",
+            "{not json",
+            "--org-key",
+            "osk-x",
+        ],
+    )
+    assert result.exit_code == 1
+    assert "--connection-info is not valid JSON" in result.output
+
+
+def test_create_rejects_connection_info_that_is_not_an_object(monkeypatch, tmp_path):
+    _create_must_not_run(monkeypatch)
+    result = runner.invoke(
+        app,
+        [
+            "cloud",
+            "create",
+            str(tmp_path),
+            "--host",
+            "h",
+            "--org",
+            "2",
+            "--type",
+            "BIG_QUERY",
+            "--connection-info",
+            "[1, 2]",
+            "--org-key",
+            "osk-x",
+        ],
+    )
+    assert result.exit_code == 1
+    assert "--connection-info must be a JSON object." in result.output
+
+
+def test_create_reports_an_unreadable_connection_info_file(monkeypatch, tmp_path):
+    _create_must_not_run(monkeypatch)
+    missing = tmp_path / "no-such-file.json"
+    result = runner.invoke(
+        app,
+        [
+            "cloud",
+            "create",
+            str(tmp_path),
+            "--host",
+            "h",
+            "--org",
+            "2",
+            "--type",
+            "BIG_QUERY",
+            "--connection-info-file",
+            str(missing),
+            "--org-key",
+            "osk-x",
+        ],
+    )
+    assert result.exit_code == 1
+    assert f"could not read {missing}" in result.output
+
+
+def test_create_refuses_a_blank_prompted_org_key(monkeypatch, tmp_path):
+    _create_must_not_run(monkeypatch)
+    monkeypatch.delenv("JANUS_CLOUD_ORG_KEY", raising=False)
+    result = runner.invoke(
+        app,
+        ["cloud", "create", str(tmp_path), "--host", "h", "--org", "2", *CONN_ARGS],
+        input="   \n",
+    )
+    assert result.exit_code == 1
+    assert "an organization API key is required." in result.output
+
+
+def test_create_defaults_the_display_name_to_the_directory_name(monkeypatch, tmp_path):
+    captured = {}
+
+    def fake_create(directory, **kwargs):
+        captured.update(kwargs)
+        return (
+            cloud.CreatedProject(
+                id="16", org_id="2", display_name="x", status="succeeded", errors=[]
+            ),
+            cloud.LinkOutcome.LINKED,
+        )
+
+    monkeypatch.setattr(cloud, "create", fake_create)
+    project_dir = tmp_path / "orders-project"
+    project_dir.mkdir()
+    result = runner.invoke(
+        app,
+        [
+            "cloud",
+            "create",
+            str(project_dir),
+            "--host",
+            "h",
+            "--org",
+            "2",
+            *CONN_ARGS,
+            "--org-key",
+            "osk-x",
+        ],
+    )
+    assert result.exit_code == 0, result.output
+    assert captured["display_name"] == "orders-project"
