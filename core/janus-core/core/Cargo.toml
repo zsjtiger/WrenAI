@@ -4,7 +4,7 @@ description = "Janus semantic engine — MDL-based semantic SQL layer and query 
 keywords = ["sql", "semantic-layer", "datafusion", "mdl", "query"]
 categories = ["database"]
 readme = "README.md"
-include = ["src/**/*.rs", "Cargo.toml", "LICENSE", "README.md"]
+include = ["src/**/*.rs", "Cargo.toml", "README.md"]
 version = { workspace = true }
 edition = { workspace = true }
 homepage = { workspace = true }
