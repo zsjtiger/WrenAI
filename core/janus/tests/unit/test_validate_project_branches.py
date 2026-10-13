@@ -239,3 +239,42 @@ def test_hierarchy_level_must_be_a_declared_dimension(tmp_path):
         path="cubes/revenue/metadata.yml > revenue > hierarchies.time",
         message="references unknown dimension 'nope'",
     )
+
+
+def test_non_string_model_dialect_is_reported_not_raised(tmp_path):
+    _v2(tmp_path, schema_version=3)
+    _model(
+        tmp_path,
+        "orders",
+        "name: orders\ntable_reference:\n  table: orders\ndialect: 123\n"
+        "columns:\n  - name: id\n    type: INTEGER\n",
+    )
+    errors = validate_project(tmp_path)
+    _one(
+        errors,
+        level="error",
+        path="models/orders/metadata.yml > orders",
+        message="dialect must be a string, got int",
+    )
+
+
+def test_non_string_view_dialect_is_reported_not_raised(tmp_path):
+    _v2(tmp_path, schema_version=3)
+    _model(
+        tmp_path,
+        "orders",
+        "name: orders\ntable_reference:\n  table: orders\n"
+        "columns:\n  - name: id\n    type: INTEGER\n",
+    )
+    d = tmp_path / "views" / "top"
+    d.mkdir(parents=True)
+    (d / "metadata.yml").write_text(
+        "name: top\nstatement: SELECT 1\ndialect:\n  - postgres\n"
+    )
+    errors = validate_project(tmp_path)
+    _one(
+        errors,
+        level="error",
+        path="views/top",
+        message="dialect must be a string, got list",
+    )

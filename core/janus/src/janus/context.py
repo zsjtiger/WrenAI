@@ -1199,6 +1199,15 @@ def _check_dialect(
                 f"'dialect' field requires schema_version >= 3 (current: {sv})",
             )
         )
+    if not isinstance(dialect, str):
+        errors.append(
+            ValidationError(
+                "error",
+                location,
+                f"dialect must be a string, got {type(dialect).__name__}",
+            )
+        )
+        return
     if dialect.lower() not in _VALID_DIALECTS:
         errors.append(
             ValidationError("error", location, f"unknown dialect '{dialect}'")
