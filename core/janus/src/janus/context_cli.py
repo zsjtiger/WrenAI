@@ -482,32 +482,55 @@ def validate(
         )
         return
 
+    project_path = resolve_project_path(path)
+
+    struct_errors, struct_hard, struct_warnings = _run_structural_checks(project_path)
+    sem_errors, sem_warnings, config = _run_semantic_checks(project_path, level)
+    profile_pin = _check_profile_pin(config, sem_warnings)
+
+    _print_semantic_errors(sem_errors)
+    all_warnings: list[str] = [str(w) for w in struct_warnings] + list(sem_warnings)
+    _print_warnings(
+        all_warnings, verbose=verbose, errors=len(struct_hard) + len(sem_errors)
+    )
+
+    has_hard_error = bool(struct_hard or sem_errors)
+    has_warning = bool(all_warnings)
+    _print_no_pin_note(profile_pin, has_hard_error=has_hard_error)
+
+    if has_hard_error or (strict and has_warning):
+        raise typer.Exit(1)
+
+    if not struct_errors and not sem_errors and not sem_warnings:
+        _print_valid_summary(project_path)
+
+
+def _run_structural_checks(project_path: Path):
+    """YAML structure checks. Hard errors print at once: they block the build.
+
+    Returns ``(all_errors, hard_errors, warnings)``. Warnings flow through the
+    shared summariser together with the semantic warnings.
+    """
+    from janus.context import validate_project  # noqa: PLC0415
+
+    struct_errors = validate_project(project_path)
+    struct_warnings = [e for e in struct_errors if e.level == "warning"]
+    struct_hard = [e for e in struct_errors if e.level == "error"]
+    for e in struct_hard:
+        typer.echo(str(e), err=True)
+    return struct_errors, struct_hard, struct_warnings
+
+
+def _run_semantic_checks(project_path: Path, level: str):
+    """dry-plan and description checks. Returns ``(errors, warnings, config)``."""
     import base64 as _b64  # noqa: PLC0415
 
     from janus.context import (  # noqa: PLC0415
         build_json,
-        load_models,
         load_project_config,
-        load_relationships,
-        load_views,
         validate_manifest,
-        validate_project,
     )
 
-    project_path = resolve_project_path(path)
-
-    # ── Structural validation ────────────────────────────────────────────
-    struct_errors = validate_project(project_path)
-    struct_warnings = [e for e in struct_errors if e.level == "warning"]
-    struct_hard = [e for e in struct_errors if e.level == "error"]
-
-    # Hard errors always print in full — they block the build.  Warnings
-    # flow through the shared summariser with sem_warnings below.
-    if struct_hard:
-        for e in struct_hard:
-            typer.echo(str(e), err=True)
-
-    # ── Semantic validation (dry-plan + description checks) ──────────────
     sem_errors: list[str] = []
     sem_warnings: list[str] = []
     config: dict = {}
@@ -523,10 +546,15 @@ def validate(
         sem_warnings = sem_result["warnings"]
     except Exception as e:
         sem_errors = [f"Semantic validation failed: {e}"]
+    return sem_errors, sem_warnings, config
 
-    # ── Profile binding check ─────────────────────────────────────────────
-    # Pinned profile that no longer exists → warning (or error in --strict).
-    # No pin at all → friendly info hint pointing to `set-profile`.
+
+def _check_profile_pin(config: dict, sem_warnings: list[str]) -> str | None:
+    """Warn when a pinned profile no longer exists. Returns the pin, if any.
+
+    A pinned profile that is missing is a warning (an error under --strict).
+    No pin at all gets an info note from ``_print_no_pin_note``.
+    """
     profile_pin = config.get("profile") if isinstance(config, dict) else None
     if isinstance(profile_pin, str) and profile_pin.strip():
         # Guard the lookup: if profiles.yml itself is unreadable / malformed,
@@ -547,27 +575,24 @@ def validate(
                     "exist in ~/.janus/profiles.yml. "
                     "Run `janus context set-profile <name>` to rebind."
                 )
+    return profile_pin
 
-    if sem_errors:
-        typer.echo("\nSemantic errors:")
-        for msg in sem_errors:
-            typer.echo(f"  \u2717 {msg}", err=True)
 
-    all_warnings: list[str] = [str(w) for w in struct_warnings] + list(sem_warnings)
-    _print_warnings(
-        all_warnings, verbose=verbose, errors=len(struct_hard) + len(sem_errors)
-    )
+def _print_semantic_errors(sem_errors: list[str]) -> None:
+    if not sem_errors:
+        return
+    typer.echo("\nSemantic errors:")
+    for msg in sem_errors:
+        typer.echo(f"  ✗ {msg}", err=True)
 
-    # ── Exit logic ──────────────────────────────────────────────────────────────────
-    has_hard_error = bool(struct_hard or sem_errors)
-    has_warning = bool(all_warnings)
 
-    # No-pin info hint — surface whenever validation has no hard errors,
-    # regardless of warning count. Gating it on a pristine project (the old
-    # behavior) hid the nudge from the users most likely to need it: anyone
-    # actively working through warnings. Placed BEFORE the exit raise so the
-    # hint is still visible under --strict (where warnings become exit 1).
-    # Hard errors still suppress so error output stays focused on the blocker.
+def _print_no_pin_note(profile_pin: str | None, *, has_hard_error: bool) -> None:
+    """Surface the missing pin whenever there are no hard errors.
+
+    Gating it on a pristine project hid the nudge from the users most likely to
+    need it. Hard errors still suppress it so the output stays focused on the
+    blocker. Printed before the exit so ``--strict`` still shows it.
+    """
     no_pin = not (isinstance(profile_pin, str) and profile_pin.strip())
     if no_pin and not has_hard_error:
         typer.echo(
@@ -577,16 +602,20 @@ def validate(
             "  Run `janus context set-profile <name>` to pin one explicitly."
         )
 
-    if has_hard_error or (strict and has_warning):
-        raise typer.Exit(1)
 
-    if not struct_errors and not sem_errors and not sem_warnings:
-        models = load_models(project_path)
-        views = load_views(project_path)
-        rels = load_relationships(project_path)
-        typer.echo(
-            f"Valid — {len(models)} models, {len(views)} views, {len(rels)} relationships."
-        )
+def _print_valid_summary(project_path: Path) -> None:
+    from janus.context import (  # noqa: PLC0415
+        load_models,
+        load_relationships,
+        load_views,
+    )
+
+    models = load_models(project_path)
+    views = load_views(project_path)
+    rels = load_relationships(project_path)
+    typer.echo(
+        f"Valid — {len(models)} models, {len(views)} views, {len(rels)} relationships."
+    )
 
 
 def _print_warnings(warnings: list[str], *, verbose: bool, errors: int = 0) -> None:
