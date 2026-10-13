@@ -14,7 +14,7 @@ IBM watsonx coding agent.
 ## Install Janus skills
 
 ```bash
-npx skills add Canner/WrenAI --agent bob
+npx skills add CrossNow/janusai --agent bob
 ```
 
 ## Run onboarding

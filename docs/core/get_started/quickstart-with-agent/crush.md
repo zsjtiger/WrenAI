@@ -13,7 +13,7 @@ Charm's TUI coding agent.
 ## Install Janus skills
 
 ```bash
-npx skills add Canner/WrenAI --agent crush
+npx skills add CrossNow/janusai --agent crush
 ```
 
 ## Run onboarding

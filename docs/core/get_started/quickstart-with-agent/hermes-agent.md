@@ -13,7 +13,7 @@ Hermes coding agent.
 ## Install Janus skills
 
 ```bash
-npx skills add Canner/WrenAI --agent hermes-agent
+npx skills add CrossNow/janusai --agent hermes-agent
 ```
 
 ## Run onboarding

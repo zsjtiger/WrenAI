@@ -13,7 +13,7 @@ OPPO/Heytap coding IDE.
 ## Install Janus skills
 
 ```bash
-npx skills add Canner/WrenAI --agent codestudio
+npx skills add CrossNow/janusai --agent codestudio
 ```
 
 ## Run onboarding

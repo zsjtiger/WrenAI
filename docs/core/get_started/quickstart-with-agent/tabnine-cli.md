@@ -14,7 +14,7 @@ Tabnine CLI coding agent.
 ## Install Janus skills
 
 ```bash
-npx skills add Canner/WrenAI --agent tabnine-cli
+npx skills add CrossNow/janusai --agent tabnine-cli
 ```
 
 ## Run onboarding

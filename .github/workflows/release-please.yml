@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   release-please:
-    if: ${{ github.repository == 'Canner/WrenAI' }}
+    if: ${{ github.repository == 'CrossNow/janusai' }}
     runs-on: ubuntu-latest
     outputs:
       janus-core-py--release_created: ${{ steps.release.outputs['core/janus-core-py--release_created'] }}

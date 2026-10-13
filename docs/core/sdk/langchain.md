@@ -8,7 +8,7 @@ LangChain and LangGraph integration for Janus AI. Attach a CLI-prepared Janus pr
 
 ## Prerequisites
 
-> ⚠️ **Caution — Janus CLI required first.** This SDK is a thin adapter over a Janus project that the `janus` CLI has already prepared (profile + MDL + optional memory index). Without those, `JanusToolkit.from_project()` has nothing to attach to and will fail at construction. Follow the [install guide](https://docs.getwren.ai/oss/get_started/installation) before installing this package.
+> ⚠️ **Caution — Janus CLI required first.** This SDK is a thin adapter over a Janus project that the `janus` CLI has already prepared (profile + MDL + optional memory index). Without those, `JanusToolkit.from_project()` has nothing to attach to and will fail at construction. Follow the [install guide](https://docs.crossnow.cn/oss/get_started/installation) before installing this package.
 
 Minimum CLI bootstrap:
 
@@ -160,7 +160,7 @@ graph.add_edge("tools", "chatbot")
 app = graph.compile()
 ```
 
-See [`examples/langgraph_demo.py`](https://github.com/Canner/WrenAI/blob/main/sdk/wren-langchain/examples/langgraph_demo.py) for a runnable version.
+See [`examples/langgraph_demo.py`](https://github.com/CrossNow/janusai/blob/main/sdk/wren-langchain/examples/langgraph_demo.py) for a runnable version.
 
 ### Multiple projects, one program
 

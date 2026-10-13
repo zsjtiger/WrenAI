@@ -21,7 +21,7 @@ _TARGET_FILE = "mdl.json"
 _AGENTS_MD_TEMPLATE = """\
 # AGENTS.md
 
-This project uses [Janus Engine](https://github.com/Canner/WrenAI) as the semantic layer for data querying. Queries are written against MDL model names, not raw database tables.
+This project uses [Janus Engine](https://github.com/CrossNow/janusai) as the semantic layer for data querying. Queries are written against MDL model names, not raw database tables.
 
 ## Answering data questions
 
@@ -58,7 +58,7 @@ pip install "janusai[postgres,memory,ui]"
 
 Replace `postgres` with your data source (`mysql`, `bigquery`, `snowflake`, `clickhouse`, `trino`, `mssql`, `databricks`, `redshift`, `spark`, `athena`, `oracle`). The `memory` extra upgrades recall to semantic (embedding) search — without it, `memory store` / `index` / `recall` still work over the `knowledge/` files. `ui` enables the interactive UI.
 
-See https://docs.getwren.ai/oss/engine/get_started/installation for full setup.
+See https://docs.crossnow.cn/oss/engine/get_started/installation for full setup.
 
 ## Quick reference
 

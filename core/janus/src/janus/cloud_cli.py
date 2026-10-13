@@ -47,7 +47,7 @@ import typer
 # *target* of a command. Commands where `--host` instead selects among stored
 # credentials (``link``, ``auth remove``) deliberately have no default:
 # defaulting a filter would hide a credential the user does have.
-DEFAULT_HOST = "https://cloud.getwren.ai"
+DEFAULT_HOST = "https://cloud.crossnow.cn"
 
 
 def _shown(directory: Path) -> Path:

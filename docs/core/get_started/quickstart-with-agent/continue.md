@@ -13,7 +13,7 @@ Open-source IDE coding assistant.
 ## Install Janus skills
 
 ```bash
-npx skills add Canner/WrenAI --agent continue
+npx skills add CrossNow/janusai --agent continue
 ```
 
 ## Run onboarding

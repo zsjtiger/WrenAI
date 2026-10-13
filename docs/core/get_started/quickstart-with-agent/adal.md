@@ -13,7 +13,7 @@ A lightweight coding agent.
 ## Install Janus skills
 
 ```bash
-npx skills add Canner/WrenAI --agent adal
+npx skills add CrossNow/janusai --agent adal
 ```
 
 ## Run onboarding

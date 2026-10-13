@@ -14,7 +14,7 @@ Android JetBrains coding agent.
 ## Install Janus skills
 
 ```bash
-npx skills add Canner/WrenAI --agent firebender
+npx skills add CrossNow/janusai --agent firebender
 ```
 
 ## Run onboarding

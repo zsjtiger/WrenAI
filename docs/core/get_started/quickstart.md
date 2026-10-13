@@ -114,9 +114,9 @@ janus version
 Skills are workflow guides that tell your AI coding agent how to use the Janus CLI effectively. Install the discovery stub. It fetches the guides from the CLI on demand:
 
 ```bash
-npx skills add Canner/WrenAI
+npx skills add CrossNow/janusai
 # or:
-curl -fsSL https://raw.githubusercontent.com/Canner/WrenAI/main/skills/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/CrossNow/janusai/main/skills/install.sh | bash
 ```
 
 The CLI auto-detects your installed agent. To target a specific one, add `--agent <name>` (e.g., `claude-code`, `cursor`, `windsurf`, `cline`). Only one skill (`janus`) is installed; the workflow guides below are served on demand with `janus skills get <name>`.

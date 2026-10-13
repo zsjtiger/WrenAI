@@ -14,7 +14,7 @@ Snowflake Cortex coding agent.
 ## Install Janus skills
 
 ```bash
-npx skills add Canner/WrenAI --agent cortex
+npx skills add CrossNow/janusai --agent cortex
 ```
 
 ## Run onboarding

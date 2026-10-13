@@ -13,7 +13,7 @@ Codeium Windsurf IDE.
 ## Install Janus skills
 
 ```bash
-npx skills add Canner/WrenAI --agent windsurf
+npx skills add CrossNow/janusai --agent windsurf
 ```
 
 ## Run onboarding

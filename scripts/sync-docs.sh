@@ -14,7 +14,7 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-SOURCE_REPO="$(gh repo view --json nameWithOwner -q .nameWithOwner 2>/dev/null || echo "Canner/WrenAI")"
+SOURCE_REPO="$(gh repo view --json nameWithOwner -q .nameWithOwner 2>/dev/null || echo "CrossNow/janusai")"
 
 # Read from GitHub repo variables, allow env override
 TARGET_REPO="${DOCS_REPO:-$(gh variable get DOCS_REPO -R "$SOURCE_REPO" 2>/dev/null || true)}"

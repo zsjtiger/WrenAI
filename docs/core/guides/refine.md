@@ -131,7 +131,7 @@ Pick one of two modes at session start:
 - **Grill mode**: the agent walks each gap one question at a time and asks focused questions ("Which of `customers`, `customers_v3`, `loyalty_v3` is canonical?", "What does `status = 4` mean?"). You answer in plain language; the agent drafts the change and patches MDL or `knowledge/` (rules and NL→SQL pairs) based on the answer category. With your OK, it can also sample low-cardinality columns from the live DB to discover enum and sentinel values.
 - **Auto-pilot mode**: drop docs, glossaries, SQL history, or a metric handbook into `<project>/raw/` and the agent reads them, applies its best inferences directly, and escalates to grill only on raw-vs-MDL conflicts and high-blast-radius additions (new cubes / views / relationships). It hands you a confidence-tagged audit at the end.
 
-Both modes only **add**. They never modify an existing field; contradictions are surfaced on a "please fix manually" list. With the `janus` skill installed (`npx skills add Canner/WrenAI`), trigger it by saying "enrich context" or "grill me on this project". The stub fetches the guide with `janus skills get enrich-context`. See the [skills reference](/oss/reference/skills#enrich-context) for the full breakdown.
+Both modes only **add**. They never modify an existing field; contradictions are surfaced on a "please fix manually" list. With the `janus` skill installed (`npx skills add CrossNow/janusai`), trigger it by saying "enrich context" or "grill me on this project". The stub fetches the guide with `janus skills get enrich-context`. See the [skills reference](/oss/reference/skills#enrich-context) for the full breakdown.
 
 ## See also
 

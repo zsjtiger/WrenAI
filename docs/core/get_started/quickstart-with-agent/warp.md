@@ -14,7 +14,7 @@ Warp terminal coding agent. Uses the shared `.agents/skills/` directory.
 ## Install Janus skills
 
 ```bash
-npx skills add Canner/WrenAI --agent warp
+npx skills add CrossNow/janusai --agent warp
 ```
 
 ## Run onboarding

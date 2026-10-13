@@ -642,7 +642,7 @@ Two credentials, two lifetimes:
 
 `--host` means different things in different commands, and only defaults where
 it names a target. On `auth add` and `create` it defaults to
-`https://cloud.getwren.ai` — pass a URL for a self-hosted deployment. On `link`
+`https://cloud.crossnow.cn` — pass a URL for a self-hosted deployment. On `link`
 and `auth remove` it *selects* among stored credentials and has **no** default,
 deliberately: defaulting a filter would hide a credential you do have. Either
 way, `https` is assumed when no scheme is given.
@@ -753,7 +753,7 @@ janus cloud auth list
 
 ```text
 PROJECT  API HOST (--host)          GIT HOST (git talks to)   REPO
-1234     https://cloud.getwren.ai   https://cloud.getwren.ai  org/42/1234/shared-data.git
+1234     https://cloud.crossnow.cn   https://cloud.crossnow.cn  org/42/1234/shared-data.git
 ```
 
 Both host columns are printed because they mean different things and can

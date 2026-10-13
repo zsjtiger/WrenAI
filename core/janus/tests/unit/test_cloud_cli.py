@@ -48,7 +48,7 @@ def test_login_prompts_for_key_and_never_takes_it_as_an_argument(monkeypatch):
             "auth",
             "add",
             "--host",
-            "https://cloud.getwren.ai",
+            "https://cloud.crossnow.cn",
             "--project",
             "16",
         ],
@@ -56,7 +56,7 @@ def test_login_prompts_for_key_and_never_takes_it_as_an_argument(monkeypatch):
     )
     assert result.exit_code == 0, result.output
     assert captured == {
-        "host": "https://cloud.getwren.ai",
+        "host": "https://cloud.crossnow.cn",
         "project_id": "16",
         "api_key": "sk-secret",
         "git_host": None,
@@ -98,7 +98,7 @@ def test_login_rejects_empty_key(monkeypatch):
             "auth",
             "add",
             "--host",
-            "https://cloud.getwren.ai",
+            "https://cloud.crossnow.cn",
             "--project",
             "16",
         ],
@@ -119,7 +119,7 @@ def test_login_reports_cloud_error_without_traceback(monkeypatch):
             "auth",
             "add",
             "--host",
-            "https://cloud.getwren.ai",
+            "https://cloud.crossnow.cn",
             "--project",
             "16",
         ],
@@ -161,7 +161,7 @@ def test_link_host_filters_on_api_host_not_git_host(monkeypatch, tmp_path):
     key (`git_host`) — a login stored under a differing `--git-host` must
     still be reachable by the host the user actually typed at login."""
     entry = {
-        "api_host": "https://cloud.getwren.ai",
+        "api_host": "https://cloud.crossnow.cn",
         "org_id": "2",
         "repo": "org/2/16/shared-data.git",
         "api_key": "sk-x",
@@ -182,11 +182,11 @@ def test_link_host_filters_on_api_host_not_git_host(monkeypatch, tmp_path):
 
     result = runner.invoke(
         app,
-        ["cloud", "link", str(tmp_path), "--host", "https://cloud.getwren.ai"],
+        ["cloud", "link", str(tmp_path), "--host", "https://cloud.crossnow.cn"],
     )
     assert result.exit_code == 0, result.output
     assert captured["git_host"] == "https://internal-git.example.com"
-    assert captured["api_host"] == "https://cloud.getwren.ai"
+    assert captured["api_host"] == "https://cloud.crossnow.cn"
 
 
 def test_link_host_still_disambiguates_when_api_hosts_collide(monkeypatch, tmp_path):
@@ -202,18 +202,18 @@ def test_link_host_still_disambiguates_when_api_hosts_collide(monkeypatch, tmp_p
             (
                 "https://wrong-git.example.com",
                 "16",
-                {"api_host": "https://cloud.getwren.ai"},
+                {"api_host": "https://cloud.crossnow.cn"},
             ),
             (
                 "https://right-git.example.com",
                 "16",
-                {"api_host": "https://cloud.getwren.ai"},
+                {"api_host": "https://cloud.crossnow.cn"},
             ),
         ],
     )
     result = runner.invoke(
         app,
-        ["cloud", "link", str(tmp_path), "--host", "https://cloud.getwren.ai"],
+        ["cloud", "link", str(tmp_path), "--host", "https://cloud.crossnow.cn"],
     )
     assert result.exit_code != 0
     # Asserts the behaviour, not the wording: it must refuse rather than pick,
@@ -223,13 +223,13 @@ def test_link_host_still_disambiguates_when_api_hosts_collide(monkeypatch, tmp_p
 
 def test_link_invokes_cloud_link_with_the_single_stored_login(monkeypatch, tmp_path):
     entry = {
-        "api_host": "https://cloud.getwren.ai",
+        "api_host": "https://cloud.crossnow.cn",
         "org_id": "2",
         "repo": "org/2/16/shared-data.git",
         "api_key": "sk-x",
     }
     monkeypatch.setattr(
-        cloud, "list_logins", lambda: [("https://cloud.getwren.ai", "16", entry)]
+        cloud, "list_logins", lambda: [("https://cloud.crossnow.cn", "16", entry)]
     )
 
     captured = {}
@@ -248,7 +248,7 @@ def test_link_invokes_cloud_link_with_the_single_stored_login(monkeypatch, tmp_p
     monkeypatch.setattr(cloud, "link", fake_link)
     result = runner.invoke(app, ["cloud", "link", str(tmp_path)])
     assert result.exit_code == 0, result.output
-    assert captured["git_host"] == "https://cloud.getwren.ai"
+    assert captured["git_host"] == "https://cloud.crossnow.cn"
     assert captured["project_id"] == "16"
     assert captured["repo"] == "org/2/16/shared-data.git"
     assert "Linked project 16" in result.output
@@ -262,13 +262,13 @@ def test_link_names_a_real_path_when_the_directory_argument_is_defaulted(
     as the parent directory. Observed live against staging."""
 
     entry = {
-        "api_host": "https://cloud.getwren.ai",
+        "api_host": "https://cloud.crossnow.cn",
         "org_id": "2",
         "repo": "org/2/16/shared-data.git",
         "api_key": "sk-x",
     }
     monkeypatch.setattr(
-        cloud, "list_logins", lambda: [("https://cloud.getwren.ai", "16", entry)]
+        cloud, "list_logins", lambda: [("https://cloud.crossnow.cn", "16", entry)]
     )
     monkeypatch.setattr(
         cloud, "link", lambda *a, **k: cloud.LinkOutcome.LINKED
@@ -290,13 +290,13 @@ def test_link_reports_already_linked_without_implying_a_fresh_merge(
     monkeypatch, tmp_path
 ):
     entry = {
-        "api_host": "https://cloud.getwren.ai",
+        "api_host": "https://cloud.crossnow.cn",
         "org_id": "2",
         "repo": "org/2/16/shared-data.git",
         "api_key": "sk-x",
     }
     monkeypatch.setattr(
-        cloud, "list_logins", lambda: [("https://cloud.getwren.ai", "16", entry)]
+        cloud, "list_logins", lambda: [("https://cloud.crossnow.cn", "16", entry)]
     )
     monkeypatch.setattr(
         cloud, "link", lambda *args, **kwargs: cloud.LinkOutcome.ALREADY_LINKED
@@ -311,13 +311,13 @@ def test_link_reports_already_linked_without_implying_a_fresh_merge(
 
 def test_link_reports_cloud_error_without_traceback(monkeypatch, tmp_path):
     entry = {
-        "api_host": "https://cloud.getwren.ai",
+        "api_host": "https://cloud.crossnow.cn",
         "org_id": "2",
         "repo": "org/2/16/shared-data.git",
         "api_key": "sk-x",
     }
     monkeypatch.setattr(
-        cloud, "list_logins", lambda: [("https://cloud.getwren.ai", "16", entry)]
+        cloud, "list_logins", lambda: [("https://cloud.crossnow.cn", "16", entry)]
     )
 
     def fake_link(*args, **kwargs):
@@ -362,7 +362,7 @@ def test_create_reads_org_key_from_env_and_passes_options_through(
             "create",
             str(tmp_path),
             "--host",
-            "https://cloud.getwren.ai",
+            "https://cloud.crossnow.cn",
             "--org",
             "2",
             *CONN_ARGS,
@@ -631,8 +631,8 @@ def test_git_credential_erase_produces_no_output(monkeypatch):
 
 def _unlink_outcome(**overrides):
     defaults = {
-        "remote_url": "https://cloud.getwren.ai/git/org/2/16/shared-data.git",
-        "git_host": "https://cloud.getwren.ai",
+        "remote_url": "https://cloud.crossnow.cn/git/org/2/16/shared-data.git",
+        "git_host": "https://cloud.crossnow.cn",
         "project_id": "16",
         "key_forgotten": False,
         "helper_removed": False,
@@ -744,13 +744,13 @@ def test_unlink_surfaces_a_cloud_error(monkeypatch, tmp_path):
 
 def test_logout_drops_the_only_stored_login(monkeypatch):
     entry = {
-        "api_host": "https://cloud.getwren.ai",
+        "api_host": "https://cloud.crossnow.cn",
         "org_id": "2",
         "repo": "org/2/16/shared-data.git",
         "api_key": "sk-x",
     }
     monkeypatch.setattr(
-        cloud, "list_logins", lambda: [("https://cloud.getwren.ai", "16", entry)]
+        cloud, "list_logins", lambda: [("https://cloud.crossnow.cn", "16", entry)]
     )
     captured = {}
 
@@ -762,7 +762,7 @@ def test_logout_drops_the_only_stored_login(monkeypatch):
     result = runner.invoke(app, ["cloud", "auth", "remove", "--yes"])
 
     assert result.exit_code == 0, result.output
-    assert captured == {"git_host": "https://cloud.getwren.ai", "project_id": "16"}
+    assert captured == {"git_host": "https://cloud.crossnow.cn", "project_id": "16"}
     assert "Logged out of project 16" in result.output
 
 
@@ -794,7 +794,7 @@ def test_logout_host_filters_on_api_host_not_git_host(monkeypatch):
     (`api_host`) must reach the right login even when it was stored under a
     differing `git_host`."""
     entry = {
-        "api_host": "https://cloud.getwren.ai",
+        "api_host": "https://cloud.crossnow.cn",
         "org_id": "2",
         "repo": "org/2/16/shared-data.git",
         "api_key": "sk-x",
@@ -813,7 +813,7 @@ def test_logout_host_filters_on_api_host_not_git_host(monkeypatch):
         ),
     )
     result = runner.invoke(
-        app, ["cloud", "auth", "remove", "--host", "https://cloud.getwren.ai", "--yes"]
+        app, ["cloud", "auth", "remove", "--host", "https://cloud.crossnow.cn", "--yes"]
     )
     assert result.exit_code == 0, result.output
     assert captured["git_host"] == "https://internal-git.example.com"
@@ -821,13 +821,13 @@ def test_logout_host_filters_on_api_host_not_git_host(monkeypatch):
 
 def test_logout_confirms_by_default(monkeypatch):
     entry = {
-        "api_host": "https://cloud.getwren.ai",
+        "api_host": "https://cloud.crossnow.cn",
         "org_id": "2",
         "repo": "org/2/16/shared-data.git",
         "api_key": "sk-x",
     }
     monkeypatch.setattr(
-        cloud, "list_logins", lambda: [("https://cloud.getwren.ai", "16", entry)]
+        cloud, "list_logins", lambda: [("https://cloud.crossnow.cn", "16", entry)]
     )
     calls = {"n": 0}
 
@@ -864,7 +864,7 @@ def test_auth_add_defaults_to_the_managed_host(monkeypatch):
         app, ["cloud", "auth", "add", "--project", "16"], input="sk-x\n"
     )
     assert result.exit_code == 0, result.output
-    assert captured["host"] == "https://cloud.getwren.ai"
+    assert captured["host"] == "https://cloud.crossnow.cn"
 
 
 def test_auth_add_gives_a_bare_hostname_a_scheme(monkeypatch):
@@ -902,7 +902,7 @@ def test_auth_add_names_the_host_in_the_key_prompt(monkeypatch):
     result = runner.invoke(
         app, ["cloud", "auth", "add", "--project", "16"], input="sk-x\n"
     )
-    assert "https://cloud.getwren.ai" in result.output
+    assert "https://cloud.crossnow.cn" in result.output
 
 
 def test_create_defaults_to_the_managed_host(monkeypatch, tmp_path):
@@ -919,7 +919,7 @@ def test_create_defaults_to_the_managed_host(monkeypatch, tmp_path):
         input="osk-x\n",
     )
     assert result.exit_code == 0, result.output
-    assert captured["host"] == "https://cloud.getwren.ai"
+    assert captured["host"] == "https://cloud.crossnow.cn"
 
 
 def test_create_upper_cases_the_data_source_type(monkeypatch, tmp_path):
@@ -950,7 +950,7 @@ def test_create_upper_cases_the_data_source_type(monkeypatch, tmp_path):
             "create",
             str(tmp_path),
             "--host",
-            "https://cloud.getwren.ai",
+            "https://cloud.crossnow.cn",
             "--org",
             "2",
             "--org-key",
@@ -1012,7 +1012,7 @@ def test_git_host_is_normalized_like_host(command, extra, monkeypatch, tmp_path)
 
     args = ["cloud"]
     args += ["auth", "add"] if command == "auth_add" else ["create", str(tmp_path)]
-    args += ["--host", "https://cloud.getwren.ai", "--git-host", "git.example.com"]
+    args += ["--host", "https://cloud.crossnow.cn", "--git-host", "git.example.com"]
     if command == "auth_add":
         args += ["--project", "16"]
     args += extra
@@ -1032,13 +1032,13 @@ def test_host_filter_matches_a_scheme_less_value(command, monkeypatch, tmp_path)
     login" for a login that exists. The mirror of the writing-side defect."""
 
     entry = {
-        "api_host": "https://cloud.getwren.ai",
+        "api_host": "https://cloud.crossnow.cn",
         "org_id": "2",
         "repo": "org/2/16/shared-data.git",
         "api_key": "sk-x",
     }
     monkeypatch.setattr(
-        cloud, "list_logins", lambda: [("https://cloud.getwren.ai", "16", entry)]
+        cloud, "list_logins", lambda: [("https://cloud.crossnow.cn", "16", entry)]
     )
     monkeypatch.setattr(cloud, "resolve_repo", lambda *a, **k: entry["repo"])
     monkeypatch.setattr(cloud, "link", lambda *a, **k: cloud.LinkOutcome.LINKED)
@@ -1050,7 +1050,7 @@ def test_host_filter_matches_a_scheme_less_value(command, monkeypatch, tmp_path)
         else ["cloud", "auth", "remove"]
     )
     # No scheme — what a person types when asked for a host.
-    args += ["--host", "cloud.getwren.ai", "--project", "16"]
+    args += ["--host", "cloud.crossnow.cn", "--project", "16"]
     if command == "auth_remove":
         args += ["--yes"]
 

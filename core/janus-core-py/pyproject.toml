@@ -5,7 +5,7 @@ description = "Python bindings for Janus Engine semantic layer (janus-core)"
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "Apache-2.0" }
-authors = [{ name = "Janus AI", email = "contact@getwren.ai" }]
+authors = [{ name = "Janus AI", email = "contact@crossnow.cn" }]
 keywords = ["sql", "semantic-layer", "data-modeling", "analytics", "janus", "janusai", "datafusion"]
 classifiers = [
   "Development Status :: 4 - Beta",
@@ -20,9 +20,9 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://www.getwren.ai/"
-Repository = "https://github.com/Canner/WrenAI"
-Issues = "https://github.com/Canner/WrenAI/issues"
+Homepage = "https://www.crossnow.cn/"
+Repository = "https://github.com/CrossNow/janusai"
+Issues = "https://github.com/CrossNow/janusai/issues"
 
 [dependency-groups]
 dev = [

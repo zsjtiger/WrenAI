@@ -9,7 +9,7 @@ description = "LangChain and LangGraph integration for Janus AI Core — attach 
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "Apache-2.0" }
-authors = [{ name = "Janus AI", email = "contact@getwren.ai" }]
+authors = [{ name = "Janus AI", email = "contact@crossnow.cn" }]
 keywords = [
   "janusai", "janus", "langchain", "langgraph", "agent", "ai-agent",
   "sql", "context-layer", "semantic", "mdl", "data-modeling", "analytics",
@@ -87,11 +87,11 @@ dev = [
 ]
 
 [project.urls]
-Homepage      = "https://getwren.ai"
-Documentation = "https://github.com/Canner/WrenAI/tree/main/sdk/wren-langchain#readme"
-Repository    = "https://github.com/Canner/WrenAI"
-Issues        = "https://github.com/Canner/WrenAI/issues"
-Changelog     = "https://github.com/Canner/WrenAI/blob/main/sdk/wren-langchain/CHANGELOG.md"
+Homepage      = "https://crossnow.cn"
+Documentation = "https://github.com/CrossNow/janusai/tree/main/sdk/wren-langchain#readme"
+Repository    = "https://github.com/CrossNow/janusai"
+Issues        = "https://github.com/CrossNow/janusai/issues"
+Changelog     = "https://github.com/CrossNow/janusai/blob/main/sdk/wren-langchain/CHANGELOG.md"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/janus_langchain"]

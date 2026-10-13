@@ -14,7 +14,7 @@ Google's AI development workspace.
 ## Install Janus skills
 
 ```bash
-npx skills add Canner/WrenAI --agent antigravity
+npx skills add CrossNow/janusai --agent antigravity
 ```
 
 ## Run onboarding

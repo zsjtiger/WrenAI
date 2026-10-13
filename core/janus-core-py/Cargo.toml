@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 description = "Python bindings for Janus Engine semantic layer (janus-core)"
 license = "Apache-2.0"
-repository = "https://github.com/Canner/WrenAI"
+repository = "https://github.com/CrossNow/janusai"
 include = ["/src", "pyproject.toml", "Cargo.toml", "Cargo.lock"]
 
 [lib]

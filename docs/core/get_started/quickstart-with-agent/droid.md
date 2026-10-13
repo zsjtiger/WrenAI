@@ -14,7 +14,7 @@ Factory AI Droid CLI.
 ## Install Janus skills
 
 ```bash
-npx skills add Canner/WrenAI --agent droid
+npx skills add CrossNow/janusai --agent droid
 ```
 
 ## Run onboarding

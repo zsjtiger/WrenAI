@@ -6,7 +6,7 @@ The crate includes several examples of how to use Janus Engine APIs and help you
 To run the examples, use the `cargo run` command, such as:
 
 ```bash
-git clone https://github.com/Canner/WrenAI.git
+git clone https://github.com/CrossNow/janusai.git
 cd JanusAI/core/janus-core
 
 # Run the `datafusion_apply` example:

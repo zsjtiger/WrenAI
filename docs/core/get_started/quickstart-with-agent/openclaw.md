@@ -14,7 +14,7 @@ OpenClaw coding agent.
 ## Install Janus skills
 
 ```bash
-npx skills add Canner/WrenAI --agent openclaw
+npx skills add CrossNow/janusai --agent openclaw
 ```
 
 ## Run onboarding

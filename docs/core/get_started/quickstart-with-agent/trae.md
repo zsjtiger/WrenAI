@@ -13,7 +13,7 @@ ByteDance Trae IDE.
 ## Install Janus skills
 
 ```bash
-npx skills add Canner/WrenAI --agent trae
+npx skills add CrossNow/janusai --agent trae
 ```
 
 ## Run onboarding

@@ -352,7 +352,7 @@ def remove_login(git_host: str, project_id: str) -> bool:
 def normalize_host(host: str) -> str:
     """Give a bare hostname a scheme, and drop a trailing slash.
 
-    A host is a hostname in ordinary speech, so `--host cloud.getwren.ai` is
+    A host is a hostname in ordinary speech, so `--host cloud.crossnow.cn` is
     what people type. Without a scheme it reaches `requests` as a relative
     URL and comes back as "Invalid URL ... No scheme supplied", which reads
     like a bug in the tool rather than a correctable typo. Assume https:

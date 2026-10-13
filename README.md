@@ -1,5 +1,5 @@
 <div align="center" id="top">
-<a href="https://getwren.ai">
+<a href="https://crossnow.cn">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="./misc/janus-ai-banner-dark.png">
     <img src="./misc/janus-ai-banner.png" width="100%" alt="JanusAI: open-source GenBI for AI agents">
@@ -12,18 +12,18 @@
 
 <br/>
 
-**[Get started in 3 commands ↓](#quickstart)** &nbsp;·&nbsp; **[Read the docs →](https://docs.getwren.ai)** &nbsp;·&nbsp; **[Join Discord →](https://discord.gg/5DvshJqG8Z)**
+**[Get started in 3 commands ↓](#quickstart)** &nbsp;·&nbsp; **[Read the docs →](https://docs.crossnow.cn)** &nbsp;·&nbsp; **[Join Discord →](https://discord.gg/5DvshJqG8Z)**
 
 <br/>
 
-[![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://github.com/Canner/WrenAI/blob/main/LICENSE)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://github.com/CrossNow/janusai/blob/main/LICENSE)
 [![PyPI](https://img.shields.io/pypi/v/janusai?label=janusai)](https://pypi.org/project/janusai/)
-[![GitHub Release](https://img.shields.io/github/v/release/Canner/WrenAI?logo=github&label=release)](https://github.com/Canner/WrenAI/releases)
+[![GitHub Release](https://img.shields.io/github/v/release/CrossNow/janusai?logo=github&label=release)](https://github.com/CrossNow/janusai/releases)
 [![Discord](https://img.shields.io/discord/1227143286951514152?logo=discord&label=Discord)](https://discord.gg/5DvshJqG8Z)
 [![Follow on X](https://img.shields.io/badge/follow-@getwrenai-blue?logo=x&logoColor=white)](https://x.com/getwrenai)
-![Stars](https://img.shields.io/github/stars/Canner/WrenAI?style=social)
+![Stars](https://img.shields.io/github/stars/CrossNow/janusai?style=social)
 
-<a href="https://trendshift.io/repositories/9263" target="_blank"><img src="https://trendshift.io/api/badge/repositories/9263" alt="Canner/WrenAI | Trendshift" width="250" height="55" /></a>
+<a href="https://trendshift.io/repositories/9263" target="_blank"><img src="https://trendshift.io/api/badge/repositories/9263" alt="CrossNow/janusai | Trendshift" width="250" height="55" /></a>
 
 </div>
 
@@ -42,7 +42,7 @@ Schemas tell an agent where data lives. Janus tells it what the data *means*: ap
 
 ## Quickstart
 
-Three commands, then your agent does the rest. Works with Claude Code, Cursor, Cline, Codex, and [50+ other agents](https://docs.getwren.ai/oss/get_started/quickstart).
+Three commands, then your agent does the rest. Works with Claude Code, Cursor, Cline, Codex, and [50+ other agents](https://docs.crossnow.cn/oss/get_started/quickstart).
 
 **1. Install the CLI**
 
@@ -55,7 +55,7 @@ Add connector extras as you need them, for example `pip install "janusai[postgre
 **2. Teach your agent about Janus**
 
 ```bash
-npx skills add Canner/WrenAI
+npx skills add CrossNow/janusai
 ```
 
 This installs a ~50-line discovery stub. Your agent fetches full workflow guides from the CLI on demand, so instructions always match the installed version.
@@ -91,7 +91,7 @@ Once you're connected, these three prompts cover the whole GenBI loop:
 
 <div align="center">
 
-**[Follow the full quickstart →](https://docs.getwren.ai/oss/get_started/quickstart)** &nbsp;·&nbsp; [Build & deploy a GenBI app →](https://docs.getwren.ai/oss/guides/genbi)
+**[Follow the full quickstart →](https://docs.crossnow.cn/oss/get_started/quickstart)** &nbsp;·&nbsp; [Build & deploy a GenBI app →](https://docs.crossnow.cn/oss/guides/genbi)
 
 </div>
 
@@ -134,14 +134,14 @@ Everything Janus writes on your laptop is plain YAML and Markdown in a repo you 
 
 ```bash
 $ git push
-To cloud.getwren.ai/acme/janus-analytics.git
+To cloud.crossnow.cn/acme/janus-analytics.git
    9f2c1a4..b71e0d3  main -> main
 ✔ deploy queued · model queryable in Janus Cloud
 ```
 
 <div align="center">
 
-**[See how Git Sync works →](https://www.getwren.ai/git-sync)** &nbsp;·&nbsp; [CLI reference: `janus cloud`](./docs/core/reference/cli.md#janus-cloud--connect-a-project-to-janus-cloud)
+**[See how Git Sync works →](https://www.crossnow.cn/git-sync)** &nbsp;·&nbsp; [CLI reference: `janus cloud`](./docs/core/reference/cli.md#janus-cloud--connect-a-project-to-janus-cloud)
 
 </div>
 
@@ -154,7 +154,7 @@ The engine in this repo (MDL semantic layer, governed text-to-SQL, MCP server, C
 - **Scenario AI harnesses**: GenBI Apps, Agentic Mode, AI-assisted context preparation
 - **Advanced security and audit, support and SLAs**, plus cloud, VPC, and air-gapped deployment
 
-Same engine underneath. Your MDL stays in your Git either way. **[Read the published boundary →](https://www.getwren.ai/en/open-core)**
+Same engine underneath. Your MDL stays in your Git either way. **[Read the published boundary →](https://www.crossnow.cn/en/open-core)**
 
 ## Under the hood
 
@@ -168,10 +168,10 @@ Janus **is** a governed semantic layer, expressed in the **Modeling Definition L
 
 ### What's included
 
-- **Engine**: Apache DataFusion based. BigQuery, Snowflake, PostgreSQL, ClickHouse, Amazon Redshift, Databricks, DuckDB, and more. [Connect a database →](https://docs.getwren.ai/oss/guides/connect)
-- **GenBI dashboards**: agent-built, browser-side apps powered by [`janus-core-wasm`](https://docs.getwren.ai/oss/sdk/wasm), deployable to Vercel or Cloudflare Pages
+- **Engine**: Apache DataFusion based. BigQuery, Snowflake, PostgreSQL, ClickHouse, Amazon Redshift, Databricks, DuckDB, and more. [Connect a database →](https://docs.crossnow.cn/oss/guides/connect)
+- **GenBI dashboards**: agent-built, browser-side apps powered by [`janus-core-wasm`](https://docs.crossnow.cn/oss/sdk/wasm), deployable to Vercel or Cloudflare Pages
 - **Knowledge and memory**: version-controlled `instructions.md` and `queries.yml`, plus a local LanceDB memory index with hybrid retrieval
-- **Agent SDKs**: `janus-langchain` (LangChain / LangGraph), `janus-pydantic`, and a reference Python integration for other stacks. [SDK overview →](https://docs.getwren.ai/oss/sdk/overview)
+- **Agent SDKs**: `janus-langchain` (LangChain / LangGraph), `janus-pydantic`, and a reference Python integration for other stacks. [SDK overview →](https://docs.crossnow.cn/oss/sdk/overview)
 - **Governed execution primitives**: functions, dry-plan validation, row limits, structured errors
 
 ### Day-to-day commands
@@ -193,7 +193,7 @@ Full reference: [CLI](./docs/core/reference/cli.md) · [MDL](./docs/core/referen
 - **End-to-end correctness primitives**: value profiling, rich retrieval, structured errors, golden eval runner
 - **Agent-native distribution**: first-class SDKs across major agent frameworks
 
-Vote on what ships next in [GitHub Discussions →](https://github.com/Canner/WrenAI/discussions)
+Vote on what ships next in [GitHub Discussions →](https://github.com/CrossNow/janusai/discussions)
 
 ## FAQ
 
@@ -221,38 +221,38 @@ Yes. Janus is a governed semantic layer expressed in MDL (models, metrics, relat
 <details>
 <summary><b>What is an AI context layer?</b></summary>
 
-The reviewable, version-controlled knowledge agents need but schemas don't provide: business semantics, approved definitions, examples, memory, and governance. Read the vision: [The missing context layer for AI agents over business data](https://www.getwren.ai/post/the-missing-context-layer-for-ai-agents-over-business-data).
+The reviewable, version-controlled knowledge agents need but schemas don't provide: business semantics, approved definitions, examples, memory, and governance. Read the vision: [The missing context layer for AI agents over business data](https://www.crossnow.cn/post/the-missing-context-layer-for-ai-agents-over-business-data).
 
 </details>
 
 <details>
 <summary><b>What happened to the Docker-based Janus AI GenBI app?</b></summary>
 
-On 2026-05-07 Janus Engine merged into this repo under [`core/`](./core), and the previous `Canner/wren-engine` repo was archived. The earlier chat-first BI product is now **Janus GenBI Classic**, preserved on the [`legacy/v1`](https://github.com/Canner/WrenAI/tree/legacy/v1) branch (tag `v1-final`) with no new features or security fixes. For a maintained, hosted version of that experience, see [Janus AI Commercial](https://getwren.ai). [Read the announcement →](https://github.com/Canner/WrenAI/discussions/2205)
+On 2026-05-07 Janus Engine merged into this repo under [`core/`](./core), and the previous `Canner/wren-engine` repo was archived. The earlier chat-first BI product is now **Janus GenBI Classic**, preserved on the [`legacy/v1`](https://github.com/CrossNow/janusai/tree/legacy/v1) branch (tag `v1-final`) with no new features or security fixes. For a maintained, hosted version of that experience, see [Janus AI Commercial](https://crossnow.cn). [Read the announcement →](https://github.com/CrossNow/janusai/discussions/2205)
 
 </details>
 
 ## Documentation
 
-- [Quickstart](https://docs.getwren.ai/oss/get_started/quickstart): from skill install to first answer
-- [Build & deploy a GenBI app](https://docs.getwren.ai/oss/guides/genbi): generate a dashboard and ship it
-- [Concepts](https://docs.getwren.ai/oss/concepts/what_is_context): what context is, what MDL is, how memory works
-- [Connect a database](https://docs.getwren.ai/oss/guides/connect): Postgres, BigQuery, Snowflake, DuckDB, and more
-- [Agent SDKs](https://docs.getwren.ai/oss/sdk/overview): what's shipping today, what's next
-- [Git Sync](https://www.getwren.ai/git-sync): `git push` your open-source project to governed, team-wide GenBI
+- [Quickstart](https://docs.crossnow.cn/oss/get_started/quickstart): from skill install to first answer
+- [Build & deploy a GenBI app](https://docs.crossnow.cn/oss/guides/genbi): generate a dashboard and ship it
+- [Concepts](https://docs.crossnow.cn/oss/concepts/what_is_context): what context is, what MDL is, how memory works
+- [Connect a database](https://docs.crossnow.cn/oss/guides/connect): Postgres, BigQuery, Snowflake, DuckDB, and more
+- [Agent SDKs](https://docs.crossnow.cn/oss/sdk/overview): what's shipping today, what's next
+- [Git Sync](https://www.crossnow.cn/git-sync): `git push` your open-source project to governed, team-wide GenBI
 
 ## Community
 
 - 💬 [Discord](https://discord.gg/5DvshJqG8Z): get unstuck fast, chat with the team and other builders
-- 🐙 [GitHub Discussions](https://github.com/Canner/WrenAI/discussions): design conversations, RFCs, roadmap votes
+- 🐙 [GitHub Discussions](https://github.com/CrossNow/janusai/discussions): design conversations, RFCs, roadmap votes
 - 🐦 [Twitter / X](https://x.com/getwrenai): release notes and short updates
-- 🗞 [Blog](https://www.getwren.ai/blog): vision, post-mortems, deep dives
+- 🗞 [Blog](https://www.crossnow.cn/blog): vision, post-mortems, deep dives
 
 ## Contributing
 
 We build in the open. Issues, PRs, connectors, SDK integrations, and docs fixes are all welcome.
 
-- **New here?** Pick up a [`good first issue`](https://github.com/Canner/WrenAI/labels/good%20first%20issue).
+- **New here?** Pick up a [`good first issue`](https://github.com/CrossNow/janusai/labels/good%20first%20issue).
 - [Contributor guide](./CONTRIBUTING.md): setup, conventions, and the contribution bar
 - [Architecture map](./docs/core/reference/architecture.md): find the right place to land your change
 
@@ -279,8 +279,8 @@ examples/            Example projects
 
 ## Contributors
 
-<a href="https://github.com/Canner/WrenAI/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=Canner/WrenAI" alt="JanusAI contributors" />
+<a href="https://github.com/CrossNow/janusai/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=CrossNow/janusai" alt="JanusAI contributors" />
 </a>
 
 ## License
@@ -291,9 +291,9 @@ Apache 2.0. See [LICENSE](./LICENSE).
 
 <div align="center">
 
-**If JanusAI saved you time, [star the repo](https://github.com/Canner/WrenAI) ⭐. It's the fastest way to help more agent builders find it.**
+**If JanusAI saved you time, [star the repo](https://github.com/CrossNow/janusai) ⭐. It's the fastest way to help more agent builders find it.**
 
-**[Get started ↑](#quickstart)** &nbsp;·&nbsp; **[Join Discord →](https://discord.gg/5DvshJqG8Z)** &nbsp;·&nbsp; **[See Git Sync →](https://www.getwren.ai/git-sync)**
+**[Get started ↑](#quickstart)** &nbsp;·&nbsp; **[Join Discord →](https://discord.gg/5DvshJqG8Z)** &nbsp;·&nbsp; **[See Git Sync →](https://www.crossnow.cn/git-sync)**
 
 <p><a href="#top">⬆️ Back to top</a></p>
 

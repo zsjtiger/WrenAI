@@ -60,7 +60,7 @@ A few distinctions worth being precise about:
 - You only need a one-off chart from a single CSV.
 - You're happy letting an agent guess at SQL with no governance.
 - You want a fully hosted, click-to-build BI product with no setup. In that
-  case look at [Janus AI Commercial](https://getwren.ai).
+  case look at [Janus AI Commercial](https://crossnow.cn).
 
 ## Where to go next
 

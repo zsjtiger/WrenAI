@@ -14,7 +14,7 @@ Moonshot Kimi CLI. Uses the shared `.agents/skills/` directory.
 ## Install Janus skills
 
 ```bash
-npx skills add Canner/WrenAI --agent kimi-cli
+npx skills add CrossNow/janusai --agent kimi-cli
 ```
 
 ## Run onboarding

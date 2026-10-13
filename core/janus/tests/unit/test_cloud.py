@@ -94,16 +94,16 @@ def _helper_check_passes(monkeypatch):
 
 def test_store_and_get_login_roundtrip():
     cloud.store_login(
-        git_host="https://cloud.getwren.ai",
-        api_host="https://cloud.getwren.ai",
+        git_host="https://cloud.crossnow.cn",
+        api_host="https://cloud.crossnow.cn",
         project_id="16",
         org_id="2",
         repo="org/2/16/shared-data.git",
         api_key="sk-test",
     )
-    entry = cloud.get_login("https://cloud.getwren.ai", "16")
+    entry = cloud.get_login("https://cloud.crossnow.cn", "16")
     assert entry == {
-        "api_host": "https://cloud.getwren.ai",
+        "api_host": "https://cloud.crossnow.cn",
         "org_id": "2",
         "repo": "org/2/16/shared-data.git",
         "api_key": "sk-test",
@@ -111,13 +111,13 @@ def test_store_and_get_login_roundtrip():
 
 
 def test_get_login_missing_returns_none():
-    assert cloud.get_login("https://cloud.getwren.ai", "999") is None
+    assert cloud.get_login("https://cloud.crossnow.cn", "999") is None
 
 
 def test_cloud_file_is_written_0600():
     cloud.store_login(
-        git_host="https://cloud.getwren.ai",
-        api_host="https://cloud.getwren.ai",
+        git_host="https://cloud.crossnow.cn",
+        api_host="https://cloud.crossnow.cn",
         project_id="16",
         org_id="2",
         repo="org/2/16/shared-data.git",
@@ -129,16 +129,16 @@ def test_cloud_file_is_written_0600():
 
 def test_list_logins_returns_every_stored_entry():
     cloud.store_login(
-        git_host="https://cloud.getwren.ai",
-        api_host="https://cloud.getwren.ai",
+        git_host="https://cloud.crossnow.cn",
+        api_host="https://cloud.crossnow.cn",
         project_id="16",
         org_id="2",
         repo="org/2/16/shared-data.git",
         api_key="sk-a",
     )
     cloud.store_login(
-        git_host="https://cloud.getwren.ai",
-        api_host="https://cloud.getwren.ai",
+        git_host="https://cloud.crossnow.cn",
+        api_host="https://cloud.crossnow.cn",
         project_id="17",
         org_id="2",
         repo="org/2/17/other.git",
@@ -146,8 +146,8 @@ def test_list_logins_returns_every_stored_entry():
     )
     entries = cloud.list_logins()
     assert {(host, project) for host, project, _ in entries} == {
-        ("https://cloud.getwren.ai", "16"),
-        ("https://cloud.getwren.ai", "17"),
+        ("https://cloud.crossnow.cn", "16"),
+        ("https://cloud.crossnow.cn", "17"),
     }
 
 
@@ -459,7 +459,7 @@ def test_mint_git_token_attaches_status_and_code_from_a_realistic_error_body(
     monkeypatch.setattr(requests, "post", fake_post)
 
     with pytest.raises(cloud.CloudApiError) as excinfo:
-        cloud.mint_git_token("https://cloud.getwren.ai", "16", "sk-test")
+        cloud.mint_git_token("https://cloud.crossnow.cn", "16", "sk-test")
 
     assert excinfo.value.status_code == 404
     assert excinfo.value.code == "PROJECT_NOT_AGENTIC"
@@ -472,7 +472,7 @@ def test_mint_git_token_code_is_none_on_a_body_with_no_code_field(monkeypatch):
     monkeypatch.setattr(requests, "post", fake_post)
 
     with pytest.raises(cloud.CloudApiError) as excinfo:
-        cloud.mint_git_token("https://cloud.getwren.ai", "16", "sk-test")
+        cloud.mint_git_token("https://cloud.crossnow.cn", "16", "sk-test")
 
     # No `code` in the body degrades to `None`, not a crash — and the
     # message is exactly what it was before this change.
@@ -488,7 +488,7 @@ def test_mint_git_token_code_is_none_on_an_unparseable_body(monkeypatch):
     monkeypatch.setattr(requests, "post", fake_post)
 
     with pytest.raises(cloud.CloudApiError) as excinfo:
-        cloud.mint_git_token("https://cloud.getwren.ai", "16", "sk-test")
+        cloud.mint_git_token("https://cloud.crossnow.cn", "16", "sk-test")
 
     assert excinfo.value.code is None
     assert excinfo.value.status_code == 502
@@ -513,13 +513,13 @@ def test_create_project_sends_agentic_opt_in_and_org_key_only(monkeypatch):
     monkeypatch.setattr(requests, "post", fake_post)
 
     project = cloud.create_project(
-        "https://cloud.getwren.ai",
+        "https://cloud.crossnow.cn",
         "osk-org-key",
         org_id="2",
         display_name="proj",
     )
 
-    assert captured["url"] == "https://cloud.getwren.ai/api/v1/projects"
+    assert captured["url"] == "https://cloud.crossnow.cn/api/v1/projects"
     assert captured["headers"] == {"Authorization": "Bearer osk-org-key"}
     assert captured["json"]["orgId"] == 2
     assert captured["json"]["displayName"] == "proj"
@@ -542,7 +542,7 @@ def test_create_project_includes_connection_when_given(monkeypatch):
     monkeypatch.setattr(requests, "post", fake_post)
 
     cloud.create_project(
-        "https://cloud.getwren.ai",
+        "https://cloud.crossnow.cn",
         "osk-org-key",
         org_id="2",
         display_name="proj",
@@ -576,7 +576,7 @@ def test_create_project_partial_status_captures_errors(monkeypatch):
     monkeypatch.setattr(requests, "post", fake_post)
 
     project = cloud.create_project(
-        "https://cloud.getwren.ai", "osk-org-key", org_id="2", display_name="proj"
+        "https://cloud.crossnow.cn", "osk-org-key", org_id="2", display_name="proj"
     )
     assert project.status == "partial"
     assert project.errors == [{"resource": "mdl", "message": "bad mdl"}]
@@ -590,7 +590,7 @@ def test_create_project_raises_on_missing_project_id(monkeypatch):
 
     with pytest.raises(cloud.CloudError):
         cloud.create_project(
-            "https://cloud.getwren.ai", "osk-org-key", org_id="2", display_name="p"
+            "https://cloud.crossnow.cn", "osk-org-key", org_id="2", display_name="p"
         )
 
 
@@ -602,7 +602,7 @@ def test_create_project_raises_generic_cloud_error_on_other_status(monkeypatch):
 
     with pytest.raises(cloud.CloudError, match="server exploded"):
         cloud.create_project(
-            "https://cloud.getwren.ai", "osk-org-key", org_id="2", display_name="p"
+            "https://cloud.crossnow.cn", "osk-org-key", org_id="2", display_name="p"
         )
 
 
@@ -619,10 +619,10 @@ def test_mint_project_key_returns_the_secret(monkeypatch):
     monkeypatch.setattr(requests, "post", fake_post)
 
     secret = cloud.mint_project_key(
-        "https://cloud.getwren.ai", "16", "osk-org-key", name="janus-cli"
+        "https://cloud.crossnow.cn", "16", "osk-org-key", name="janus-cli"
     )
     assert secret == "sk-fresh"
-    assert captured["url"] == "https://cloud.getwren.ai/api/v1/projects/16/keys"
+    assert captured["url"] == "https://cloud.crossnow.cn/api/v1/projects/16/keys"
     assert captured["json"] == {"name": "janus-cli"}
     assert captured["headers"] == {"Authorization": "Bearer osk-org-key"}
 
@@ -644,7 +644,7 @@ def test_mint_project_key_dates_the_key_by_default(monkeypatch):
     monkeypatch.setattr(requests, "post", fake_post)
     monkeypatch.setattr(time, "strftime", lambda fmt: "2026-08-14")
 
-    cloud.mint_project_key("https://cloud.getwren.ai", "16", "osk-org-key")
+    cloud.mint_project_key("https://cloud.crossnow.cn", "16", "osk-org-key")
 
     name = captured["json"]["name"]
     assert name == "janus-cli 2026-08-14", name
@@ -669,7 +669,7 @@ def test_mint_project_key_raises_on_missing_secret(monkeypatch):
     monkeypatch.setattr(requests, "post", fake_post)
 
     with pytest.raises(cloud.CloudError):
-        cloud.mint_project_key("https://cloud.getwren.ai", "16", "osk-org-key")
+        cloud.mint_project_key("https://cloud.crossnow.cn", "16", "osk-org-key")
 
 
 def test_mint_project_key_raises_invalid_api_key_on_403(monkeypatch):
@@ -679,7 +679,7 @@ def test_mint_project_key_raises_invalid_api_key_on_403(monkeypatch):
     monkeypatch.setattr(requests, "post", fake_post)
 
     with pytest.raises(cloud.InvalidApiKeyError):
-        cloud.mint_project_key("https://cloud.getwren.ai", "16", "osk-not-allowed")
+        cloud.mint_project_key("https://cloud.crossnow.cn", "16", "osk-not-allowed")
 
 
 # ── create: the full create-and-bind flow ───────────────────────────────────
@@ -778,7 +778,7 @@ def test_create_refuses_nested_directory_before_any_server_call(
     with pytest.raises(cloud.NestedRepoError):
         cloud.create(
             target,
-            host="https://cloud.getwren.ai",
+            host="https://cloud.crossnow.cn",
             org_id="2",
             org_key="osk-x",
             display_name="proj",
@@ -798,7 +798,7 @@ def test_create_failed_project_creation_leaves_nothing_to_clean_up(
     with pytest.raises(cloud.CloudError, match="boom"):
         cloud.create(
             target,
-            host="https://cloud.getwren.ai",
+            host="https://cloud.crossnow.cn",
             org_id="2",
             org_key="osk-x",
             display_name="proj",
@@ -834,7 +834,7 @@ def test_create_reports_not_agentic_actionably_and_includes_the_project_key(
     with pytest.raises(cloud.CloudError) as excinfo:
         cloud.create(
             target,
-            host="https://cloud.getwren.ai",
+            host="https://cloud.crossnow.cn",
             org_id="2",
             org_key="osk-x",
             display_name="proj",
@@ -893,7 +893,7 @@ def test_create_degrades_to_generic_bind_failure_on_an_unrecognized_git_token_er
     with pytest.raises(cloud.CloudError) as excinfo:
         cloud.create(
             target,
-            host="https://cloud.getwren.ai",
+            host="https://cloud.crossnow.cn",
             org_id="2",
             org_key="osk-x",
             display_name="proj",
@@ -930,7 +930,7 @@ def test_create_reports_bind_failure_with_recovery_hint(
     with pytest.raises(cloud.CloudError) as excinfo:
         cloud.create(
             target,
-            host="https://cloud.getwren.ai",
+            host="https://cloud.crossnow.cn",
             org_id="2",
             org_key="osk-x",
             display_name="proj",
@@ -1072,7 +1072,7 @@ def test_probe_and_written_helper_come_from_the_same_definition(monkeypatch):
         written.append(list(args))
 
     monkeypatch.setattr(cloud, "run_git", record_git)
-    cloud.configure_git_credential_helper("https://cloud.getwren.ai")
+    cloud.configure_git_credential_helper("https://cloud.crossnow.cn")
 
     helper_values = [
         args[-1]
@@ -1098,7 +1098,7 @@ def test_login_refuses_before_any_network_or_config_write(monkeypatch):
 
     with pytest.raises(cloud.CloudError):
         cloud.login(
-            host="https://cloud.getwren.ai",
+            host="https://cloud.crossnow.cn",
             project_id="16",
             api_key="sk-test",
         )
@@ -1123,7 +1123,7 @@ def test_create_refuses_before_any_server_call_when_the_helper_is_unserviceable(
     with pytest.raises(cloud.CloudError):
         cloud.create(
             target,
-            host="https://cloud.getwren.ai",
+            host="https://cloud.crossnow.cn",
             org_id="2",
             org_key="osk-x",
             display_name="proj",
@@ -1802,10 +1802,10 @@ def test_git_identity_check_exempts_an_empty_directory(tmp_path, monkeypatch):
 @pytest.mark.parametrize(
     ("given", "expected"),
     [
-        ("cloud.getwren.ai", "https://cloud.getwren.ai"),
-        ("cloud.getwren.ai/", "https://cloud.getwren.ai"),
-        ("  cloud.getwren.ai  ", "https://cloud.getwren.ai"),
-        ("https://cloud.getwren.ai", "https://cloud.getwren.ai"),
+        ("cloud.crossnow.cn", "https://cloud.crossnow.cn"),
+        ("cloud.crossnow.cn/", "https://cloud.crossnow.cn"),
+        ("  cloud.crossnow.cn  ", "https://cloud.crossnow.cn"),
+        ("https://cloud.crossnow.cn", "https://cloud.crossnow.cn"),
         # An explicit scheme is never overridden — a local stack is plain http
         # and must stay reachable.
         ("http://localhost:3000", "http://localhost:3000"),
@@ -1885,7 +1885,7 @@ def test_create_refuses_a_directory_that_is_not_a_janus_project(
     with pytest.raises(cloud.CloudError) as exc:
         cloud.create(
             target,
-            host="https://cloud.getwren.ai",
+            host="https://cloud.crossnow.cn",
             org_id="2",
             org_key="osk-x",
             display_name="proj",
@@ -1914,7 +1914,7 @@ def test_create_refuses_a_project_that_does_not_compile(
     with pytest.raises(cloud.CloudError) as exc:
         cloud.create(
             target,
-            host="https://cloud.getwren.ai",
+            host="https://cloud.crossnow.cn",
             org_id="2",
             org_key="osk-x",
             display_name="proj",
@@ -2113,13 +2113,13 @@ def test_link_fills_in_a_repo_that_was_stored_before_it_was_known(
     an empty repo."""
 
     cloud.store_key_pending_repo(
-        git_host="https://cloud.getwren.ai",
-        api_host="https://cloud.getwren.ai",
+        git_host="https://cloud.crossnow.cn",
+        api_host="https://cloud.crossnow.cn",
         project_id="16",
         org_id="2",
         api_key="sk-x",
     )
-    entry = cloud.get_login("https://cloud.getwren.ai", "16")
+    entry = cloud.get_login("https://cloud.crossnow.cn", "16")
     assert entry["repo"] == "", "precondition: the repo is not known yet"
 
     monkeypatch.setattr(
@@ -2130,12 +2130,12 @@ def test_link_fills_in_a_repo_that_was_stored_before_it_was_known(
         ),
     )
 
-    resolved = cloud.resolve_repo("https://cloud.getwren.ai", "16", entry)
+    resolved = cloud.resolve_repo("https://cloud.crossnow.cn", "16", entry)
 
     assert resolved == "org/2/16/shared-data.git"
     # Written back, so the discovery happens once rather than on every use.
     assert (
-        cloud.get_login("https://cloud.getwren.ai", "16")["repo"]
+        cloud.get_login("https://cloud.crossnow.cn", "16")["repo"]
         == "org/2/16/shared-data.git"
     )
 
@@ -2147,13 +2147,13 @@ def test_resolve_repo_does_not_call_the_api_when_the_repo_is_known(monkeypatch):
     monkeypatch.setattr(cloud, "mint_git_token", fail_if_called)
 
     entry = {
-        "api_host": "https://cloud.getwren.ai",
+        "api_host": "https://cloud.crossnow.cn",
         "org_id": "2",
         "repo": "org/2/16/shared-data.git",
         "api_key": "sk-x",
     }
     assert (
-        cloud.resolve_repo("https://cloud.getwren.ai", "16", entry)
+        cloud.resolve_repo("https://cloud.crossnow.cn", "16", entry)
         == "org/2/16/shared-data.git"
     )
 
@@ -2178,7 +2178,7 @@ def test_create_configures_git_even_when_the_key_cannot_be_validated(
     with pytest.raises(cloud.CloudError):
         cloud.create(
             target,
-            host="https://cloud.getwren.ai",
+            host="https://cloud.crossnow.cn",
             org_id="2",
             org_key="osk-x",
             display_name="proj",
@@ -2192,7 +2192,7 @@ def test_create_configures_git_even_when_the_key_cannot_be_validated(
             "--global",
             "--get-urlmatch",
             "credential.helper",
-            "https://cloud.getwren.ai",
+            "https://cloud.crossnow.cn",
         ],
         check=False,
     )
@@ -2250,7 +2250,7 @@ def test_create_names_the_project_when_configuring_git_fails(
     with pytest.raises(cloud.CloudError) as excinfo:
         cloud.create(
             target,
-            host="https://cloud.getwren.ai",
+            host="https://cloud.crossnow.cn",
             org_id="2",
             org_key="osk-x",
             display_name="proj",

@@ -14,7 +14,7 @@ OpenAI Codex CLI.
 ## Install Janus skills
 
 ```bash
-npx skills add Canner/WrenAI --agent codex
+npx skills add CrossNow/janusai --agent codex
 ```
 
 ## Run onboarding

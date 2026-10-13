@@ -14,7 +14,7 @@ Qoder coding IDE.
 ## Install Janus skills
 
 ```bash
-npx skills add Canner/WrenAI --agent qoder
+npx skills add CrossNow/janusai --agent qoder
 ```
 
 ## Run onboarding

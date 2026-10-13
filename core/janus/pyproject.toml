@@ -9,7 +9,7 @@ description = "Janus AI CLI and Python SDK — semantic SQL layer for 20+ data s
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "Apache-2.0" }
-authors = [{ name = "Janus AI", email = "contact@getwren.ai" }]
+authors = [{ name = "Janus AI", email = "contact@crossnow.cn" }]
 keywords = ["janusai", "janus", "sql", "semantic", "semantic-layer", "mdl", "datafusion", "data-modeling", "analytics", "database", "cli", "sdk", "python"]
 classifiers = [
   "Development Status :: 4 - Beta",
@@ -87,9 +87,9 @@ all = [
 janus = "janus.cli:app"
 
 [project.urls]
-Homepage = "https://getwren.ai"
-Repository = "https://github.com/Canner/WrenAI"
-Issues = "https://github.com/Canner/WrenAI/issues"
+Homepage = "https://crossnow.cn"
+Repository = "https://github.com/CrossNow/janusai"
+Issues = "https://github.com/CrossNow/janusai/issues"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/janus"]

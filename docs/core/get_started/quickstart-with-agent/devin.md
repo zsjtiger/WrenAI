@@ -14,7 +14,7 @@ Cognition Devin CLI.
 ## Install Janus skills
 
 ```bash
-npx skills add Canner/WrenAI --agent devin
+npx skills add CrossNow/janusai --agent devin
 ```
 
 ## Run onboarding

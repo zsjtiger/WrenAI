@@ -2,11 +2,11 @@
 
 [![PyPI version](https://img.shields.io/pypi/v/janusai.svg)](https://pypi.org/project/janusai/)
 [![Python](https://img.shields.io/pypi/pyversions/janusai.svg)](https://pypi.org/project/janusai/)
-[![License](https://img.shields.io/pypi/l/janusai.svg)](https://github.com/Canner/WrenAI/blob/main/LICENSE)
+[![License](https://img.shields.io/pypi/l/janusai.svg)](https://github.com/CrossNow/janusai/blob/main/LICENSE)
 
 Janus AI CLI and Python SDK — semantic SQL layer for 20+ data sources.
 
-Translate natural SQL queries through an [MDL (Modeling Definition Language)](https://docs.getwren.ai/) semantic layer and execute them against your database. Powered by [Apache DataFusion](https://datafusion.apache.org/).
+Translate natural SQL queries through an [MDL (Modeling Definition Language)](https://docs.crossnow.cn/) semantic layer and execute them against your database. Powered by [Apache DataFusion](https://datafusion.apache.org/).
 
 ## Installation
 

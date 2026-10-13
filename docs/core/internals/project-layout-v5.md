@@ -132,4 +132,4 @@ _LAYOUT_VERSION_MAP         = {1: 1, 2: 1, 3: 2, 4: 3, 5: 3}
 ```
 
 A worked example of the full v5 layout ships at
-[`examples/v5-jaffle/`](https://github.com/Canner/WrenAI/tree/main/examples/v5-jaffle).
+[`examples/v5-jaffle/`](https://github.com/CrossNow/janusai/tree/main/examples/v5-jaffle).

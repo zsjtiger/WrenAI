@@ -13,7 +13,7 @@ Codemaker AI coding agent.
 ## Install Janus skills
 
 ```bash
-npx skills add Canner/WrenAI --agent codemaker
+npx skills add CrossNow/janusai --agent codemaker
 ```
 
 ## Run onboarding

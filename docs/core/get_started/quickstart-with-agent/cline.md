@@ -13,7 +13,7 @@ Open-source autonomous coding agent for VS Code.
 ## Install Janus skills
 
 ```bash
-npx skills add Canner/WrenAI --agent cline
+npx skills add CrossNow/janusai --agent cline
 ```
 
 ## Run onboarding

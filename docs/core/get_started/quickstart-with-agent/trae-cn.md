@@ -14,7 +14,7 @@ Trae (China region).
 ## Install Janus skills
 
 ```bash
-npx skills add Canner/WrenAI --agent trae-cn
+npx skills add CrossNow/janusai --agent trae-cn
 ```
 
 ## Run onboarding

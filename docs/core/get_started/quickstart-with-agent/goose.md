@@ -13,7 +13,7 @@ Block's open-source coding agent.
 ## Install Janus skills
 
 ```bash
-npx skills add Canner/WrenAI --agent goose
+npx skills add CrossNow/janusai --agent goose
 ```
 
 ## Run onboarding

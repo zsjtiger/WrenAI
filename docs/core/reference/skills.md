@@ -23,7 +23,7 @@ served on demand:
   printed to stdout by `janus skills get <name>`.
 - Prompt templates are served the same way: `janus ask "<q>" --guided|--direct`.
   Reference docs live on the web under
-  [`docs/core/`](https://github.com/Canner/WrenAI/tree/main/docs/core).
+  [`docs/core/`](https://github.com/CrossNow/janusai/tree/main/docs/core).
 
 Because the content travels with the wheel, the version the agent reads
 always matches the installed CLI.
@@ -45,7 +45,7 @@ List them with `janus skills list`.
 
 ```bash
 pip install janusai                       # core CLI (DuckDB included)
-npx skills add Canner/WrenAI             # one-line discovery stub for your agent
+npx skills add CrossNow/janusai             # one-line discovery stub for your agent
 ```
 
 The installer auto-detects Claude Code, Cursor, Cline, Codex, and similar
@@ -71,7 +71,7 @@ janus ask "<question>" --direct            # for stronger LLMs
 ```
 
 Reference docs live on the web under
-[`docs/core/`](https://github.com/Canner/WrenAI/tree/main/docs/core).
+[`docs/core/`](https://github.com/CrossNow/janusai/tree/main/docs/core).
 
 A bundled CI guard (`tests/unit/test_served_content_guard.py`) scans every
 `janus <cmd>` invocation in served skill content, reference docs, and ask
@@ -141,9 +141,9 @@ The discovery stub routes the agent here on phrases like:
 
 ### Reference docs (the skill points to these, never duplicates)
 
-- [`docs/core/get_started/installation.md`](https://github.com/Canner/WrenAI/blob/main/docs/core/get_started/installation.md)
-- [`docs/core/guides/connect.md`](https://github.com/Canner/WrenAI/blob/main/docs/core/guides/connect.md)
-- [`docs/core/get_started/quickstart.md`](https://github.com/Canner/WrenAI/blob/main/docs/core/get_started/quickstart.md)
+- [`docs/core/get_started/installation.md`](https://github.com/CrossNow/janusai/blob/main/docs/core/get_started/installation.md)
+- [`docs/core/guides/connect.md`](https://github.com/CrossNow/janusai/blob/main/docs/core/guides/connect.md)
+- [`docs/core/get_started/quickstart.md`](https://github.com/CrossNow/janusai/blob/main/docs/core/get_started/quickstart.md)
 
 ---
 

@@ -14,7 +14,7 @@ Alibaba Qwen Code CLI.
 ## Install Janus skills
 
 ```bash
-npx skills add Canner/WrenAI --agent qwen-code
+npx skills add CrossNow/janusai --agent qwen-code
 ```
 
 ## Run onboarding

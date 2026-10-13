@@ -1,6 +1,6 @@
 # janus-pydantic
 
-Pydantic AI integration for [Janus AI Core](https://github.com/Canner/WrenAI).
+Pydantic AI integration for [Janus AI Core](https://github.com/CrossNow/janusai).
 
 Attach a CLI-prepared Janus project to a Pydantic AI agent in three lines:
 
@@ -20,7 +20,7 @@ print(result.output)
 
 > ⚠️ **Janus CLI required first.** This SDK is a thin adapter over a Janus
 > project that the `janus` CLI has already prepared (profile + MDL + optional
-> memory index). Follow the [install guide](https://docs.getwren.ai/oss/get_started/installation)
+> memory index). Follow the [install guide](https://docs.crossnow.cn/oss/get_started/installation)
 > before installing this package.
 
 Runnable demos:

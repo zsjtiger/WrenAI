@@ -27,7 +27,7 @@ from janus.utils_cli import _VALUE_REPR_LIMIT
         ("INT64", "bigquery", "BIGINT"),
         ("STRING", "bigquery", "TEXT"),
         ("Nullable(UInt32)", "clickhouse", "UINT"),
-        # Nullable(T) regression — Canner/WrenAI#2184
+        # Nullable(T) regression — CrossNow/janusai#2184
         ("Nullable(String)", "clickhouse", "TEXT"),
         ("Nullable(Int32)", "clickhouse", "INT"),
         ("Nullable(Int64)", "clickhouse", "BIGINT"),
@@ -381,7 +381,7 @@ def test_translate_types_accepts_non_dict_mappings() -> None:
     assert out[1]["type"] == "STRING"
 
 
-# ── CLI skipped-row reporting (Canner/WrenAI#2528) ─────────────────────────
+# ── CLI skipped-row reporting (CrossNow/janusai#2528) ─────────────────────────
 #
 # #2508 made parse_types/translate_types skip non-mapping rows instead of
 # crashing the batch, but the CLI only reported a bare count with no signal
@@ -530,7 +530,7 @@ def test_cli_translate_types_none_row_is_benign_note() -> None:
 
 
 def test_cli_parse_types_rejects_non_list_object_payload() -> None:
-    # Canner/WrenAI#2570 review: a top-level JSON object used to reach
+    # CrossNow/janusai#2570 review: a top-level JSON object used to reach
     # parse_types() directly, which iterates a dict as its keys and trips the
     # skip-count invariant with an AssertionError instead of a clean error.
     result = _run_janus(

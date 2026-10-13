@@ -24,4 +24,4 @@ This information will help us triage your report more quickly.
 
 Security fixes are issued only for the most recent minor release of each published package (`janusai`, `janus-core`, `janus-core-wasm`). Older releases may be patched on a best-effort basis.
 
-The historical JanusAI GenBI app (preserved on `legacy/v1`, tag `v1-final`) is **not** receiving security updates beyond the freeze. Use the maintained [`main`](https://github.com/Canner/WrenAI/tree/main) branch for new deployments.
+The historical JanusAI GenBI app (preserved on `legacy/v1`, tag `v1-final`) is **not** receiving security updates beyond the freeze. Use the maintained [`main`](https://github.com/CrossNow/janusai/tree/main) branch for new deployments.

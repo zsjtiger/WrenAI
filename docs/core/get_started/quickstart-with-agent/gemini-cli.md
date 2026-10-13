@@ -14,7 +14,7 @@ Google's official Gemini CLI.
 ## Install Janus skills
 
 ```bash
-npx skills add Canner/WrenAI --agent gemini-cli
+npx skills add CrossNow/janusai --agent gemini-cli
 ```
 
 ## Run onboarding

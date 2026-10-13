@@ -21,14 +21,14 @@ pip install janusai
 #### Option 1 — Claude Code plugin
 
 ```text
-/plugin marketplace add Canner/WrenAI --path skills
+/plugin marketplace add CrossNow/janusai --path skills
 /plugin install janus@janus
 ```
 
 #### Option 2 — `npx skills`
 
 ```bash
-npx skills add Canner/WrenAI
+npx skills add CrossNow/janusai
 ```
 
 The installer auto-detects your AI client. To target a specific one, add

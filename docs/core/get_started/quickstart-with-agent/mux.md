@@ -13,7 +13,7 @@ Mux coding agent.
 ## Install Janus skills
 
 ```bash
-npx skills add Canner/WrenAI --agent mux
+npx skills add CrossNow/janusai --agent mux
 ```
 
 ## Run onboarding

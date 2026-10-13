@@ -13,7 +13,7 @@ Command Code agent.
 ## Install Janus skills
 
 ```bash
-npx skills add Canner/WrenAI --agent command-code
+npx skills add CrossNow/janusai --agent command-code
 ```
 
 ## Run onboarding

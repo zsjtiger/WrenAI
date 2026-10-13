@@ -13,7 +13,7 @@ Open-source VS Code coding agent.
 ## Install Janus skills
 
 ```bash
-npx skills add Canner/WrenAI --agent roo
+npx skills add CrossNow/janusai --agent roo
 ```
 
 ## Run onboarding

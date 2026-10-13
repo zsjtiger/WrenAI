@@ -13,7 +13,7 @@ Pochi coding agent.
 ## Install Janus skills
 
 ```bash
-npx skills add Canner/WrenAI --agent pochi
+npx skills add CrossNow/janusai --agent pochi
 ```
 
 ## Run onboarding

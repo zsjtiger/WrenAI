@@ -4,10 +4,10 @@
   "version": "1.0.0",
   "author": {
     "name": "Canner",
-    "url": "https://www.getwren.ai/"
+    "url": "https://www.crossnow.cn/"
   },
-  "homepage": "https://www.getwren.ai/",
-  "repository": "https://github.com/Canner/WrenAI",
+  "homepage": "https://www.crossnow.cn/",
+  "repository": "https://github.com/CrossNow/janusai",
   "license": "Apache-2.0",
   "keywords": [
     "janus",

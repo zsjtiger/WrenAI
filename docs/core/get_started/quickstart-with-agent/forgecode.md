@@ -13,7 +13,7 @@ Forge AI coding agent.
 ## Install Janus skills
 
 ```bash
-npx skills add Canner/WrenAI --agent forgecode
+npx skills add CrossNow/janusai --agent forgecode
 ```
 
 ## Run onboarding

@@ -13,7 +13,7 @@ Anthropic's official terminal coding assistant.
 ## Install Janus skills
 
 ```bash
-npx skills add Canner/WrenAI --agent claude-code
+npx skills add CrossNow/janusai --agent claude-code
 ```
 
 ## Run onboarding

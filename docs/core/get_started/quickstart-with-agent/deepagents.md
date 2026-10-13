@@ -14,7 +14,7 @@ LangChain Deep Agents framework.
 ## Install Janus skills
 
 ```bash
-npx skills add Canner/WrenAI --agent deepagents
+npx skills add CrossNow/janusai --agent deepagents
 ```
 
 ## Run onboarding

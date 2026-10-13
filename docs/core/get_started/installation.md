@@ -11,19 +11,19 @@ Get Janus AI running. Your AI coding agent does the rest.
 This installs a single **discovery stub** (`janus`) that teaches AI coding agents (Claude Code, Openclaw, Hermes, Codex, etc.) how to drive the Janus CLI for you:
 
 ```bash
-npx skills add Canner/WrenAI
+npx skills add CrossNow/janusai
 ```
 
 Have multiple AI coding agents installed and want the stub available in all of them? Pass `--agent '*'`:
 
 ```bash
-npx skills add Canner/WrenAI --agent '*'
+npx skills add CrossNow/janusai --agent '*'
 ```
 
 Or via the install script:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Canner/WrenAI/main/skills/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/CrossNow/janusai/main/skills/install.sh | bash
 ```
 
 > **Only one skill is installed** — `janus` (at `~/.claude/skills/janus/SKILL.md` for Claude Code). This is expected. Since Janus `0.8`, the workflow guides (`onboarding`, `usage`, `generate-mdl`, `dlt-connector`, `enrich-context`) no longer install as separate skills; they live inside the `janus` CLI and the stub fetches them on demand with `janus skills get <name>`. See the [Skills reference](/oss/reference/skills) for the full delivery model and what each guide does.

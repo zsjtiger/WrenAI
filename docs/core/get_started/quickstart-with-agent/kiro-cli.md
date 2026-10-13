@@ -14,7 +14,7 @@ AWS Kiro CLI.
 ## Install Janus skills
 
 ```bash
-npx skills add Canner/WrenAI --agent kiro-cli
+npx skills add CrossNow/janusai --agent kiro-cli
 ```
 
 ## Run onboarding

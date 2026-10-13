@@ -8,7 +8,7 @@ Pydantic AI integration for Janus AI. Attach a CLI-prepared Janus project to you
 
 ## Prerequisites
 
-> ⚠️ **Caution — Janus CLI required first.** This SDK is a thin adapter over a Janus project that the `janus` CLI has already prepared (profile + MDL + optional memory index). Without those, `JanusToolkit.from_project()` has nothing to attach to and will fail at construction. Follow the [install guide](https://docs.getwren.ai/oss/get_started/installation) before installing this package.
+> ⚠️ **Caution — Janus CLI required first.** This SDK is a thin adapter over a Janus project that the `janus` CLI has already prepared (profile + MDL + optional memory index). Without those, `JanusToolkit.from_project()` has nothing to attach to and will fail at construction. Follow the [install guide](https://docs.crossnow.cn/oss/get_started/installation) before installing this package.
 
 Minimum CLI bootstrap:
 
@@ -146,7 +146,7 @@ result = agent.run_sync("Top 5 customers last quarter?")
 print(result.output.customers)  # already a list[str], no parsing needed
 ```
 
-See [`examples/pydantic_ai_structured_demo.py`](https://github.com/Canner/WrenAI/blob/main/sdk/wren-pydantic/examples/pydantic_ai_structured_demo.py) for the runnable version.
+See [`examples/pydantic_ai_structured_demo.py`](https://github.com/CrossNow/janusai/blob/main/sdk/wren-pydantic/examples/pydantic_ai_structured_demo.py) for the runnable version.
 
 ### Read-only memory (shared / curated projects)
 

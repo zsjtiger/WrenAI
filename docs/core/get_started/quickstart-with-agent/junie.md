@@ -14,7 +14,7 @@ JetBrains Junie.
 ## Install Janus skills
 
 ```bash
-npx skills add Canner/WrenAI --agent junie
+npx skills add CrossNow/janusai --agent junie
 ```
 
 ## Run onboarding

@@ -14,7 +14,7 @@ Atlassian Rovo Dev.
 ## Install Janus skills
 
 ```bash
-npx skills add Canner/WrenAI --agent rovodev
+npx skills add CrossNow/janusai --agent rovodev
 ```
 
 ## Run onboarding

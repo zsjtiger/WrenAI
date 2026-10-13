@@ -13,7 +13,7 @@ A desktop UI for the Aider coding agent.
 ## Install Janus skills
 
 ```bash
-npx skills add Canner/WrenAI --agent aider-desk
+npx skills add CrossNow/janusai --agent aider-desk
 ```
 
 ## Run onboarding

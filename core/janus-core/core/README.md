@@ -1,6 +1,6 @@
 # janus-semantic-core
 
-The Rust semantic engine at the heart of [Janus AI](https://getwren.ai) — an open-source
+The Rust semantic engine at the heart of [Janus AI](https://crossnow.cn) — an open-source
 semantic layer for MCP clients and AI agents.
 
 `janus-semantic-core` takes a **MDL (Modeling Definition Language)** manifest plus a SQL query
@@ -38,9 +38,9 @@ Full API documentation is published on [docs.rs](https://docs.rs/janus-semantic-
 
 ## Learn more
 
-- Janus documentation: <https://docs.getwren.ai>
-- Project home: <https://getwren.ai>
-- Source: <https://github.com/Canner/WrenAI>
+- Janus documentation: <https://docs.crossnow.cn>
+- Project home: <https://crossnow.cn>
+- Source: <https://github.com/CrossNow/janusai>
 
 ## License
 

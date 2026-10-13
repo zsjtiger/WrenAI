@@ -88,7 +88,7 @@ For day-to-day querying after setup, run `janus skills get usage`.
 
 Cross-link to a general doc:
 ```markdown
-For troubleshooting, see [`connect.md`](https://github.com/Canner/WrenAI/blob/main/docs/core/guides/connect.md).
+For troubleshooting, see [`connect.md`](https://github.com/CrossNow/janusai/blob/main/docs/core/guides/connect.md).
 ```
 
 ---

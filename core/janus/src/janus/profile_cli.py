@@ -277,7 +277,7 @@ def _flatten_connection_envelope(raw: dict) -> dict:
             raise ValueError(
                 f"Unexpected nested key(s) {unknown_nested!r}. "
                 "Connection fields must be flat — see "
-                "https://docs.getwren.ai/oss/engine/guide/profiles for the "
+                "https://docs.crossnow.cn/oss/engine/guide/profiles for the "
                 "supported shapes."
             )
         flat = dict(raw)

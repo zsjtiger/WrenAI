@@ -1,6 +1,6 @@
 # Janus AI Core Documentation
 
-This directory is the **single source of truth** for Janus AI Core docs published at [docs.getwren.ai](https://docs.getwren.ai/oss/introduction).
+This directory is the **single source of truth** for Janus AI Core docs published at [docs.crossnow.cn](https://docs.crossnow.cn/oss/introduction).
 
 Changes merged to `main` are automatically synced to the doc website via GitHub Actions (`.github/workflows/sync-docs.yml`). The sync is **additive overlay** — files are copied and overwritten, but nothing is deleted automatically; stale files left behind by source-side renames or deletions must be cleaned up manually in the docs site repo.
 
