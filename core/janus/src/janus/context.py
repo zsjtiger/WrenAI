@@ -1000,76 +1000,18 @@ def validate_project(project_path: Path) -> list[ValidationError]:
     6. Views have a statement
     7. primary_key column exists in the model's columns
     8. table_reference (if used) has at least a table field
+
+    Each section lives in its own ``_check_*`` helper. The helpers run in the
+    same order as the original single-function version, so the error list
+    keeps its ordering.
     """
     errors: list[ValidationError] = []
-    sv = 1  # default; may be overridden below
-
-    # Check project config
-    config = load_project_config(project_path)
-    if not config:
-        errors.append(
-            ValidationError(
-                "error", PROJECT_FILE, f"'{PROJECT_FILE}' not found or empty"
-            )
-        )
-    else:
-        for required in ("name", "data_source"):
-            if not config.get(required):
-                errors.append(
-                    ValidationError(
-                        "error", PROJECT_FILE, f"missing required field '{required}'"
-                    )
-                )
-        raw_sv = config.get("schema_version", 1)
-        try:
-            sv = int(raw_sv)
-        except (TypeError, ValueError):
-            errors.append(
-                ValidationError(
-                    "error",
-                    PROJECT_FILE,
-                    f"schema_version must be an integer, got {raw_sv!r}",
-                )
-            )
-            sv = 1
-        if sv not in _SUPPORTED_SCHEMA_VERSIONS:
-            errors.append(
-                ValidationError(
-                    "error",
-                    PROJECT_FILE,
-                    f"unsupported schema_version {sv} — please upgrade janus CLI",
-                )
-            )
+    sv = _check_project_config(project_path, errors)
 
     if any(e.path == PROJECT_FILE and "schema_version" in e.message for e in errors):
         return errors
 
-    # knowledge/ version axis — independent of the MDL schema_version above.
-    if (project_path / "knowledge").is_dir():
-        try:
-            kcfg = load_knowledge_config(project_path)
-            kv = int(kcfg.get("schema_version", _KNOWLEDGE_SCHEMA_VERSION))
-        except yaml.YAMLError as e:
-            errors.append(
-                ValidationError("error", _KNOWLEDGE_CONFIG_FILE, f"invalid YAML: {e}")
-            )
-        except (TypeError, ValueError) as e:
-            errors.append(
-                ValidationError(
-                    "error",
-                    _KNOWLEDGE_CONFIG_FILE,
-                    f"schema_version must be an integer ({e})",
-                )
-            )
-        else:
-            if kv not in _SUPPORTED_KNOWLEDGE_VERSIONS:
-                errors.append(
-                    ValidationError(
-                        "error",
-                        _KNOWLEDGE_CONFIG_FILE,
-                        f"unsupported knowledge schema_version {kv} — please upgrade janus CLI",
-                    )
-                )
+    _check_knowledge_config(project_path, errors)
 
     # Load data (snake_case)
     models = load_models(project_path)
@@ -1077,39 +1019,131 @@ def validate_project(project_path: Path) -> list[ValidationError]:
     relationships = load_relationships(project_path)
     cubes = load_cubes(project_path)
 
-    model_names: set[str] = set()
-    view_names: set[str] = set()
+    raw_model_columns = _check_raw_model_columns(project_path, sv, errors)
+    model_names = _check_models(models, sv, raw_model_columns, errors)
+    if sv == 1:
+        _check_v1_views_file(project_path, errors)
+    raw_relationships_list = _check_relationships_file(project_path, errors)
+    view_names = _check_views(views, sv, model_names, errors)
+    all_entity_names = model_names | view_names
+    _check_relationships(
+        relationships, raw_relationships_list, all_entity_names, errors
+    )
+    _check_cube_files(project_path, sv, errors)
+    _check_cubes(cubes, all_entity_names, errors)
+    return errors
 
+
+def _check_project_config(project_path: Path, errors: list[ValidationError]) -> int:
+    """Validate janus_project.yml and return the MDL schema_version (default 1)."""
+    sv = 1  # default; may be overridden below
+    config = load_project_config(project_path)
+    if not config:
+        errors.append(
+            ValidationError(
+                "error", PROJECT_FILE, f"'{PROJECT_FILE}' not found or empty"
+            )
+        )
+        return sv
+
+    for required in ("name", "data_source"):
+        if not config.get(required):
+            errors.append(
+                ValidationError(
+                    "error", PROJECT_FILE, f"missing required field '{required}'"
+                )
+            )
+    raw_sv = config.get("schema_version", 1)
+    try:
+        sv = int(raw_sv)
+    except (TypeError, ValueError):
+        errors.append(
+            ValidationError(
+                "error",
+                PROJECT_FILE,
+                f"schema_version must be an integer, got {raw_sv!r}",
+            )
+        )
+        sv = 1
+    if sv not in _SUPPORTED_SCHEMA_VERSIONS:
+        errors.append(
+            ValidationError(
+                "error",
+                PROJECT_FILE,
+                f"unsupported schema_version {sv} — please upgrade janus CLI",
+            )
+        )
+    return sv
+
+
+def _check_knowledge_config(project_path: Path, errors: list[ValidationError]) -> None:
+    """knowledge/ version axis — independent of the MDL schema_version."""
+    if not (project_path / "knowledge").is_dir():
+        return
+    try:
+        kcfg = load_knowledge_config(project_path)
+        kv = int(kcfg.get("schema_version", _KNOWLEDGE_SCHEMA_VERSION))
+    except yaml.YAMLError as e:
+        errors.append(
+            ValidationError("error", _KNOWLEDGE_CONFIG_FILE, f"invalid YAML: {e}")
+        )
+    except (TypeError, ValueError) as e:
+        errors.append(
+            ValidationError(
+                "error",
+                _KNOWLEDGE_CONFIG_FILE,
+                f"schema_version must be an integer ({e})",
+            )
+        )
+    else:
+        if kv not in _SUPPORTED_KNOWLEDGE_VERSIONS:
+            errors.append(
+                ValidationError(
+                    "error",
+                    _KNOWLEDGE_CONFIG_FILE,
+                    f"unsupported knowledge schema_version {kv} — please upgrade janus CLI",
+                )
+            )
+
+
+def _iter_raw_model_files(project_path: Path, sv: int) -> list[tuple[str, dict]]:
+    """Re-read model YAML files as written, so hand-edit mistakes stay visible."""
+    models_dir = project_path / "models"
+    if not models_dir.is_dir():
+        return []
+    out: list[tuple[str, dict]] = []
+    if sv == 1:
+        for f in sorted(models_dir.glob("*.yml")):
+            data = yaml.safe_load(f.read_text(encoding="utf-8")) or {}
+            if isinstance(data, dict):
+                out.append((f"models/{f.name}", data))
+    else:
+        for d in sorted(models_dir.iterdir()):
+            if not d.is_dir():
+                continue
+            meta = d / "metadata.yml"
+            if not meta.exists():
+                continue
+            data = yaml.safe_load(meta.read_text(encoding="utf-8")) or {}
+            if isinstance(data, dict):
+                out.append((f"models/{d.name}/metadata.yml", data))
+    return out
+
+
+def _check_raw_model_columns(
+    project_path: Path, sv: int, errors: list[ValidationError]
+) -> dict[str, list]:
+    """Report non-list ``columns:`` and non-mapping entries in the raw model files.
+
+    Returns source key (``_source_dir``) -> raw columns list (file order) for
+    index-stable diagnostics. Key by source identity, not model name —
+    duplicate names are reachable and must not cross-wire column lists.
+    """
+    raw_model_columns: dict[str, list] = {}
     # Hand-edited model YAML may set columns: to a non-list (e.g. a bare
     # string). load_models() normalises to list[dict], but validate_project
     # must still report the mistake rather than let it vanish quietly.
-    def _iter_raw_model_files() -> list[tuple[str, dict]]:
-        models_dir = project_path / "models"
-        if not models_dir.is_dir():
-            return []
-        out: list[tuple[str, dict]] = []
-        if sv == 1:
-            for f in sorted(models_dir.glob("*.yml")):
-                data = yaml.safe_load(f.read_text(encoding="utf-8")) or {}
-                if isinstance(data, dict):
-                    out.append((f"models/{f.name}", data))
-        else:
-            for d in sorted(models_dir.iterdir()):
-                if not d.is_dir():
-                    continue
-                meta = d / "metadata.yml"
-                if not meta.exists():
-                    continue
-                data = yaml.safe_load(meta.read_text(encoding="utf-8")) or {}
-                if isinstance(data, dict):
-                    out.append((f"models/{d.name}/metadata.yml", data))
-        return out
-
-    # source key (_source_dir) -> raw columns list (file order) for
-    # index-stable diagnostics. Key by source identity, not model name —
-    # duplicate names are reachable and must not cross-wire column lists.
-    raw_model_columns: dict[str, list] = {}
-    for src_path, raw_model in _iter_raw_model_files():
+    for src_path, raw_model in _iter_raw_model_files(project_path, sv):
         if "columns" not in raw_model:
             continue
         raw_cols = raw_model.get("columns")
@@ -1140,269 +1174,352 @@ def validate_project(project_path: Path) -> list[ValidationError]:
                         "column entry must be an object",
                     )
                 )
+    return raw_model_columns
 
-    # Check models
-    for i, model in enumerate(models):
-        src = model.get("_source_dir", f"models[{i}]")
-        # v1 is flat models/<stem>.yml; v2+ is models/<dir>/metadata.yml.
-        # Keep labels consistent with the raw re-read paths above.
-        if sv == 1:
-            src_path = f"models/{src}.yml"
-        else:
-            src_path = f"models/{src}/metadata.yml"
-        name = model.get("name")
-        if isinstance(name, (list, dict)):
-            errors.append(
-                ValidationError(
-                    "error",
-                    src_path,
-                    f"model 'name' must be a scalar value, got {type(name).__name__}",
-                )
-            )
-            continue
-        if not name:
-            errors.append(ValidationError("error", src_path, "model missing 'name'"))
-            continue
 
-        if name in model_names:
-            errors.append(
-                ValidationError("error", src_path, f"duplicate model name '{name}'")
-            )
-        model_names.add(name)
+def _check_mapping_field(
+    value, location: str, errors: list[ValidationError], *, message: str
+) -> None:
+    """Report ``value`` if it is set but is not a mapping."""
+    if value is not None and not isinstance(value, dict):
+        errors.append(ValidationError("error", location, message))
 
-        # table_reference vs ref_sql: exactly one required
-        has_tref = bool(model.get("table_reference"))
-        has_ref_sql = bool(model.get("ref_sql"))
-        if has_tref and has_ref_sql:
-            errors.append(
-                ValidationError(
-                    "error",
-                    f"{src_path} > {name}",
-                    "model has both 'table_reference' and 'ref_sql' — choose one",
-                )
-            )
-        elif not has_tref and not has_ref_sql:
-            errors.append(
-                ValidationError(
-                    "error",
-                    f"{src_path} > {name}",
-                    "model must define either 'table_reference' or 'ref_sql'",
-                )
-            )
-        elif has_tref:
-            tref = model.get("table_reference", {})
-            if not tref.get("table"):
-                errors.append(
-                    ValidationError(
-                        "warning",
-                        f"{src_path} > {name}",
-                        "table_reference.table is empty",
-                    )
-                )
 
-        # columns shape is owned by load_models + the raw re-read above.
-        columns = model.get("columns", [])
-        if not columns:
-            errors.append(
-                ValidationError(
-                    "warning", f"{src_path} > {name}", "model has no columns"
-                )
+def _check_dialect(
+    dialect, sv: int, location: str, errors: list[ValidationError]
+) -> None:
+    """Validate an optional ``dialect`` field on a model or view."""
+    if dialect is None:
+        return
+    if sv < 3:
+        errors.append(
+            ValidationError(
+                "warning",
+                location,
+                f"'dialect' field requires schema_version >= 3 (current: {sv})",
             )
-
-        # Walk the raw columns list when available so indices match the file
-        # (filtered loader positions would renumber past dropped junk).
-        # Keyed by _source_dir so duplicate model names cannot cross-wire.
-        raw_cols_for_model = raw_model_columns.get(src)
-        col_entries = (
-            list(enumerate(raw_cols_for_model))
-            if raw_cols_for_model is not None
-            else list(enumerate(columns))
         )
-        col_names = set()
-        for j, col in col_entries:
-            if not isinstance(col, dict):
-                # Non-mappings already reported from the raw re-read above.
-                continue
-            col_name = col.get("name")
-            if not col_name:
-                errors.append(
-                    ValidationError(
-                        "error",
-                        f"{src_path} > {name} > columns[{j}]",
-                        "column missing 'name'",
-                    )
-                )
-                continue
-            if col_name in col_names:
-                errors.append(
-                    ValidationError(
-                        "error",
-                        f"{src_path} > {name}",
-                        f"duplicate column '{col_name}'",
-                    )
-                )
-            col_names.add(col_name)
+    if dialect.lower() not in _VALID_DIALECTS:
+        errors.append(
+            ValidationError("error", location, f"unknown dialect '{dialect}'")
+        )
 
-            if not col.get("type"):
-                errors.append(
-                    ValidationError(
-                        "warning",
-                        f"{src_path} > {name} > {col_name}",
-                        "column missing 'type'",
-                    )
-                )
 
-        pk = model.get("primary_key")
-        if pk is None:
-            pk_cols = []
-        elif isinstance(pk, str):
-            pk_cols = [pk]
-        elif isinstance(pk, list) and all(isinstance(c, str) and c for c in pk) and pk:
-            pk_cols = pk
-        else:
-            errors.append(
-                ValidationError(
-                    "error",
-                    f"{src_path} > {name}",
-                    "primary_key must be a non-empty string or list of non-empty strings",
-                )
+def _check_models(
+    models: list[dict],
+    sv: int,
+    raw_model_columns: dict[str, list],
+    errors: list[ValidationError],
+) -> set[str]:
+    """Check every loaded model and return the set of valid model names."""
+    model_names: set[str] = set()
+    for i, model in enumerate(models):
+        _check_model(i, model, sv, raw_model_columns, model_names, errors)
+    return model_names
+
+
+def _check_model(
+    i: int,
+    model: dict,
+    sv: int,
+    raw_model_columns: dict[str, list],
+    model_names: set[str],
+    errors: list[ValidationError],
+) -> None:
+    src = model.get("_source_dir", f"models[{i}]")
+    # v1 is flat models/<stem>.yml; v2+ is models/<dir>/metadata.yml.
+    # Keep labels consistent with the raw re-read paths above.
+    if sv == 1:
+        src_path = f"models/{src}.yml"
+    else:
+        src_path = f"models/{src}/metadata.yml"
+    name = model.get("name")
+    if isinstance(name, (list, dict)):
+        errors.append(
+            ValidationError(
+                "error",
+                src_path,
+                f"model 'name' must be a scalar value, got {type(name).__name__}",
             )
-            pk_cols = []
-        for pk_col in pk_cols:
-            if pk_col not in col_names:
-                errors.append(
-                    ValidationError(
-                        "error",
-                        f"{src_path} > {name}",
-                        f"primary_key '{pk_col}' not found in columns",
-                    )
-                )
+        )
+        return
+    if not name:
+        errors.append(ValidationError("error", src_path, "model missing 'name'"))
+        return
 
-        # Composite (list-form) primary_key is a layoutVersion 3 / schema_version 4
-        # wire format that older engines cannot deserialize.
-        if isinstance(pk, list) and sv < 4:
+    if name in model_names:
+        errors.append(
+            ValidationError("error", src_path, f"duplicate model name '{name}'")
+        )
+    model_names.add(name)
+
+    _check_model_source(model, src_path, name, errors)
+
+    # columns shape is owned by load_models + the raw re-read above.
+    columns = model.get("columns", [])
+    if not columns:
+        errors.append(
+            ValidationError("warning", f"{src_path} > {name}", "model has no columns")
+        )
+
+    # Walk the raw columns list when available so indices match the file
+    # (filtered loader positions would renumber past dropped junk).
+    # Keyed by _source_dir so duplicate model names cannot cross-wire.
+    raw_cols_for_model = raw_model_columns.get(src)
+    col_entries = (
+        list(enumerate(raw_cols_for_model))
+        if raw_cols_for_model is not None
+        else list(enumerate(columns))
+    )
+    col_names = _check_model_columns(col_entries, src_path, name, errors)
+    _check_primary_key(model, sv, col_names, src_path, name, errors)
+
+    _check_dialect(model.get("dialect"), sv, f"{src_path} > {name}", errors)
+    _check_mapping_field(
+        model.get("properties"),
+        f"{src_path} > {name}",
+        errors,
+        message="properties must be a mapping",
+    )
+    _check_column_properties(col_entries, src_path, name, errors)
+
+
+def _check_model_source(
+    model: dict, src_path: str, name: str, errors: list[ValidationError]
+) -> None:
+    """Exactly one of table_reference or ref_sql must be set."""
+    has_tref = bool(model.get("table_reference"))
+    has_ref_sql = bool(model.get("ref_sql"))
+    if has_tref and has_ref_sql:
+        errors.append(
+            ValidationError(
+                "error",
+                f"{src_path} > {name}",
+                "model has both 'table_reference' and 'ref_sql' — choose one",
+            )
+        )
+    elif not has_tref and not has_ref_sql:
+        errors.append(
+            ValidationError(
+                "error",
+                f"{src_path} > {name}",
+                "model must define either 'table_reference' or 'ref_sql'",
+            )
+        )
+    elif has_tref:
+        tref = model.get("table_reference", {})
+        if not tref.get("table"):
             errors.append(
                 ValidationError(
                     "warning",
                     f"{src_path} > {name}",
-                    f"composite primary_key requires schema_version >= 4 (current: {sv})",
+                    "table_reference.table is empty",
                 )
             )
 
-        # Validate dialect (if present)
-        model_dialect = model.get("dialect")
-        if model_dialect is not None:
-            if sv < 3:
-                errors.append(
-                    ValidationError(
-                        "warning",
-                        f"{src_path} > {name}",
-                        f"'dialect' field requires schema_version >= 3 (current: {sv})",
-                    )
-                )
-            if model_dialect.lower() not in _VALID_DIALECTS:
-                errors.append(
-                    ValidationError(
-                        "error",
-                        f"{src_path} > {name}",
-                        f"unknown dialect '{model_dialect}'",
-                    )
-                )
 
-        props = model.get("properties")
-        if props is not None and not isinstance(props, dict):
+def _check_model_columns(
+    col_entries: list[tuple[int, object]],
+    src_path: str,
+    name: str,
+    errors: list[ValidationError],
+) -> set[str]:
+    """Check column names and types; return the set of column names seen."""
+    col_names: set[str] = set()
+    for j, col in col_entries:
+        if not isinstance(col, dict):
+            # Non-mappings already reported from the raw re-read above.
+            continue
+        col_name = col.get("name")
+        if not col_name:
+            errors.append(
+                ValidationError(
+                    "error",
+                    f"{src_path} > {name} > columns[{j}]",
+                    "column missing 'name'",
+                )
+            )
+            continue
+        if col_name in col_names:
             errors.append(
                 ValidationError(
                     "error",
                     f"{src_path} > {name}",
+                    f"duplicate column '{col_name}'",
+                )
+            )
+        col_names.add(col_name)
+
+        if not col.get("type"):
+            errors.append(
+                ValidationError(
+                    "warning",
+                    f"{src_path} > {name} > {col_name}",
+                    "column missing 'type'",
+                )
+            )
+    return col_names
+
+
+def _check_primary_key(
+    model: dict,
+    sv: int,
+    col_names: set[str],
+    src_path: str,
+    name: str,
+    errors: list[ValidationError],
+) -> None:
+    """primary_key must name existing columns; list form needs schema_version >= 4."""
+    pk = model.get("primary_key")
+    if pk is None:
+        pk_cols = []
+    elif isinstance(pk, str):
+        pk_cols = [pk]
+    elif isinstance(pk, list) and all(isinstance(c, str) and c for c in pk) and pk:
+        pk_cols = pk
+    else:
+        errors.append(
+            ValidationError(
+                "error",
+                f"{src_path} > {name}",
+                "primary_key must be a non-empty string or list of non-empty strings",
+            )
+        )
+        pk_cols = []
+    for pk_col in pk_cols:
+        if pk_col not in col_names:
+            errors.append(
+                ValidationError(
+                    "error",
+                    f"{src_path} > {name}",
+                    f"primary_key '{pk_col}' not found in columns",
+                )
+            )
+
+    # Composite (list-form) primary_key is a layoutVersion 3 / schema_version 4
+    # wire format that older engines cannot deserialize.
+    if isinstance(pk, list) and sv < 4:
+        errors.append(
+            ValidationError(
+                "warning",
+                f"{src_path} > {name}",
+                f"composite primary_key requires schema_version >= 4 (current: {sv})",
+            )
+        )
+
+
+def _check_column_properties(
+    col_entries: list[tuple[int, object]],
+    src_path: str,
+    name: str,
+    errors: list[ValidationError],
+) -> None:
+    """Column ``properties`` must be a mapping when present."""
+    # Prefer raw-file indices for properties diagnostics too (same list).
+    for j, col in col_entries:
+        if not isinstance(col, dict):
+            continue
+        col_props = col.get("properties")
+        if col_props is not None and not isinstance(col_props, dict):
+            col_name = col.get("name") or f"columns[{j}]"
+            errors.append(
+                ValidationError(
+                    "error",
+                    f"{src_path} > {name} > {col_name}",
                     "properties must be a mapping",
                 )
             )
-        # Prefer raw-file indices for properties diagnostics too (same list).
-        for j, col in col_entries:
-            if not isinstance(col, dict):
-                continue
-            col_props = col.get("properties")
-            if col_props is not None and not isinstance(col_props, dict):
-                col_name = col.get("name") or f"columns[{j}]"
-                errors.append(
-                    ValidationError(
-                        "error",
-                        f"{src_path} > {name} > {col_name}",
-                        "properties must be a mapping",
-                    )
-                )
 
-    # v1 legacy views.yml may contain non-mapping entries (e.g. `- null`).
-    # load_views() silently drops those (matching the other loaders), but
-    # validate_project's job is to tell the user about hand-edited mistakes
-    # rather than let them vanish quietly, so re-check the raw entries here.
-    if sv == 1:
-        views_file = project_path / "views.yml"
-        if views_file.exists():
-            raw = yaml.safe_load(views_file.read_text(encoding="utf-8")) or {}
-            raw_views = raw.get("views") if isinstance(raw, dict) else None
-            if raw_views is not None and not isinstance(raw_views, list):
-                # A bare ``views:`` (None) legitimately means "no views"; a
-                # scalar or mapping there does not.
-                errors.append(
-                    ValidationError(
-                        "error",
-                        "views.yml > views",
-                        f"'views' must be a list, got {type(raw_views).__name__}",
-                    )
-                )
-            for i, v in enumerate(raw_views if isinstance(raw_views, list) else []):
-                if not isinstance(v, dict):
-                    errors.append(
-                        ValidationError(
-                            "error",
-                            f"views.yml > views[{i}]",
-                            f"view entry must be a mapping, got {type(v).__name__}",
-                        )
-                    )
 
-    # relationships.yml may contain non-mapping entries (e.g. `- null`).
-    # load_relationships() silently drops those (matching the other loaders),
-    # but validate_project reports hand-edited mistakes rather than letting
-    # them vanish quietly — re-check the raw entries here.
-    # Also remember the raw list so the field checks below can keep file indices.
+def _check_v1_views_file(project_path: Path, errors: list[ValidationError]) -> None:
+    """v1 legacy views.yml may contain non-mapping entries (e.g. `- null`).
+
+    load_views() silently drops those (matching the other loaders), but
+    validate_project's job is to tell the user about hand-edited mistakes
+    rather than let them vanish quietly, so re-check the raw entries here.
+    """
+    views_file = project_path / "views.yml"
+    if not views_file.exists():
+        return
+    raw = yaml.safe_load(views_file.read_text(encoding="utf-8")) or {}
+    raw_views = raw.get("views") if isinstance(raw, dict) else None
+    if raw_views is not None and not isinstance(raw_views, list):
+        # A bare ``views:`` (None) legitimately means "no views"; a
+        # scalar or mapping there does not.
+        errors.append(
+            ValidationError(
+                "error",
+                "views.yml > views",
+                f"'views' must be a list, got {type(raw_views).__name__}",
+            )
+        )
+    for i, v in enumerate(raw_views if isinstance(raw_views, list) else []):
+        if not isinstance(v, dict):
+            errors.append(
+                ValidationError(
+                    "error",
+                    f"views.yml > views[{i}]",
+                    f"view entry must be a mapping, got {type(v).__name__}",
+                )
+            )
+
+
+def _check_relationships_file(
+    project_path: Path, errors: list[ValidationError]
+) -> list | None:
+    """Re-check the raw relationships.yml entries.
+
+    load_relationships() silently drops non-mapping entries (matching the
+    other loaders), but validate_project reports hand-edited mistakes rather
+    than letting them vanish quietly. Returns the raw list so the field
+    checks can keep file indices.
+    """
     raw_relationships_list: list | None = None
     rel_file = project_path / "relationships.yml"
-    if rel_file.exists():
-        raw = yaml.safe_load(rel_file.read_text(encoding="utf-8")) or {}
-        if raw and not isinstance(raw, dict):
-            # Most likely hand-edit: bare list / scalar root (omitted `relationships:` key).
+    if not rel_file.exists():
+        return raw_relationships_list
+    raw = yaml.safe_load(rel_file.read_text(encoding="utf-8")) or {}
+    if raw and not isinstance(raw, dict):
+        # Most likely hand-edit: bare list / scalar root (omitted `relationships:` key).
+        errors.append(
+            ValidationError(
+                "error",
+                "relationships.yml",
+                "relationships.yml must be a mapping with a 'relationships' key, "
+                f"got {type(raw).__name__}",
+            )
+        )
+    raw_rels = raw.get("relationships") if isinstance(raw, dict) else None
+    if isinstance(raw_rels, list):
+        raw_relationships_list = raw_rels
+    if raw_rels is not None and not isinstance(raw_rels, list):
+        errors.append(
+            ValidationError(
+                "error",
+                "relationships.yml > relationships",
+                f"'relationships' must be a list, got {type(raw_rels).__name__}",
+            )
+        )
+    for i, r in enumerate(raw_rels if isinstance(raw_rels, list) else []):
+        if not isinstance(r, dict):
             errors.append(
                 ValidationError(
                     "error",
-                    "relationships.yml",
-                    "relationships.yml must be a mapping with a 'relationships' key, "
-                    f"got {type(raw).__name__}",
+                    f"relationships.yml > relationships[{i}]",
+                    f"relationship entry must be a mapping, got {type(r).__name__}",
                 )
             )
-        raw_rels = raw.get("relationships") if isinstance(raw, dict) else None
-        if isinstance(raw_rels, list):
-            raw_relationships_list = raw_rels
-        if raw_rels is not None and not isinstance(raw_rels, list):
-            errors.append(
-                ValidationError(
-                    "error",
-                    "relationships.yml > relationships",
-                    f"'relationships' must be a list, got {type(raw_rels).__name__}",
-                )
-            )
-        for i, r in enumerate(raw_rels if isinstance(raw_rels, list) else []):
-            if not isinstance(r, dict):
-                errors.append(
-                    ValidationError(
-                        "error",
-                        f"relationships.yml > relationships[{i}]",
-                        f"relationship entry must be a mapping, got {type(r).__name__}",
-                    )
-                )
+    return raw_relationships_list
 
-    # Check views
+
+def _check_views(
+    views: list[dict],
+    sv: int,
+    model_names: set[str],
+    errors: list[ValidationError],
+) -> set[str]:
+    """Check views and return the set of valid view names."""
+    view_names: set[str] = set()
     for i, view in enumerate(views):
         src_dir = view.get("_source_dir", f"views[{i}]")
         name = view.get("name")
@@ -1437,39 +1554,27 @@ def validate_project(project_path: Path) -> list[ValidationError]:
                 )
             )
 
-        # Validate dialect (if present)
-        view_dialect = view.get("dialect")
-        if view_dialect is not None:
-            if sv < 3:
-                errors.append(
-                    ValidationError(
-                        "warning",
-                        f"views/{src_dir}",
-                        f"'dialect' field requires schema_version >= 3 (current: {sv})",
-                    )
-                )
-            if view_dialect.lower() not in _VALID_DIALECTS:
-                errors.append(
-                    ValidationError(
-                        "error",
-                        f"views/{src_dir}",
-                        f"unknown dialect '{view_dialect}'",
-                    )
-                )
+        _check_dialect(view.get("dialect"), sv, f"views/{src_dir}", errors)
+        _check_mapping_field(
+            view.get("properties"),
+            f"views/{src_dir}",
+            errors,
+            message="properties must be a mapping",
+        )
+    return view_names
 
-        view_props = view.get("properties")
-        if view_props is not None and not isinstance(view_props, dict):
-            errors.append(
-                ValidationError(
-                    "error",
-                    f"views/{src_dir}",
-                    "properties must be a mapping",
-                )
-            )
 
-    # Check relationships — walk the raw list when available so indices match
-    # the file (filtered loader positions would renumber past dropped junk).
-    all_entity_names = model_names | view_names
+def _check_relationships(
+    relationships: list[dict],
+    raw_relationships_list: list | None,
+    all_entity_names: set[str],
+    errors: list[ValidationError],
+) -> None:
+    """Check relationship model references and join fields.
+
+    Walks the raw list when available so indices match the file (filtered
+    loader positions would renumber past dropped junk).
+    """
     rel_entries = (
         list(enumerate(raw_relationships_list))
         if raw_relationships_list is not None
@@ -1503,68 +1608,62 @@ def validate_project(project_path: Path) -> list[ValidationError]:
                 )
             )
 
-    # Cube YAML may contain non-mapping files / member-array junk.
-    # load_cubes() drops those (matching views / relationships). Re-read the
-    # raw files here so hand-edits are reported rather than vanishing quietly.
-    cubes_dir = project_path / "cubes"
-    if cubes_dir.is_dir():
-        if sv == 1:
-            for f in sorted(cubes_dir.glob("*.yml")):
-                src_path = f"cubes/{f.name}"
-                try:
-                    raw = yaml.safe_load(f.read_text(encoding="utf-8"))
-                except yaml.YAMLError as e:
-                    errors.append(
-                        ValidationError(
-                            "error",
-                            src_path,
-                            f"invalid YAML: {e}",
-                        )
-                    )
-                    continue
-                if not isinstance(raw, dict):
-                    errors.append(
-                        ValidationError(
-                            "error",
-                            src_path,
-                            f"cube file must be a mapping, got {type(raw).__name__}",
-                        )
-                    )
-                    continue
-                _report_malformed_cube_members(errors, src_path, raw)
-        else:
-            for d in sorted(cubes_dir.iterdir()):
-                if not d.is_dir():
-                    continue
-                meta_file = d / "metadata.yml"
-                if not meta_file.exists():
-                    continue
-                src_path = f"cubes/{d.name}/metadata.yml"
-                try:
-                    raw = yaml.safe_load(meta_file.read_text(encoding="utf-8"))
-                except yaml.YAMLError as e:
-                    errors.append(
-                        ValidationError(
-                            "error",
-                            src_path,
-                            f"invalid YAML: {e}",
-                        )
-                    )
-                    continue
-                if not isinstance(raw, dict):
-                    errors.append(
-                        ValidationError(
-                            "error",
-                            src_path,
-                            f"cube metadata must be a mapping, got {type(raw).__name__}",
-                        )
-                    )
-                    continue
-                _report_malformed_cube_members(errors, src_path, raw)
 
-    # Check cubes — only structural / reference checks here. Deep validation
-    # (measure cycles, hierarchy levels) runs Rust-side in
-    # AnalyzedJanusMDL::analyze (see janus-core lineage::validate_cubes).
+def _cube_source_files(cubes_dir: Path, sv: int) -> list[tuple[str, Path, str]]:
+    """Return (source label, file, kind) for each cube YAML file in the project."""
+    if sv == 1:
+        return [
+            (f"cubes/{f.name}", f, "cube file") for f in sorted(cubes_dir.glob("*.yml"))
+        ]
+    out: list[tuple[str, Path, str]] = []
+    for d in sorted(cubes_dir.iterdir()):
+        if not d.is_dir():
+            continue
+        meta_file = d / "metadata.yml"
+        if not meta_file.exists():
+            continue
+        out.append((f"cubes/{d.name}/metadata.yml", meta_file, "cube metadata"))
+    return out
+
+
+def _check_cube_files(
+    project_path: Path, sv: int, errors: list[ValidationError]
+) -> None:
+    """Cube YAML may contain non-mapping files / member-array junk.
+
+    load_cubes() drops those (matching views / relationships). Re-read the
+    raw files here so hand-edits are reported rather than vanishing quietly.
+    """
+    cubes_dir = project_path / "cubes"
+    if not cubes_dir.is_dir():
+        return
+    for src_path, path, kind in _cube_source_files(cubes_dir, sv):
+        try:
+            raw = yaml.safe_load(path.read_text(encoding="utf-8"))
+        except yaml.YAMLError as e:
+            errors.append(ValidationError("error", src_path, f"invalid YAML: {e}"))
+            continue
+        if not isinstance(raw, dict):
+            errors.append(
+                ValidationError(
+                    "error",
+                    src_path,
+                    f"{kind} must be a mapping, got {type(raw).__name__}",
+                )
+            )
+            continue
+        _report_malformed_cube_members(errors, src_path, raw)
+
+
+def _check_cubes(
+    cubes: list[dict], all_entity_names: set[str], errors: list[ValidationError]
+) -> None:
+    """Check cube names, base objects, measures and hierarchy levels.
+
+    Only structural / reference checks here. Deep validation (measure cycles,
+    hierarchy levels) runs Rust-side in AnalyzedJanusMDL::analyze (see
+    janus-core lineage::validate_cubes).
+    """
     cube_names: set[str] = set()
     for i, cube in enumerate(cubes):
         src = cube.get("_source_file", f"cubes[{i}]")
@@ -1607,47 +1706,53 @@ def validate_project(project_path: Path) -> list[ValidationError]:
                 )
             )
 
-        # Sanity-check hierarchy levels reference declared dimensions /
-        # time_dimensions. Rust-side validation does the same check, but
-        # surfacing it at YAML time gives faster feedback before build.
-        # Only keep string names so a malformed YAML entry doesn't leak a
-        # non-hashable value into the set lookup below.
-        dim_names = {
-            d.get("name")
-            for d in (cube.get("dimensions") or [])
-            if isinstance(d, dict) and isinstance(d.get("name"), str)
-        }
-        td_names = {
-            td.get("name")
-            for td in (cube.get("time_dimensions") or [])
-            if isinstance(td, dict) and isinstance(td.get("name"), str)
-        }
-        known_dims = dim_names | td_names
-        hierarchies = cube.get("hierarchies") or {}
-        if isinstance(hierarchies, dict):
-            for hname, levels in hierarchies.items():
-                if not isinstance(levels, list):
-                    continue
-                for level in levels:
-                    if not isinstance(level, str):
-                        errors.append(
-                            ValidationError(
-                                "error",
-                                f"{src_path} > {name} > hierarchies.{hname}",
-                                "hierarchy levels must be strings",
-                            )
-                        )
-                        continue
-                    if level not in known_dims:
-                        errors.append(
-                            ValidationError(
-                                "error",
-                                f"{src_path} > {name} > hierarchies.{hname}",
-                                f"references unknown dimension '{level}'",
-                            )
-                        )
+        _check_hierarchy_levels(cube, src_path, name, errors)
 
-    return errors
+
+def _check_hierarchy_levels(
+    cube: dict, src_path: str, name: str, errors: list[ValidationError]
+) -> None:
+    """Hierarchy levels must reference declared dimensions / time_dimensions.
+
+    Rust-side validation does the same check, but surfacing it at YAML time
+    gives faster feedback before build. Only keep string names so a malformed
+    YAML entry doesn't leak a non-hashable value into the set lookup below.
+    """
+    dim_names = {
+        d.get("name")
+        for d in (cube.get("dimensions") or [])
+        if isinstance(d, dict) and isinstance(d.get("name"), str)
+    }
+    td_names = {
+        td.get("name")
+        for td in (cube.get("time_dimensions") or [])
+        if isinstance(td, dict) and isinstance(td.get("name"), str)
+    }
+    known_dims = dim_names | td_names
+    hierarchies = cube.get("hierarchies") or {}
+    if not isinstance(hierarchies, dict):
+        return
+    for hname, levels in hierarchies.items():
+        if not isinstance(levels, list):
+            continue
+        for level in levels:
+            if not isinstance(level, str):
+                errors.append(
+                    ValidationError(
+                        "error",
+                        f"{src_path} > {name} > hierarchies.{hname}",
+                        "hierarchy levels must be strings",
+                    )
+                )
+                continue
+            if level not in known_dims:
+                errors.append(
+                    ValidationError(
+                        "error",
+                        f"{src_path} > {name} > hierarchies.{hname}",
+                        f"references unknown dimension '{level}'",
+                    )
+                )
 
 
 # ── Upgrade ──────────────────────────────────────────────────────────────────
