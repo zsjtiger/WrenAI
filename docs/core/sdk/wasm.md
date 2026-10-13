@@ -151,9 +151,9 @@ const rows = await engine.cubeQuery({
 });
 ```
 
-See [`examples/cube-explorer.html`](https://github.com/CrossNow/JanusAI/blob/main/core/wren-core-wasm/examples/cube-explorer.html)
+See [`examples/cube-explorer.html`](https://github.com/CrossNow/JanusAI/blob/main/core/janus-core-wasm/examples/cube-explorer.html)
 for an interactive form-driven builder and
-[`examples/csv-quickstart.html`](https://github.com/CrossNow/JanusAI/blob/main/core/wren-core-wasm/examples/csv-quickstart.html)
+[`examples/csv-quickstart.html`](https://github.com/CrossNow/JanusAI/blob/main/core/janus-core-wasm/examples/csv-quickstart.html)
 for the three CSV patterns (inferred schema, custom delimiter, explicit
 schema).
 
@@ -336,7 +336,7 @@ For LLM-driven UIs, prefer `cubeQuery` over teaching the agent SQL:
 
 ## Examples
 
-Runnable browser demos in [`examples/`](https://github.com/CrossNow/JanusAI/tree/main/core/wren-core-wasm/examples):
+Runnable browser demos in [`examples/`](https://github.com/CrossNow/JanusAI/tree/main/core/janus-core-wasm/examples):
 
 | Demo | Shows |
 |---|---|

@@ -160,7 +160,7 @@ graph.add_edge("tools", "chatbot")
 app = graph.compile()
 ```
 
-See [`examples/langgraph_demo.py`](https://github.com/CrossNow/JanusAI/blob/main/sdk/wren-langchain/examples/langgraph_demo.py) for a runnable version.
+See [`examples/langgraph_demo.py`](https://github.com/CrossNow/JanusAI/blob/main/sdk/janus-langchain/examples/langgraph_demo.py) for a runnable version.
 
 ### Multiple projects, one program
 

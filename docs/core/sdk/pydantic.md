@@ -146,7 +146,7 @@ result = agent.run_sync("Top 5 customers last quarter?")
 print(result.output.customers)  # already a list[str], no parsing needed
 ```
 
-See [`examples/pydantic_ai_structured_demo.py`](https://github.com/CrossNow/JanusAI/blob/main/sdk/wren-pydantic/examples/pydantic_ai_structured_demo.py) for the runnable version.
+See [`examples/pydantic_ai_structured_demo.py`](https://github.com/CrossNow/JanusAI/blob/main/sdk/janus-pydantic/examples/pydantic_ai_structured_demo.py) for the runnable version.
 
 ### Read-only memory (shared / curated projects)
 
