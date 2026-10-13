@@ -16,6 +16,10 @@
 
 <br/>
 
+🌐 **English** · [简体中文](./README.zh-CN.md)
+
+<br/>
+
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://github.com/CrossNow/JanusAI/blob/main/LICENSE)
 [![PyPI](https://img.shields.io/pypi/v/janusai?label=janusai)](https://pypi.org/project/janusai/)
 [![GitHub Release](https://img.shields.io/github/v/release/CrossNow/JanusAI?logo=github&label=release)](https://github.com/CrossNow/JanusAI/releases)

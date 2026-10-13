@@ -1,0 +1,130 @@
+# Janus AI
+
+*开源 GenBI：你的 AI 智能体在你已有的数据库上生成、部署并治理仪表盘，其依据是它们真正可以信赖的上下文层。*
+
+<iframe src="https://ghbtns.com/github-btn.html?user=CrossNow&repo=JanusAI&type=star&count=true&size=large" frameBorder="0" scrolling="0" height="50" title="Janus AI"></iframe>
+
+**Janus AI 是开源的 GenBI 引擎。** 它让任何 AI 智能体都能把业务问题转换为受治理的 BI，从单条 SQL 答案到可分享、可部署的仪表盘，全部运行在你已有的数据源之上。
+
+生成式 BI 的可靠程度取决于它所依赖的上下文。因此在 GenBI 之下，Janus AI 是一个**开放的上下文层**：它位于数据源与任何智能体或应用之间，为它们提供同一份机器可读的业务理解，包括数据的真实含义、应当如何关联、哪些定义已经获得批准，以及查询应当如何针对底层数据库进行规划。
+
+目标很简单：**产出可信的 BI，而不是看似合理的猜测**。所有数据使用者，无论是人还是智能体，都共享同一个受治理的上下文层。
+
+## GenBI 的三个环节
+
+| 环节 | 智能体做什么 | 依托的能力 |
+| --- | --- | --- |
+| **Generate（生成）** | 把业务问题转换为受治理的 SQL 和图表 | MDL 规划、Schema 检索、dry-plan 校验 |
+| **Deploy（部署）** | 把答案发布为可分享的浏览器端仪表盘 | [`janus-core-wasm`](/oss/sdk/wasm) → Vercel / Cloudflare Pages |
+| **Know（理解）** | 捕获保证一切正确的业务含义 | MDL、`knowledge/`、记忆（可审阅、适合 Git） |
+
+本页其余部分重点讲 **Know**，因为正确性正是来自这里：*Generate* 和 *Deploy* 的可信度，取决于其底下的上下文。
+
+## Janus AI 为什么存在
+
+智能体会读取 Schema，但 Schema 无法告诉它：
+
+- `status = 4` 表示已退款
+- `loyalty_v3` 才是团队实际使用的表
+- "月活跃用户" 不包括服务账号
+- "Project Lighthouse" 在某份没有链接到数据仓库的规划文档中对应 `campaign_id = 4172`
+
+![缺失的上下文层](/img/oss/vision/missing-context-layer.png)
+
+没有这些含义，智能体写出的 SQL 会看起来自信、合理，却是错的。而基于错误 SQL 构建的仪表盘比没有仪表盘更糟，因为它看起来很权威。演示看起来没问题，试点看起来也没问题，问题往往在生产环境中才暴露。
+
+业务上下文不能被锁在别人的产品里。你的业务定义会比工具活得更久，它们应当以一种团队可以检查、版本化、分叉和分享的格式存在。
+
+## Janus AI 提供什么
+
+Janus AI 把原始的数据库结构转换为可复用的上下文层，然后让智能体在其之上生成并部署 BI。它帮助智能体从"我能看到表"进步到"我知道这家公司对收入、客户、退款、流失和活跃账户的定义"，并从"这里有一段 SQL"进步到"这里有一个可以分享的受治理仪表盘"。
+
+对于真实公司数据上的真实业务问题，智能体需要五层上下文（完整说明见[Janus AI 所说的上下文是什么？](/oss/concepts/what_is_context)）。正是这五层让生成的答案或部署的仪表盘保持正确：
+
+| 层 | 为智能体提供的内容 | 状态 |
+| --- | --- | --- |
+| **结构层** | 表、列、类型、主键和关联关系 | 已可使用 |
+| **语义层** | 面向业务的模型、可复用的计算、标准表、枚举含义 | 已可使用 |
+| **业务层** | 公司定义，例如活跃客户、收入、流失，以及内部命名 | 已可使用 |
+| **操作层** | 经批准的关联路径、被允许的查询、治理规则，以及禁止计算的内容 | 积极开发中 |
+| **行为层** | 历史问题的记忆、成功的 SQL、用户反馈和示例 | 积极开发中 |
+
+![使用与不使用 Janus AI 的对比](/img/oss/vision/with_without_janus.png)
+
+下面是实际的样子。你编写一个小的 MDL 文件来描述数据的含义，Janus AI 会通过它规划每一条基于模型的查询。更深入的说明见[MDL 为智能体做了什么？](/oss/concepts/what_is_mdl)。
+
+```yaml
+# models/customers/metadata.yml
+name: customers
+table_reference:
+  catalog: jaffle_shop
+  schema: main
+  table: customers
+primary_key: customer_id
+columns:
+  - { name: customer_id, type: INTEGER, is_primary_key: true }
+  - { name: first_name, type: VARCHAR }
+  - { name: number_of_orders, type: BIGINT }
+  - { name: customer_lifetime_value, type: DOUBLE }
+```
+
+现在，智能体（或你，或任何 SDK）可以像查询普通表一样查询 `customers`：
+
+```bash
+$ janus --sql "SELECT first_name, customer_lifetime_value FROM customers ORDER BY 2 DESC LIMIT 3"
+first_name   customer_lifetime_value
+Tiffany      1245.67
+Lukas        1102.30
+Jennifer     1086.45
+```
+
+在幕后，Janus AI 会：
+
+1. 在 MDL 中查找 `customers`
+2. 将其解析为 `table_reference` 中声明的物理表
+3. 丢弃模型中未声明的列（例如 `email`、`phone`），让智能体看不到它们
+4. 应用 `knowledge/rules/` 中的业务规则（默认过滤条件、标准表、业务定义）
+5. 返回结果行
+
+在此基础上，同一份上下文也驱动 *Deploy* 环节：让智能体把答案做成仪表盘，它会基于项目构建一个浏览器端 GenBI 应用，并部署到你自己的托管环境中。参见[构建并部署 GenBI 应用](/oss/guides/genbi)。
+
+## 开源核心包含什么
+
+开源核心包括：
+
+- **[MDL（建模定义语言）](/oss/concepts/what_is_mdl)**：语义契约。MDL 在你可以阅读、审阅、版本化和分叉的文件中定义模型、关联关系、计算字段、视图以及面向智能体的元数据。
+- **Rust 语义引擎**：基于 Apache DataFusion。它在 PostgreSQL、MySQL、BigQuery、Snowflake、DuckDB、ClickHouse、Trino、SQL Server、Databricks、Redshift、Oracle、Athena、Apache Spark 等受支持的数据源上规划并执行基于模型的 SQL。
+- **[`janus` CLI](/oss/reference/cli)**：用于查询、规划、校验、构建上下文、数据画像、管理记忆，以及构建和部署 GenBI 应用的命令。
+- **[GenBI 应用](/oss/guides/genbi)**：由智能体构建、在浏览器端运行的仪表盘，由 [`janus-core-wasm`](/oss/sdk/wasm) 驱动，可部署到 Vercel 或 Cloudflare Pages。
+- **[Skills](/oss/reference/skills)**：结构化的工作流，例如 `generate-mdl`、`onboarding`、`enrich-context` 和 `genbi`，由 `janus` CLI 按需提供，使 AI 编码智能体能够安全、可复现地操作 Janus AI。
+- **框架 SDK**：[LangChain](/oss/sdk/langchain) 和 [Pydantic AI](/oss/sdk/pydantic) 集成，用于将 Janus 项目接入智能体框架。
+- **[janus-core-wasm](/oss/sdk/wasm)**：编译为 WebAssembly 的语义引擎，使理解 MDL 的 SQL（以及 GenBI 仪表盘）可以在浏览器中运行。
+
+## 路线图
+
+当前的重点方向包括：端到端的上下文丰富、更完善的 GenBI（更多图表类型、实时数据仪表盘）、正确性闭环（包括智能体可以运行的小型黄金评测），以及更完整的智能体 SDK 覆盖。实时设计讨论和优先级路线图请参见 [GitHub Discussions](https://github.com/CrossNow/JanusAI/discussions)。
+
+## 从这里开始
+
+1. [安装](/oss/get_started/installation)
+2. [使用 `jaffle_shop` 示例数据快速开始](/oss/get_started/quickstart)
+3. [连接你自己的数据库](/oss/guides/connect)
+4. [构建并部署 GenBI 应用](/oss/guides/genbi)：*Generate* + *Deploy* 的成果
+5. [核心概念](/oss/concepts/what_is_context)：*Know* 环节背后的设计理念
+
+## 关于 "GenBI" 名称的说明
+
+这里的 "GenBI" 指的是这项开源的生成式 BI 能力：智能体基于 Janus 的上下文层生成受治理的答案，并部署仪表盘。
+
+早期的 **Janus AI GenBI** 应用，即基于 Docker、以聊天为主的 BI 产品，现在称为 **Janus GenBI Classic**，已**停止维护（Sunset）**。其代码保存在 `legacy/v1` 分支上，不再发布安全修复。现有部署仍可继续运行，相关参考文档保留在侧边栏的 [Janus GenBI Classic · Sunset](/oss/overview/introduction) 下。如需使用经过持续维护的托管版本，请访问 [Janus AI Commercial](https://crossnow.cn)。
+
+## 深入了解
+
+每个概念页面回答一个设计问题：
+
+- [Janus AI 所说的上下文是什么？](/oss/concepts/what_is_context)
+- [智能体如何从你的上下文中学习？](/oss/concepts/agent_learning)
+- [记忆如何随时间变得更智能？](/oss/concepts/memory_system)
+- [MDL 为智能体做了什么？](/oss/concepts/what_is_mdl)
+- [Janus AI 如何防止智能体产生幻觉？](/oss/concepts/correctness)
+- [Janus AI 在我的技术栈中处于什么位置？](/oss/concepts/stack_position)
