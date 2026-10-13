@@ -52,8 +52,6 @@ def _resolve_prompt(prompt: str | None, prompt_file: str | None) -> str | None:
     return prompt
 
 
-
-
 @creport_app.command()
 def build(
     name: Annotated[str, typer.Argument(help="App name — written to apps/<name>/.")],
@@ -287,7 +285,7 @@ def deploy(
     name: Annotated[str, typer.Argument(help="Registered app name.")],
     provider: Annotated[
         str,
-        typer.Option("--provider", help="Deploy target: vercel or cloudflare."),
+        typer.Option("--provider", help="Deploy target: vercel, cloudflare, or ssh."),
     ] = "vercel",
     prod: Annotated[
         bool,
@@ -325,8 +323,12 @@ def deploy(
             typer.echo(f"  - {failure}", err=True)
         raise typer.Exit(1)
 
-    token = resolve_token(adapter.env_token_var, project_path)
-    if not token:
+    token = (
+        resolve_token(adapter.env_token_var, project_path)
+        if adapter.env_token_var
+        else ""
+    )
+    if adapter.env_token_var and not token:
         typer.echo(
             f"Error: no {adapter.env_token_var} found.\n"
             f"  Export it (`export {adapter.env_token_var}=...`) or add it to "
