@@ -34,7 +34,7 @@
 
 提交 Pull Request 即表示你同意，你的贡献将按照其所修改路径所适用的相同条款授权：
 
-- 对 **`core/**`、`skills/**`、`sdks/integrations/**`、`examples/**`** 以及**根目录文件**的贡献，依据 [Apache License 2.0](./LICENSE-APACHE-2.0) 授权。
+- 对 **`core/**`、`skills/**`、`sdk/**`、`examples/**`** 以及**根目录文件**的贡献，依据 [Apache License 2.0](./LICENSE-APACHE-2.0) 授权。
 - 对 **`docs/**`** 的贡献，依据 [知识共享署名 4.0 国际许可协议（CC BY 4.0）](./LICENSE-CC-BY-4.0) 授权。
 
 如果未来某个模块采用 [AGPL-3.0](./LICENSE-AGPL-3.0) 许可，则对该路径的贡献将相应授权。权威的路径与许可证对应关系，请参见 [LICENSE](./LICENSE)。

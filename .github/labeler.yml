@@ -32,37 +32,17 @@ skills:
 sdk:
   - changed-files:
       - any-glob-to-any-file:
-          - "sdks/**"
+          - "sdk/**"
 
 "sdk:langchain":
   - changed-files:
       - any-glob-to-any-file:
-          - "sdks/integrations/langchain/**"
-
-"sdk:crewai":
-  - changed-files:
-      - any-glob-to-any-file:
-          - "sdks/integrations/crewai/**"
+          - "sdk/janus-langchain/**"
 
 "sdk:pydantic":
   - changed-files:
       - any-glob-to-any-file:
-          - "sdks/integrations/pydantic/**"
-
-"sdk:goose":
-  - changed-files:
-      - any-glob-to-any-file:
-          - "sdks/integrations/goose/**"
-
-"sdk:llamaindex":
-  - changed-files:
-      - any-glob-to-any-file:
-          - "sdks/integrations/llamaindex/**"
-
-"sdk:mastra":
-  - changed-files:
-      - any-glob-to-any-file:
-          - "sdks/integrations/mastra/**"
+          - "sdk/janus-pydantic/**"
 
 documentation:
   - changed-files:

@@ -34,7 +34,7 @@ Each module under `core/` has its own dev setup. Start with the module's own `RE
 
 By submitting a pull request, you agree that your contribution is licensed under the same terms as the path it touches:
 
-- Contributions to **`core/**`, `skills/**`, `sdks/integrations/**`, `examples/**`** and **root-level files** are licensed under [Apache License 2.0](./LICENSE-APACHE-2.0).
+- Contributions to **`core/**`, `skills/**`, `sdk/**`, `examples/**`** and **root-level files** are licensed under [Apache License 2.0](./LICENSE-APACHE-2.0).
 - Contributions to **`docs/**`** are licensed under [Creative Commons Attribution 4.0 International (CC BY 4.0)](./LICENSE-CC-BY-4.0).
 
 If a future module is introduced under [AGPL-3.0](./LICENSE-AGPL-3.0), contributions to that path will be licensed accordingly. See [LICENSE](./LICENSE) for the authoritative path-to-license map.

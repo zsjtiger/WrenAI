@@ -8,12 +8,12 @@
 # passed via environment: DOCS_REPO=owner/repo DOCS_REPO_BRANCH=master
 #
 # Usage:
-#   ./scripts/sync-docs.sh            # dry-run (show diff, no PR)
-#   ./scripts/sync-docs.sh --apply    # create branch + PR
+#   ./.github/scripts/sync-docs.sh            # dry-run (show diff, no PR)
+#   ./.github/scripts/sync-docs.sh --apply    # create branch + PR
 #
 set -euo pipefail
 
-REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 SOURCE_REPO="$(gh repo view --json nameWithOwner -q .nameWithOwner 2>/dev/null || echo "CrossNow/JanusAI")"
 
 # Read from GitHub repo variables, allow env override

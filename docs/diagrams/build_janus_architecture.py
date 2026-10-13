@@ -1,7 +1,7 @@
 import html, pathlib
 from xml.sax.saxutils import quoteattr
 
-OUT = pathlib.Path("/home/user/WrenAI/misc/drawio/janus-ai-architecture.drawio")
+OUT = pathlib.Path("/home/user/WrenAI/docs/diagrams/janus-ai-architecture.drawio")
 INK, MUTE, LINE, PANEL, PANELB = "#0f172a", "#8a93a3", "#c9d0dc", "#fbfcfe", "#d7dce6"
 PILL, PILLB, ACC, PURP, CYAN, WHITE = "#eef1f6", "#cfd6e2", "#2f5bea", "#7b5cf0", "#14b8c8", "#ffffff"
 SANS, MONO = "Inter", "DejaVu Sans Mono"
