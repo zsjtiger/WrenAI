@@ -113,6 +113,51 @@ janus profile debug mydb                        # show the resolved config (secr
 janus context set-profile mydb                  # bind the profile to this project
 ```
 
+**Example configurations.** Put the settings in a YAML file and import it with `janus profile add <name> -f <file>`. Secrets can reference environment variables as `${VAR}`; they are expanded when Janus connects, so the file itself holds no password.
+
+PostgreSQL (`connection.yml`):
+
+```yaml
+datasource: postgres
+host: localhost
+port: "5432"
+database: postgres
+user: postgres
+password: ${POSTGRES_PASSWORD}
+```
+
+DuckDB reads CSV, Parquet or JSON files from a directory:
+
+```yaml
+datasource: duckdb
+url: /data
+format: csv          # csv, parquet, json or duckdb
+```
+
+Snowflake:
+
+```yaml
+datasource: snowflake
+account: myaccount
+user: admin
+password: ${SNOWFLAKE_PASSWORD}
+database: mydb
+sf_schema: myschema
+warehouse: COMPUTE_WH
+```
+
+BigQuery takes a base64-encoded service account key in `credentials`:
+
+```yaml
+datasource: bigquery
+bigquery_type: dataset
+project_id: my-project
+dataset_id: my_dataset
+credentials: ${BIGQUERY_CREDENTIALS}
+```
+
+For any other data source, run `janus docs connection-info <datasource>` to see the required fields. Its output is generated from the installed version, so it is the authoritative list.
+
 `--no-validate` skips the connection test after saving. Use `janus profile switch` to change the active profile and `janus profile rm` to remove one.
 
 ### Query your data

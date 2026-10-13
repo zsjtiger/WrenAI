@@ -113,6 +113,51 @@ janus profile debug mydb                        # 显示解析后的配置（敏
 janus context set-profile mydb                  # 把配置绑定到当前项目
 ```
 
+**配置示例。** 把参数写进 YAML 文件，再用 `janus profile add <名称> -f <文件>` 导入。密码等敏感信息可以写成 `${VAR}` 引用环境变量，Janus 在连接时才展开，所以配置文件本身不含明文密码。
+
+PostgreSQL（`connection.yml`）：
+
+```yaml
+datasource: postgres
+host: localhost
+port: "5432"
+database: postgres
+user: postgres
+password: ${POSTGRES_PASSWORD}
+```
+
+DuckDB 读取目录中的 CSV、Parquet 或 JSON 文件：
+
+```yaml
+datasource: duckdb
+url: /data
+format: csv          # csv、parquet、json 或 duckdb
+```
+
+Snowflake：
+
+```yaml
+datasource: snowflake
+account: myaccount
+user: admin
+password: ${SNOWFLAKE_PASSWORD}
+database: mydb
+sf_schema: myschema
+warehouse: COMPUTE_WH
+```
+
+BigQuery 的 `credentials` 需要填写 base64 编码的服务账号密钥：
+
+```yaml
+datasource: bigquery
+bigquery_type: dataset
+project_id: my-project
+dataset_id: my_dataset
+credentials: ${BIGQUERY_CREDENTIALS}
+```
+
+其他数据源请运行 `janus docs connection-info <数据源>` 查看必填字段。该命令的输出由已安装的版本生成，以它为准。
+
 `--no-validate` 会在保存后跳过连接测试。用 `janus profile switch` 切换当前配置，用 `janus profile rm` 删除配置。
 
 ### 查询数据
