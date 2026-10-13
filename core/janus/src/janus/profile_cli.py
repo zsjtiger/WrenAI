@@ -92,82 +92,106 @@ def add(
         raise typer.Exit(1)
 
     if ui:
-        # starlette / uvicorn / jinja2 ship with core janusai so this
-        # import normally succeeds; the except branch is defensive for
-        # broken installs where the web stack got stripped.
-        try:
-            from janus.profile_web import start as web_start  # noqa: PLC0415
-        except ImportError as e:
-            if e.name not in {"starlette", "uvicorn", "jinja2"}:
-                raise
-            typer.echo(
-                "Error: --ui requires the browser UI dependencies, which "
-                "normally ship with janusai.\n"
-                "Reinstall janusai, or use --interactive instead.",
-                err=True,
-            )
-            raise typer.Exit(1)
-        if not no_open:
-            typer.echo("Opening browser... (press Ctrl+C to cancel)")
-        result = web_start(
-            name, activate=activate, port=ui_port, open_browser=not no_open
+        _add_via_ui(
+            name,
+            activate=activate,
+            ui_port=ui_port,
+            no_open=no_open,
+            no_validate=no_validate,
         )
-        if result:
-            typer.echo(
-                f"Profile '{result['name']}' saved (datasource: {result['datasource']})"
-            )
-            if activate:
-                typer.echo(f"  Profile '{result['name']}' is now active.")
-            _post_add(result["name"], validate=not no_validate, minimal=False)
-        else:
-            typer.echo("Cancelled.", err=True)
-            raise typer.Exit(1)
         return
 
-    minimal = False
     if from_file:
-        from pathlib import Path  # noqa: PLC0415
-
-        path = Path(from_file).expanduser()
-        if not path.exists():
-            typer.echo(f"Error: file not found: {from_file}", err=True)
-            raise typer.Exit(1)
-        try:
-            text = path.read_text(encoding="utf-8")
-            if path.suffix in (".yml", ".yaml"):
-                raw = yaml.safe_load(text)
-            else:
-                raw = json.loads(text)
-        except Exception as exc:
-            typer.echo(f"Error: could not parse {from_file}: {exc}", err=True)
-            raise typer.Exit(1)
-        if not isinstance(raw, dict):
-            typer.echo("Error: file must contain a JSON/YAML object.", err=True)
-            raise typer.Exit(1)
-        try:
-            profile_data = _flatten_connection_envelope(raw)
-        except ValueError as exc:
-            typer.echo(f"Error: {exc}", err=True)
-            raise typer.Exit(1)
+        profile_data = _profile_data_from_file(from_file)
+        minimal = False
     elif interactive:
         profile_data = _interactive_add(datasource)
+        minimal = False
     else:
-        if not datasource:
-            typer.echo(
-                "Error: --datasource is required (or use --interactive / --from-file).",
-                err=True,
-            )
-            raise typer.Exit(1)
-        profile_data = {"datasource": datasource}
-        typer.echo(
-            f"Created minimal profile '{name}' with datasource={datasource}. "
-            "Edit ~/.janus/profiles.yml to add connection fields."
-        )
+        profile_data = _minimal_profile_data(name, datasource)
         minimal = True
 
     add_profile(name, profile_data, activate=activate)
     typer.echo(f"Profile '{name}' added.")
     _post_add(name, validate=not no_validate, minimal=minimal)
+
+
+def _add_via_ui(
+    name: str,
+    *,
+    activate: bool,
+    ui_port: int,
+    no_open: bool,
+    no_validate: bool,
+) -> None:
+    """Save a profile through the browser form."""
+    # starlette / uvicorn / jinja2 ship with core janusai so this import
+    # normally succeeds; the except branch is defensive for broken installs
+    # where the web stack got stripped.
+    try:
+        from janus.profile_web import start as web_start  # noqa: PLC0415
+    except ImportError as e:
+        if e.name not in {"starlette", "uvicorn", "jinja2"}:
+            raise
+        typer.echo(
+            "Error: --ui requires the browser UI dependencies, which "
+            "normally ship with janusai.\n"
+            "Reinstall janusai, or use --interactive instead.",
+            err=True,
+        )
+        raise typer.Exit(1)
+    if not no_open:
+        typer.echo("Opening browser... (press Ctrl+C to cancel)")
+    result = web_start(name, activate=activate, port=ui_port, open_browser=not no_open)
+    if not result:
+        typer.echo("Cancelled.", err=True)
+        raise typer.Exit(1)
+    typer.echo(f"Profile '{result['name']}' saved (datasource: {result['datasource']})")
+    if activate:
+        typer.echo(f"  Profile '{result['name']}' is now active.")
+    _post_add(result["name"], validate=not no_validate, minimal=False)
+
+
+def _profile_data_from_file(from_file: str) -> dict:
+    """Read a JSON or YAML connection file and flatten its envelope."""
+    from pathlib import Path  # noqa: PLC0415
+
+    path = Path(from_file).expanduser()
+    if not path.exists():
+        typer.echo(f"Error: file not found: {from_file}", err=True)
+        raise typer.Exit(1)
+    try:
+        text = path.read_text(encoding="utf-8")
+        if path.suffix in (".yml", ".yaml"):
+            raw = yaml.safe_load(text)
+        else:
+            raw = json.loads(text)
+    except Exception as exc:
+        typer.echo(f"Error: could not parse {from_file}: {exc}", err=True)
+        raise typer.Exit(1)
+    if not isinstance(raw, dict):
+        typer.echo("Error: file must contain a JSON/YAML object.", err=True)
+        raise typer.Exit(1)
+    try:
+        return _flatten_connection_envelope(raw)
+    except ValueError as exc:
+        typer.echo(f"Error: {exc}", err=True)
+        raise typer.Exit(1)
+
+
+def _minimal_profile_data(name: str, datasource: str | None) -> dict:
+    """The inline --datasource form: a profile with only its datasource set."""
+    if not datasource:
+        typer.echo(
+            "Error: --datasource is required (or use --interactive / --from-file).",
+            err=True,
+        )
+        raise typer.Exit(1)
+    typer.echo(
+        f"Created minimal profile '{name}' with datasource={datasource}. "
+        "Edit ~/.janus/profiles.yml to add connection fields."
+    )
+    return {"datasource": datasource}
 
 
 @profile_app.command("import")
