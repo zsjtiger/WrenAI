@@ -58,3 +58,120 @@ npx skills add CrossNow/JanusAI
 智能体会检查环境、创建连接配置文件、搭建项目结构，并运行第一条查询。
 
 **手边没有数据库？** 直接说"用 Janus 配合内置的 `jaffle_shop` 示例数据"，同样的流程就会在一个真实的示例数据仓库上运行。
+
+## 功能使用指南
+
+下面每一节都是独立的工作流程。请在你的项目目录中运行这些命令。
+
+### 用 YAML 定义模型
+
+模型位于 `models/<name>/metadata.yml`，每一列对应数据库表中的一列：
+
+```yaml
+name: orders
+table_reference:
+  schema: main
+  table: orders
+columns:
+  - name: id
+    type: INTEGER
+    is_primary_key: true
+  - name: amount
+    type: DOUBLE
+  - name: order_date
+    type: DATE
+primary_key: id
+```
+
+然后检查并编译项目：
+
+```bash
+janus context validate   # 结构、视图 SQL 与描述检查
+janus context build      # 为引擎写入 target/mdl.json
+janus context show       # 一览模型、视图和关系
+```
+
+### 无需数据库，通过语义层转换 SQL
+
+`dry-plan` 会通过 MDL 展开你的 SQL，并打印实际将要执行的 SQL。它不需要连接数据库：
+
+```bash
+janus dry-plan --sql "SELECT id, amount FROM orders" --datasource duckdb
+```
+
+### 查询数据
+
+项目绑定 [连接配置](https://docs.crossnow.cn/oss/guides/connect) 之后，就可以通过同一语义层执行查询：
+
+```bash
+janus --sql "SELECT id, amount FROM orders" --limit 10
+janus query --sql "SELECT id, amount FROM orders" --output json   # 可选 json、csv 或 table
+```
+
+加上 `--quiet` 可以隐藏查询后的提示信息。
+
+### 为受治理的聚合定义 Cube
+
+Cube 在模型之上声明度量和时间维度，让智能体直接请求"按月的 `total`"，而不必自己编写 `GROUP BY`：
+
+```yaml
+# cubes/revenue/metadata.yml
+name: revenue
+base_object: orders
+measures:
+  - name: total
+    expression: SUM(amount)
+    type: DOUBLE
+time_dimensions:
+  - name: order_date
+    expression: order_date
+    type: DATE
+```
+
+```bash
+janus cube list
+janus cube query --cube revenue --measures total --time-dimension "order_date:month" --sql-only
+```
+
+`--sql-only` 只打印生成的 SQL，不执行：
+
+```sql
+SELECT DATE_TRUNC('month', order_date) AS order_date__month, SUM(amount) AS total
+FROM orders GROUP BY 1 ORDER BY 1
+```
+
+去掉 `--sql-only` 即可执行查询。还可以使用 `--filter`、`--order-by`、`--limit` 或 `--from query.json` 进一步细化。
+
+### 保存 NL→SQL 对并在之后召回
+
+保存一个已经确认的问题，然后搜索相似的问题：
+
+```bash
+janus memory store --nl "total revenue" --sql "SELECT SUM(amount) FROM orders"
+janus memory recall --query "revenue"
+```
+
+`store` 会把该对写入 `knowledge/sql/<slug>.md`，这是事实来源。grep 后端无需额外安装。安装 `janusai[memory]` 后可以使用语义搜索和派生索引，并用 `janus memory watch` 让索引保持最新。
+
+### 通过 MCP 提供 Janus 工具
+
+```bash
+janus serve mcp                                   # stdio，供本地 MCP 客户端使用
+janus serve mcp --transport http --port 8080      # HTTP，绑定 127.0.0.1
+```
+
+默认情况下服务器只提供只读工具。传入 `--allow-write` 可启用 `store_query` 工具，传入 `--no-connect` 则只转换 SQL 而不在数据库上执行。
+
+### 构建并部署 CReport 应用
+
+CReport 应用是基于项目上下文层构建的仪表盘，生命周期如下：
+
+```bash
+janus creport build     # 为智能体生成的构建指令，已结合本项目的上下文
+janus creport verify    # 检查必需文件、MDL 可解析性和内置数据
+janus creport open      # 在本地预览应用
+janus creport deploy    # 先校验，再部署到你的服务商账户
+janus creport list      # 已注册的应用及其部署状态
+```
+
+如果智能体构建了应用，使用 `janus creport register` 把它记录到 `.janus/apps.yml` 中。
