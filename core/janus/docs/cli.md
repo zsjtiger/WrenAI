@@ -1,5 +1,7 @@
 # CLI reference
 
+🌐 **English** · [简体中文](./cli.zh-CN.md)
+
 ## Default command — query
 
 Running `janus --sql '...'` executes a query and prints the result. This is the same as `janus query --sql '...'`.

@@ -1,5 +1,7 @@
 # Contributing to JanusAI
 
+🌐 **English** · [简体中文](./CONTRIBUTING.zh-CN.md)
+
 Thanks for your interest in contributing. Pull requests, bug reports, and discussion are all welcome.
 
 ## Before you start

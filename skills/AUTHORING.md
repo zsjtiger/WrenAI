@@ -1,5 +1,7 @@
 # Skill Authoring Guide
 
+🌐 **English** · [简体中文](./AUTHORING.zh-CN.md)
+
 > **Where to author new skill content:**
 > **NOT here under `skills/`.** New skill guides ship as Python package data
 > in [`core/janus/src/janus/skills_content/<name>/`](../core/janus/src/janus/skills_content/),

@@ -1,5 +1,7 @@
 # janus-pydantic
 
+🌐 **English** · [简体中文](./README.zh-CN.md)
+
 Pydantic AI integration for [Janus AI Core](https://github.com/CrossNow/JanusAI).
 
 Attach a CLI-prepared Janus project to a Pydantic AI agent in three lines:

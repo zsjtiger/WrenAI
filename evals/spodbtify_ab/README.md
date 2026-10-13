@@ -1,5 +1,7 @@
 # Spodbtify A/B Eval
 
+🌐 **English** · [简体中文](./README.zh-CN.md)
+
 This eval compares two workflows for turning the same DuckDB database into a
 queryable Janus semantic layer, then scoring how well an AI coding agent answers
 20 analytical Spotify playlist questions.

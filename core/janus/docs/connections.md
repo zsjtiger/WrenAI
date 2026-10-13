@@ -1,5 +1,7 @@
 # Connection formats
 
+🌐 **English** · [简体中文](./connections.zh-CN.md)
+
 The `connection_info.json` file (or `--connection-info` / `--connection-file` flags) requires a `datasource` field plus the connector-specific fields below.
 
 ## Accepted formats

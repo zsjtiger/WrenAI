@@ -1,5 +1,7 @@
 # Janus Engine — Agent Skill Distribution
 
+🌐 **English** · [简体中文](./README.zh-CN.md)
+
 The actual skill content (workflow guides, reference docs, prompt helpers)
 **lives inside the `janus` CLI**. This directory ships a single discovery stub
 that an AI client installs once; the stub then tells the agent to fetch

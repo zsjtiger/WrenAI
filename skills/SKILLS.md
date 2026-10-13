@@ -1,5 +1,7 @@
 # Janus Engine — Agent Skills
 
+🌐 **English** · [简体中文](./SKILLS.zh-CN.md)
+
 The actual workflow guides, reference docs, and prompt helpers live **inside
 the `janus` CLI itself**, so they always match the installed janusai
 version (no skill cache, no version drift).

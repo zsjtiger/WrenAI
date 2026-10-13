@@ -1,5 +1,7 @@
 # janus-langchain
 
+🌐 **English** · [简体中文](./README.zh-CN.md)
+
 LangChain and LangGraph integration for [Janus AI Core](https://github.com/CrossNow/JanusAI).
 
 Attach a CLI-prepared Janus project to a LangChain agent in three lines:
