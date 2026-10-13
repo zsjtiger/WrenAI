@@ -99,6 +99,22 @@ janus context show       # models, views and relationships in one view
 janus dry-plan --sql "SELECT id, amount FROM orders" --datasource duckdb
 ```
 
+### Connect a database
+
+Create a named connection profile, then bind it to the project. Credentials are stored in `~/.janus/profiles.yml`, not in the project.
+
+```bash
+janus profile add mydb --interactive            # prompts for the data source and fields
+janus profile add mydb --ui                     # browser form, then saves the profile
+janus profile add mydb -f connection.yml        # import from a JSON or YAML file
+janus profile add mydb -d postgres --activate   # set the data source, make it active
+janus profile list                              # show profiles, highlight the active one
+janus profile debug mydb                        # show the resolved config (secrets masked)
+janus context set-profile mydb                  # bind the profile to this project
+```
+
+`--no-validate` skips the connection test after saving. Use `janus profile switch` to change the active profile and `janus profile rm` to remove one.
+
 ### Query your data
 
 Once a [connection profile](https://docs.crossnow.cn/oss/guides/connect) is bound to the project, run queries through the same layer:

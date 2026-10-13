@@ -99,6 +99,22 @@ janus context show       # 一览模型、视图和关系
 janus dry-plan --sql "SELECT id, amount FROM orders" --datasource duckdb
 ```
 
+### 配置数据库连接
+
+创建一个命名的连接配置文件，再把它绑定到项目。凭据保存在 `~/.janus/profiles.yml` 中，不会写进项目。
+
+```bash
+janus profile add mydb --interactive            # 交互式输入数据源和字段
+janus profile add mydb --ui                     # 打开浏览器表单，保存后生效
+janus profile add mydb -f connection.yml        # 从 JSON 或 YAML 文件导入
+janus profile add mydb -d postgres --activate   # 指定数据源，并设为当前配置
+janus profile list                              # 列出配置，高亮当前配置
+janus profile debug mydb                        # 显示解析后的配置（敏感字段已遮蔽）
+janus context set-profile mydb                  # 把配置绑定到当前项目
+```
+
+`--no-validate` 会在保存后跳过连接测试。用 `janus profile switch` 切换当前配置，用 `janus profile rm` 删除配置。
+
 ### 查询数据
 
 项目绑定 [连接配置](https://docs.crossnow.cn/oss/guides/connect) 之后，就可以通过同一语义层执行查询：
