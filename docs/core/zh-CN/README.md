@@ -18,7 +18,8 @@
 | 指南 | 提升回答质量、项目管理、dbt 集成、OSI | ⏳ 待翻译（见英文版） |
 | 概念 | 上下文、MDL、记忆、正确性等 | ⏳ 待翻译（见英文版） |
 | 参考 | [CLI](reference/cli.md)、[MDL Schema](reference/mdl.md) | ✅ 已翻译 |
-| 参考 | Skills、架构、迁移、运维 | ⏳ 待翻译（见英文版） |
+| 参考 | [Skills](reference/skills.md) | ✅ 已翻译 |
+| 参考 | 架构、迁移、运维 | ⏳ 待翻译（见英文版） |
 | SDK | 概览、LangChain、Pydantic AI、WASM | ⏳ 待翻译（见英文版） |
 | 快速开始（Agent 配置） | `get_started/quickstart-with-agent/` | ⏳ 待翻译（按 Agent 分别的配置页，共 50+ 个） |
 
