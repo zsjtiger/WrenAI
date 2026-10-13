@@ -1,16 +1,16 @@
 ---
-sidebar_label: Open source vs Commercial
+sidebar_label: Community vs Commercial
 ---
 
-# Open source vs Commercial
+# Community vs Commercial
 
-Janus AI open source is the full engine: free, self-hosted, and driven by one engineer or agent through the CLI and SDK.
+Janus AI community edition is the full engine: free, self-hosted, and driven by one engineer or agent through the CLI and SDK.
 
 Janus AI Commercial is the same engine built for a team. It runs as a hosted cloud service or as a self-hosted enterprise deployment, and it adds a web UI, accounts, managed access control, integrations, and support. Full overview: [Janus AI Commercial](/cp/overview).
 
 ## Which one fits
 
-**Solo, in the terminal.** One engineer or an AI agent, working through the CLI, SDK, and Git. Open source is all you need.
+**Solo, in the terminal.** One engineer or an AI agent, working through the CLI, SDK, and Git. The community edition is all you need.
 
 **A data team.** Several people need governed access with roles and SSO, and non-technical teammates want to ask questions in a browser, Slack, or Teams. This is where Commercial earns its place.
 
@@ -18,7 +18,7 @@ Janus AI Commercial is the same engine built for a team. It runs as a hosted clo
 
 ## Feature comparison
 
-| Capability | Open source | Commercial |
+| Capability | Community | Commercial |
 | --- | :---: | :---: |
 | Fully managed cloud | ❌ | ✅ |
 | CLI and SDK for your own agents | ✅ | ✅ |
@@ -36,7 +36,7 @@ Janus AI Commercial is the same engine built for a team. It runs as a hosted clo
 
 ## What Commercial adds
 
-Open source is the full engine. Commercial adds the team layer on top:
+The community edition is the full engine. Commercial adds the team layer on top:
 
 - **Runs itself.** Hosted cloud, or self-hosted enterprise, so no one has to operate the stack.
 - **Built for people, not just agents.** A web UI plus Slack and Teams, so non-technical teammates can ask questions.
@@ -47,4 +47,4 @@ Open source is the full engine. Commercial adds the team layer on top:
 
 ## Talk to us
 
-See [Janus AI Commercial](/cp/overview) for details and to reach the team. Open source stays first-class either way.
+See [Janus AI Commercial](/cp/overview) for details and to reach the team. The community edition stays first-class either way.

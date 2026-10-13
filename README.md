@@ -2,11 +2,11 @@
 <a href="https://crossnow.cn">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="./assets/janus-ai-banner-dark.png">
-    <img src="./assets/janus-ai-banner.png" width="100%" alt="JanusAI: open-source CReport for AI agents">
+    <img src="./assets/janus-ai-banner.png" width="100%" alt="JanusAI: CReport for AI agents">
   </picture>
 </a>
 
-### Open-source CReport for AI agents
+### CReport for AI agents
 
 **Your agents generate governed SQL, deploy dashboards, and keep business definitions in Git, across 22+ data sources.**
 
@@ -22,7 +22,7 @@
 
 ## What JanusAI is
 
-JanusAI is the open-source **generative BI (CReport) engine**. It gives the AI agents you already use (Claude Code, Cursor, MCP clients, LangChain) a **governed semantic layer** and an **AI context layer**, so they turn business questions into correct SQL, ship the answer as a shareable dashboard, and stay inside your guardrails.
+JanusAI is the **generative BI (CReport) engine**. It gives the AI agents you already use (Claude Code, Cursor, MCP clients, LangChain) a **governed semantic layer** and an **AI context layer**, so they turn business questions into correct SQL, ship the answer as a shareable dashboard, and stay inside your guardrails.
 
 Schemas tell an agent where data lives. Janus tells it what the data *means*: approved metric definitions, enums, units, joins, worked examples, and the tribal knowledge buried in docs and chat threads. All of it lives as reviewable YAML and Markdown in a repo you own.
 

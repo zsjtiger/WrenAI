@@ -4,7 +4,7 @@ sidebar_label: OpenCode
 
 # 使用 OpenCode 安装 Janus AI
 
-SST 推出的开源编程智能体。
+SST 推出的编程智能体。
 
 ## 前提条件
 

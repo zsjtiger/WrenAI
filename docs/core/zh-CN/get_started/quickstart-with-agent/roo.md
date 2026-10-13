@@ -4,7 +4,7 @@ sidebar_label: Roo Code
 
 # 使用 Roo Code 安装 Janus AI
 
-开源的 VS Code 编程智能体。
+VS Code 编程智能体。
 
 ## 前提条件
 

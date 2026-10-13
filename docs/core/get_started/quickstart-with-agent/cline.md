@@ -4,7 +4,7 @@ sidebar_label: Cline
 
 # Install Janus AI with Cline
 
-Open-source autonomous coding agent for VS Code.
+Autonomous coding agent for VS Code.
 
 ## Prerequisites
 

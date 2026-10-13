@@ -149,7 +149,7 @@ add(f"rounded=0;fillColor={LINE};strokeColor=none;", 100, 906, 1080, 1, "")
 mono_text(100, 920, 200, "0 SOURCES", size=12)
 mono_text(540, 920, 200, "11", size=12, align="center")
 mono_text(980, 920, 200, "22+ CONNECTORS", size=12, align="right")
-mono_text(680, 956, 500, "COME BUILD OPEN CREPORT WITH US  ·  ★ STAR THE REPO", size=12, align="right")
+mono_text(680, 956, 500, "COME BUILD CREPORT WITH US  ·  ★ STAR THE REPO", size=12, align="right")
 
 xml = ('<mxfile host="Claude" modified="2026-10-13" agent="drawio-reconstruction" version="24.0.0">'
        '<diagram name="JanusAI architecture" id="arch">'

@@ -4,7 +4,7 @@ sidebar_label: Goose
 
 # Install Janus AI with Goose
 
-Block's open-source coding agent.
+Block's coding agent.
 
 ## Prerequisites
 

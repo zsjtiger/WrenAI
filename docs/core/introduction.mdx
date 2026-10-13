@@ -1,10 +1,10 @@
 # Janus AI
 
-*Open-source CReport: your AI agents generate, deploy, and govern dashboards on the databases you already have, grounded in a context layer they can actually trust.*
+*CReport: your AI agents generate, deploy, and govern dashboards on the databases you already have, grounded in a context layer they can actually trust.*
 
 <iframe src="https://ghbtns.com/github-btn.html?user=CrossNow&repo=JanusAI&type=star&count=true&size=large" frameBorder="0" scrolling="0" height="50" title="Janus AI"></iframe>
 
-**Janus AI is the open-source CReport engine.** It lets any AI agent turn a business question into governed BI, from a single SQL answer to a shareable, deployed dashboard, on top of the data sources you already have.
+**Janus AI is the CReport engine.** It lets any AI agent turn a business question into governed BI, from a single SQL answer to a shareable, deployed dashboard, on top of the data sources you already have.
 
 Generative BI is only as good as the context it stands on. So underneath CReport, Janus AI is an **open context layer**: it sits between your data sources and any agent or application, and gives them the same machine-readable understanding of your business. That means what the data means, how it should be joined, which definitions are approved, and how queries should be planned against the underlying database.
 
@@ -88,9 +88,9 @@ Behind the scenes, Janus AI:
 
 From there, the same context drives the *Deploy* move: ask your agent to turn an answer into a dashboard and it builds a browser-side CReport app from the project and ships it to your own hosting.
 
-## What is in the open core
+## What is in the core
 
-The open core includes:
+The core includes:
 
 - **[MDL (Modeling Definition Language)](/oss/concepts/what_is_mdl)**: the semantic contract. MDL defines models, relationships, calculated fields, views, and agent-oriented metadata in files you can read, review, version, and fork.
 - **Rust semantic engine**: powered by Apache DataFusion. It plans and executes modeled SQL across supported data sources such as PostgreSQL, MySQL, BigQuery, Snowflake, DuckDB, ClickHouse, Trino, SQL Server, Databricks, Redshift, Oracle, Athena, Apache Spark, and more.
@@ -114,7 +114,7 @@ The active arcs are end-to-end context enrichment, richer CReport (more chart ty
 
 ## A note on the "CReport" name
 
-"CReport" here means this open-source generative-BI capability: agents that
+"CReport" here means this generative-BI capability: agents that
 generate governed answers and deploy dashboards on top of Janus's context layer.
 
 The earlier **Janus AI CReport** app, the Docker-based chat-first BI product, is

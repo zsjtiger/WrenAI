@@ -74,7 +74,7 @@ Profiles separate connection credentials from project definitions. The same MDL 
 
 Replacing your stack to get an AI agent that queries it well is a fast way to make nobody happy. The pattern Janus AI was designed around is the inverse: **leave the existing stack in place, add one inspectable layer on top, give every agent the same governed surface**.
 
-That is also why Janus AI is open source. Business context is too important to lock inside a vendor product. Your MDL, examples, query history, and mapping decisions should live in your repo, under your team's review.
+Business context is too important to lock inside a vendor product. Your MDL, examples, query history, and mapping decisions should live in your repo, under your team's review.
 
 ## See also
 

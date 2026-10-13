@@ -1,7 +1,7 @@
 # janus-semantic-core
 🌐 [English](./README.md) · **简体中文**
 
-[Janus AI](https://crossnow.cn) 的 Rust 语义引擎核心 —— 一个面向 MCP 客户端和 AI 智能体的开源语义层。
+[Janus AI](https://crossnow.cn) 的 Rust 语义引擎核心 —— 一个面向 MCP 客户端和 AI 智能体的语义层。
 
 `janus-semantic-core` 接收一个 **MDL（Modeling Definition Language，建模定义语言）** manifest 以及一条 SQL 查询，并通过语义层对查询进行改写：解析模型、关系、指标和视图，应用行级与列级访问控制，最终生成优化后的逻辑计划。它基于 [Apache DataFusion](https://datafusion.apache.org/) 构建。
 

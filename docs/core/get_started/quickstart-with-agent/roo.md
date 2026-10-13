@@ -4,7 +4,7 @@ sidebar_label: Roo Code
 
 # Install Janus AI with Roo Code
 
-Open-source VS Code coding agent.
+VS Code coding agent.
 
 ## Prerequisites
 

@@ -2,11 +2,11 @@
 <a href="https://crossnow.cn">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="./assets/janus-ai-banner-dark.zh-CN.png">
-    <img src="./assets/janus-ai-banner.zh-CN.png" width="100%" alt="JanusAI：面向 AI 智能体的开源 CReport">
+    <img src="./assets/janus-ai-banner.zh-CN.png" width="100%" alt="JanusAI：面向 AI 智能体的 CReport">
   </picture>
 </a>
 
-### 面向 AI 智能体的开源 CReport
+### 面向 AI 智能体的 CReport
 
 **让你的智能体生成受治理的 SQL、部署仪表盘，并把业务定义保存在 Git 中，覆盖 22+ 种数据源。**
 
@@ -22,7 +22,7 @@
 
 ## JanusAI 是什么
 
-JanusAI 是开源的**生成式 BI（CReport）引擎**。它为你已经在用的 AI 智能体（Claude Code、Cursor、MCP 客户端、LangChain）提供一个**受治理的语义层**和一个 **AI 上下文层**，让它们把业务问题转换为正确的 SQL、把结果发布为可分享的仪表盘，并始终处在你设定的护栏之内。
+JanusAI 是**生成式 BI（CReport）引擎**。它为你已经在用的 AI 智能体（Claude Code、Cursor、MCP 客户端、LangChain）提供一个**受治理的语义层**和一个 **AI 上下文层**，让它们把业务问题转换为正确的 SQL、把结果发布为可分享的仪表盘，并始终处在你设定的护栏之内。
 
 Schema 只能告诉智能体数据存放在哪里。Janus 则告诉它数据**意味着什么**：经过批准的指标定义、枚举值、单位、关联关系、示例，以及埋在文档和聊天记录里的隐性知识。这些内容都以可审阅的 YAML 和 Markdown 文件保存在你自己的代码仓库中。
 

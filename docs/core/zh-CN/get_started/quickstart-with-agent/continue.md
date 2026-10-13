@@ -4,7 +4,7 @@ sidebar_label: Continue
 
 # 使用 Continue 安装 Janus AI
 
-开源 IDE 编程助手。
+IDE 编程助手。
 
 ## 前提条件
 

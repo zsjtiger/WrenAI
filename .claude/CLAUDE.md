@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Janus is an open-source semantic engine for MCP clients and AI agents. It translates SQL queries through a semantic layer (MDL — Modeling Definition Language) and executes them against 22+ data sources (PostgreSQL, BigQuery, Snowflake, Spark, etc.). The Rust engine is powered by Apache DataFusion (upstream, crates.io v55).
+Janus is a semantic engine for MCP clients and AI agents. It translates SQL queries through a semantic layer (MDL — Modeling Definition Language) and executes them against 22+ data sources (PostgreSQL, BigQuery, Snowflake, Spark, etc.). The Rust engine is powered by Apache DataFusion (upstream, crates.io v55).
 
 The previous JanusAI services (`janus-ui/`, `janus-ai-service/`, `janus-launcher/`, `docker/`, `deployment/`) were moved to the `legacy/v1` branch (tag `v1-final`) as of the janus-engine import. Active development is focused on the Open Context Engine.
 

@@ -4,7 +4,7 @@ sidebar_label: OpenCode
 
 # Install Janus AI with OpenCode
 
-SST's open-source coding agent.
+SST's coding agent.
 
 ## Prerequisites
 

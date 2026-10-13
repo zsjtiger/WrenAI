@@ -4,7 +4,7 @@ sidebar_label: OpenHands
 
 # 使用 OpenHands 安装 Janus AI
 
-All-Hands 开源编程智能体。
+All-Hands 编程智能体。
 
 ## 前提条件
 

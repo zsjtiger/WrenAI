@@ -4,7 +4,7 @@ sidebar_label: OpenHands
 
 # Install Janus AI with OpenHands
 
-All-Hands open-source coding agent.
+All-Hands coding agent.
 
 ## Prerequisites
 

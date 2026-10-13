@@ -4,7 +4,7 @@ sidebar_label: Why Janus? (and how it compares)
 
 # Why Janus? (and how it compares)
 
-Janus AI is the **open-source CReport engine**: it lets AI agents generate, deploy,
+Janus AI is the **CReport engine**: it lets AI agents generate, deploy,
 and govern business intelligence on top of a context layer they can trust. This
 page is the honest version: what Janus is for, what it is *not*, and how it
 differs from the tools it sits near.

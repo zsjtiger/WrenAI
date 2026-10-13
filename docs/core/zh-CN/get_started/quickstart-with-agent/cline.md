@@ -4,7 +4,7 @@ sidebar_label: Cline
 
 # 使用 Cline 安装 Janus AI
 
-适用于 VS Code 的开源自主编程智能体。
+适用于 VS Code 的自主编程智能体。
 
 ## 前提条件
 

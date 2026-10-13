@@ -4,7 +4,7 @@ sidebar_label: Goose
 
 # 使用 Goose 安装 Janus AI
 
-Block 的开源编码智能体。
+Block 的编码智能体。
 
 ## 前置条件
 

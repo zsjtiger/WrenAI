@@ -4,7 +4,7 @@ sidebar_label: Continue
 
 # Install Janus AI with Continue
 
-Open-source IDE coding assistant.
+IDE coding assistant.
 
 ## Prerequisites
 

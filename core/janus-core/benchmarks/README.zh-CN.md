@@ -1,7 +1,7 @@
 # Janus Core 基准测试
 🌐 [English](./README.md) · **简体中文**
 
-本 crate 包含 Janus core 库的基准测试。这些测试基于业界标准的开源基准测试构建，旨在帮助衡量和提升 Janus core 的性能。
+本 crate 包含 Janus core 库的基准测试。这些测试基于业界标准的基准测试构建，旨在帮助衡量和提升 Janus core 的性能。
 
 # 支持的基准测试
 
