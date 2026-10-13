@@ -16,7 +16,6 @@ context_app = typer.Typer(
 )
 
 
-
 FromOsiOpt = Annotated[
     Optional[str],
     typer.Option(
@@ -212,43 +211,51 @@ def init(
         return
 
     if from_mdl:
-        # ── Import from MDL JSON ──────────────────────────────
-        from janus.context import (  # noqa: PLC0415
-            convert_mdl_to_project,
-            write_project_files,
-        )
-
-        mdl_path = Path(from_mdl).expanduser()
-        if not mdl_path.exists():
-            typer.echo(f"Error: {mdl_path} not found.", err=True)
-            raise typer.Exit(1)
-
-        mdl_json = json.loads(mdl_path.read_text(encoding="utf-8"))
-        files = convert_mdl_to_project(mdl_json)
-        try:
-            write_project_files(
-                files, project_path, force=force, extra_managed_paths=("cubes",)
-            )
-        except SystemExit as e:
-            typer.echo(str(e), err=True)
-            raise typer.Exit(1)
-
-        model_count = len(mdl_json.get("models", []))
-        view_count = len(mdl_json.get("views", []))
-        rel_count = len(mdl_json.get("relationships", []))
-        cube_count = len(mdl_json.get("cubes", []))
-
-        typer.echo(f"Imported MDL to YAML project at {project_path}/")
-        typer.echo(
-            f"  {model_count} models, {view_count} views, {rel_count} relationships, "
-            f"{cube_count} cubes"
-        )
-        typer.echo("\nNext steps:")
-        typer.echo(f"  janus context validate --path {project_path}")
-        typer.echo(f"  janus context build --path {project_path}")
+        _init_from_mdl(from_mdl, project_path, force=force)
         return
 
-    # ── Scaffold empty project (existing behavior) ────────────
+    _scaffold_project(project_path, force=force, empty=empty)
+
+
+def _init_from_mdl(from_mdl: str, project_path: Path, *, force: bool) -> None:
+    """Import an existing MDL JSON file into a YAML project."""
+    from janus.context import (  # noqa: PLC0415
+        convert_mdl_to_project,
+        write_project_files,
+    )
+
+    mdl_path = Path(from_mdl).expanduser()
+    if not mdl_path.exists():
+        typer.echo(f"Error: {mdl_path} not found.", err=True)
+        raise typer.Exit(1)
+
+    mdl_json = json.loads(mdl_path.read_text(encoding="utf-8"))
+    files = convert_mdl_to_project(mdl_json)
+    try:
+        write_project_files(
+            files, project_path, force=force, extra_managed_paths=("cubes",)
+        )
+    except SystemExit as e:
+        typer.echo(str(e), err=True)
+        raise typer.Exit(1)
+
+    model_count = len(mdl_json.get("models", []))
+    view_count = len(mdl_json.get("views", []))
+    rel_count = len(mdl_json.get("relationships", []))
+    cube_count = len(mdl_json.get("cubes", []))
+
+    typer.echo(f"Imported MDL to YAML project at {project_path}/")
+    typer.echo(
+        f"  {model_count} models, {view_count} views, {rel_count} relationships, "
+        f"{cube_count} cubes"
+    )
+    typer.echo("\nNext steps:")
+    typer.echo(f"  janus context validate --path {project_path}")
+    typer.echo(f"  janus context build --path {project_path}")
+
+
+def _scaffold_project(project_path: Path, *, force: bool, empty: bool) -> None:
+    """Scaffold an empty (or example) project in ``project_path``."""
     from janus.context import PROJECT_FILE  # noqa: PLC0415
 
     project_file = project_path / PROJECT_FILE
@@ -262,6 +269,15 @@ def init(
         )
         raise typer.Exit(1)
 
+    _write_base_scaffold(project_path, project_file)
+    if not empty:
+        _write_example_scaffold(project_path)
+    _write_knowledge_and_agents(project_path, force=force)
+    _print_scaffold_summary(project_path, empty=empty)
+
+
+def _write_base_scaffold(project_path: Path, project_file: Path) -> None:
+    """Directories, janus_project.yml, relationships.yml and .gitignore."""
     # Create directory structure
     (project_path / "models").mkdir(parents=True, exist_ok=True)
     (project_path / "views").mkdir(parents=True, exist_ok=True)
@@ -310,51 +326,55 @@ def init(
             encoding="utf-8",
         )
 
-    if not empty:
-        # Scaffold example model (table_reference mode)
-        example_model_dir = project_path / "models" / "example"
-        example_model_dir.mkdir(parents=True, exist_ok=True)
-        (example_model_dir / "metadata.yml").write_text(
-            "# Example model — replace with your actual table\n"
-            "name: example\n"
-            "# table_reference points to the ACTUAL database table location\n"
-            "table_reference:\n"
-            '  catalog: ""        # your database catalog (empty if N/A)\n'
-            "  schema: public      # your database schema\n"
-            "  table: example      # your database table name\n"
-            "columns:\n"
-            "  - name: id\n"
-            "    type: INTEGER\n"
-            "    is_calculated: false\n"
-            "    not_null: true\n"
-            "    is_primary_key: true\n"
-            "    properties: {}\n"
-            "  - name: name\n"
-            "    type: VARCHAR\n"
-            "    is_calculated: false\n"
-            "    not_null: false\n"
-            "    properties: {}\n"
-            "primary_key: id\n"
-            "cached: false\n"
-            "properties: {}\n",
-            encoding="utf-8",
-        )
 
-        # Scaffold example view
-        example_view_dir = project_path / "views" / "example_view"
-        example_view_dir.mkdir(parents=True, exist_ok=True)
-        (example_view_dir / "metadata.yml").write_text(
-            "# Example view — replace with your actual view\n"
-            "name: example_view\n"
-            "properties:\n"
-            '  description: "An example view"\n',
-            encoding="utf-8",
-        )
-        (example_view_dir / "sql.yml").write_text(
-            "statement: >\n  SELECT * FROM example LIMIT 100\n", encoding="utf-8"
-        )
+def _write_example_scaffold(project_path: Path) -> None:
+    """Placeholder example model (table_reference) and view."""
+    # Scaffold example model (table_reference mode)
+    example_model_dir = project_path / "models" / "example"
+    example_model_dir.mkdir(parents=True, exist_ok=True)
+    (example_model_dir / "metadata.yml").write_text(
+        "# Example model — replace with your actual table\n"
+        "name: example\n"
+        "# table_reference points to the ACTUAL database table location\n"
+        "table_reference:\n"
+        '  catalog: ""        # your database catalog (empty if N/A)\n'
+        "  schema: public      # your database schema\n"
+        "  table: example      # your database table name\n"
+        "columns:\n"
+        "  - name: id\n"
+        "    type: INTEGER\n"
+        "    is_calculated: false\n"
+        "    not_null: true\n"
+        "    is_primary_key: true\n"
+        "    properties: {}\n"
+        "  - name: name\n"
+        "    type: VARCHAR\n"
+        "    is_calculated: false\n"
+        "    not_null: false\n"
+        "    properties: {}\n"
+        "primary_key: id\n"
+        "cached: false\n"
+        "properties: {}\n",
+        encoding="utf-8",
+    )
 
-    # ── knowledge/ skeleton (first-class business context) ──
+    # Scaffold example view
+    example_view_dir = project_path / "views" / "example_view"
+    example_view_dir.mkdir(parents=True, exist_ok=True)
+    (example_view_dir / "metadata.yml").write_text(
+        "# Example view — replace with your actual view\n"
+        "name: example_view\n"
+        "properties:\n"
+        '  description: "An example view"\n',
+        encoding="utf-8",
+    )
+    (example_view_dir / "sql.yml").write_text(
+        "statement: >\n  SELECT * FROM example LIMIT 100\n", encoding="utf-8"
+    )
+
+
+def _write_knowledge_and_agents(project_path: Path, *, force: bool) -> None:
+    """knowledge/ skeleton (first-class business context) and AGENTS.md."""
     from janus.context import (  # noqa: PLC0415
         _AGENTS_MD_TEMPLATE,
         create_knowledge_skeleton,
@@ -375,6 +395,8 @@ def init(
     # NL→SQL pairs live in knowledge/sql/ (written by `janus memory store`),
     # so no queries.yml is scaffolded.
 
+
+def _print_scaffold_summary(project_path: Path, *, empty: bool) -> None:
     typer.echo(f"Janus project initialized: {project_path}")
     typer.echo("  janus_project.yml            — project metadata (edit data_source)")
     if not empty:
