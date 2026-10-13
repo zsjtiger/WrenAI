@@ -58,34 +58,3 @@ This installs a ~50-line discovery stub. Your agent fetches full workflow guides
 The agent checks your environment, creates a connection profile, scaffolds the project, and runs a first query.
 
 **No database handy?** Say "Use Janus with the bundled `jaffle_shop` sample" and run the same flow against a real sample warehouse.
-
-<details>
-<summary>Slow <code>pip install</code> from mainland China?</summary>
-
-```bash
-pip install janusai -i https://pypi.tuna.tsinghua.edu.cn/simple
-```
-
-If HuggingFace model downloads time out, run `export HF_ENDPOINT=https://hf-mirror.com` before using the CLI.
-
-</details>
-
-### Then keep going
-
-Once you're connected, these three prompts cover the whole CReport loop:
-
-| Beat | Ask your agent | What happens |
-|---|---|---|
-| **Know** | "Enrich my Janus project with the business context in `raw/`." | Runs `janus skills get enrich-context`. Writes definitions, examples, and memory as reviewable files. |
-| **Generate** | "Who are our top 10 customers by sales this quarter?" | Recalls MDL context and past queries, writes governed SQL, executes via `janus query`. |
-| **Deploy** | "Turn that into a dashboard I can filter and share, deployed to Vercel." | Runs `janus skills get creport`. Builds a browser-side app and returns a live URL on your Vercel or Cloudflare Pages account. |
-
-<div align="center">
-
-**[Follow the full quickstart →](https://docs.crossnow.cn/oss/get_started/quickstart)**
-
-</div>
-
-## License
-
-Apache 2.0. See [LICENSE](./LICENSE).
