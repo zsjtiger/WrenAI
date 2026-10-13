@@ -228,7 +228,7 @@ The reviewable, version-controlled knowledge agents need but schemas don't provi
 <details>
 <summary><b>What happened to the Docker-based Janus AI GenBI app?</b></summary>
 
-On 2026-05-07 Janus Engine merged into this repo under [`core/`](./core), and the previous `Canner/wren-engine` repo was archived. The earlier chat-first BI product is now **Janus GenBI Classic**, preserved on the [`legacy/v1`](https://github.com/CrossNow/JanusAI/tree/legacy/v1) branch (tag `v1-final`) with no new features or security fixes. For a maintained, hosted version of that experience, see [Janus AI Commercial](https://crossnow.cn). [Read the announcement →](https://github.com/CrossNow/JanusAI/discussions/2205)
+On 2026-05-07 Janus Engine merged into this repo under [`core/`](./core), and the previous wren-engine repo was archived. The earlier chat-first BI product is now **Janus GenBI Classic**, preserved on the [`legacy/v1`](https://github.com/CrossNow/JanusAI/tree/legacy/v1) branch (tag `v1-final`) with no new features or security fixes. For a maintained, hosted version of that experience, see [Janus AI Commercial](https://crossnow.cn). [Read the announcement →](https://github.com/CrossNow/JanusAI/discussions/2205)
 
 </details>
 
