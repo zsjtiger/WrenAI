@@ -174,7 +174,7 @@ never CLI flags; Cloudflare needs `wrangler` installed. See the
 
 **8. (Optional) Serve an MCP server** — expose the project's query, schema, and
 knowledge tools to Claude Desktop/Code, Cursor, or any MCP client. Runs
-in-process against the compiled MDL — no ibis-server, no separate service:
+in-process against the compiled MDL — no separate service:
 
 ```bash
 janus serve mcp                                # stdio (default) — client spawns this as a child process

@@ -1,6 +1,6 @@
 # janus-core-py
 
-PyO3 bindings exposing janus-core to Python. Built with Maturin. This is the bridge between the Rust semantic engine and the Python ibis-server.
+PyO3 bindings exposing janus-core to Python. Built with Maturin. This is the bridge between the Rust semantic engine and the Python SDK.
 
 ## Key Source Files (`src/`)
 

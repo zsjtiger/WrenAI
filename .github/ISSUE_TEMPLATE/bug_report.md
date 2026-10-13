@@ -39,6 +39,5 @@ Add any other context about the problem here.
     ```bash
     docker logs janusai-janus-ui-1 >& janusai-janus-ui.log && \
     docker logs janusai-janus-ai-service-1 >& janusai-janus-ai-service.log && \
-    docker logs janusai-janus-engine-1 >& janusai-janus-engine.log && \
-    docker logs janusai-ibis-server-1 >& janusai-ibis-server.log
+    docker logs janusai-janus-engine-1 >& janusai-janus-engine.log
     ```

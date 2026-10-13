@@ -355,7 +355,7 @@ YAML 结构和校验规则，参见 [Cube 指南](../guides/cubes.md)。
 
 ## `janus serve`：MCP 服务器
 
-把项目的查询、Schema 和知识工具作为本地 MCP 服务器提供给 MCP 客户端（Claude Desktop/Code、Cursor 或任何支持 MCP 的 IDE）。服务器在进程内嵌入引擎，不需要 ibis-server，也没有独立后端，因此只要运行过 `janus context build`，就可以直接从项目目录启动。
+把项目的查询、Schema 和知识工具作为本地 MCP 服务器提供给 MCP 客户端（Claude Desktop/Code、Cursor 或任何支持 MCP 的 IDE）。服务器在进程内嵌入引擎，没有独立后端，因此只要运行过 `janus context build`，就可以直接从项目目录启动。
 
 ### `janus serve mcp`
 

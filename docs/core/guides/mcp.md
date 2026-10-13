@@ -7,7 +7,7 @@ sidebar_label: Serve an MCP server
 `janus serve mcp` exposes a Janus project's query, schema, and business-knowledge
 tools to any MCP client — Claude Desktop, Claude Code, Cursor, or another IDE.
 The server runs in-process against the compiled MDL and the active connection
-profile: no ibis-server, no separate backend, just the CLI you already have
+profile: no separate backend, just the CLI you already have
 installed.
 
 ## Before you start

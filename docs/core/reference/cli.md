@@ -388,7 +388,7 @@ validation rules.
 
 Serve the project's query, schema, and knowledge tools to MCP clients (Claude
 Desktop/Code, Cursor, any MCP-capable IDE) as a local MCP server. The server
-embeds the engine in-process — no ibis-server, no separate backend — so it
+embeds the engine in-process — no separate backend — so it
 runs from a bare project checkout as long as `janus context build` has run.
 
 ### `janus serve mcp`

@@ -156,7 +156,7 @@ janus creport deploy sales --provider vercel        # ship a shareable URL (prev
 
 令牌从环境变量 / `.env` 中读取（`VERCEL_TOKEN` / `CLOUDFLARE_API_TOKEN`），而非 CLI 参数；Cloudflare 需要已安装 `wrangler`。请参阅 [CReport 指南](../../docs/core/guides/creport.md) 和 [CLI 参考](../../docs/core/reference/cli.md#janus-creport--build--deploy-creport-apps)。
 
-**8.（可选）启动 MCP 服务器** —— 将项目的查询、schema 和知识工具暴露给 Claude Desktop/Code、Cursor 或任何 MCP 客户端。直接在进程内基于编译后的 MDL 运行 —— 无需 ibis-server，也无需单独的服务：
+**8.（可选）启动 MCP 服务器** —— 将项目的查询、schema 和知识工具暴露给 Claude Desktop/Code、Cursor 或任何 MCP 客户端。直接在进程内基于编译后的 MDL 运行 —— 无需单独的服务：
 
 ```bash
 janus serve mcp                                # stdio (default) — client spawns this as a child process

@@ -4,7 +4,7 @@ sidebar_label: 启动 MCP 服务器
 
 # 启动 MCP 服务器
 
-`janus serve mcp` 会把 Janus 项目的查询、Schema 和业务知识工具暴露给任何 MCP 客户端，例如 Claude Desktop、Claude Code、Cursor 或其他 IDE。服务器在进程内基于编译好的 MDL 和当前激活的连接配置文件运行，不需要 ibis-server，也没有独立的后端，只需要你已经安装的 CLI。
+`janus serve mcp` 会把 Janus 项目的查询、Schema 和业务知识工具暴露给任何 MCP 客户端，例如 Claude Desktop、Claude Code、Cursor 或其他 IDE。服务器在进程内基于编译好的 MDL 和当前激活的连接配置文件运行，没有独立的后端，只需要你已经安装的 CLI。
 
 ## 开始之前
 

@@ -3,7 +3,7 @@
 
 The Janus Core module serves as the semantic core of the Janus engine. To understand the concept of the Janus engine, refer to the [Janus engine documentation](https://docs.crossnow.cn/oss/engine/concept/what_is_semantics). 
 
-This module is utilized by the API v3 of the ibis-server for SQL planning. Additionally, there is another module for Python bindings, [janus-core-py](../janus-core-py/), which is also used by the ibis-server.
+This module provides SQL planning for the Janus engine. Additionally, there is another module for Python bindings, [janus-core-py](../janus-core-py/).
 
 ## How to Test / Build
 
