@@ -153,6 +153,15 @@ class ProjectFile:
     content: str  # file content (YAML or SQL or Markdown)
 
 
+def _dump_yaml(data: Any) -> str:
+    return yaml.dump(
+        data,
+        default_flow_style=False,
+        sort_keys=False,
+        allow_unicode=True,
+    )
+
+
 def convert_mdl_to_project(mdl_json: dict) -> list[ProjectFile]:
     """Convert an MDL JSON manifest to a list of project files.
 
@@ -162,9 +171,18 @@ def convert_mdl_to_project(mdl_json: dict) -> list[ProjectFile]:
     Returns:
         List of ProjectFile objects, each representing a file to write.
     """
-    files: list[ProjectFile] = []
+    files: list[ProjectFile] = [_project_config_file(mdl_json)]
+    files.extend(_model_files(mdl_json.get("models", [])))
+    files.extend(_view_files(mdl_json.get("views", [])))
+    files.extend(_cube_files(mdl_json.get("cubes", [])))
+    files.extend(_relationship_files(mdl_json.get("relationships", [])))
+    files.extend(_knowledge_files(mdl_json.get("_instructions")))
+    files.append(ProjectFile(relative_path="AGENTS.md", content=_AGENTS_MD_TEMPLATE))
+    return files
 
-    # ── janus_project.yml ──────────────────────────────────────
+
+def _project_config_file(mdl_json: dict) -> ProjectFile:
+    """janus_project.yml, with the schema_version derived from layoutVersion."""
     # Map engine layoutVersion to the schema_version an import should land on.
     # layoutVersion 3 covers both v4 (composite PK) and v5; a fresh import
     # targets the current layout (5, knowledge/-native).
@@ -184,21 +202,14 @@ def convert_mdl_to_project(mdl_json: dict) -> list[ProjectFile]:
         project_config["schema"] = mdl_json["schema"]
     if "dataSource" in mdl_json:
         project_config["data_source"] = mdl_json["dataSource"]
-
-    files.append(
-        ProjectFile(
-            relative_path="janus_project.yml",
-            content=yaml.dump(
-                project_config,
-                default_flow_style=False,
-                sort_keys=False,
-                allow_unicode=True,
-            ),
-        )
+    return ProjectFile(
+        relative_path="janus_project.yml", content=_dump_yaml(project_config)
     )
 
-    # ── Models ────────────────────────────────────────────────
-    for i, model in enumerate(mdl_json.get("models", [])):
+
+def _model_files(models: list[dict]) -> list[ProjectFile]:
+    files: list[ProjectFile] = []
+    for i, model in enumerate(models):
         model_snake = _convert_keys_to_snake(model)
         if "name" not in model_snake:
             raise ValueError(f"Model at index {i} is missing required 'name' field")
@@ -217,17 +228,15 @@ def convert_mdl_to_project(mdl_json: dict) -> list[ProjectFile]:
         files.append(
             ProjectFile(
                 relative_path=f"{dir_path}/metadata.yml",
-                content=yaml.dump(
-                    model_snake,
-                    default_flow_style=False,
-                    sort_keys=False,
-                    allow_unicode=True,
-                ),
+                content=_dump_yaml(model_snake),
             )
         )
+    return files
 
-    # ── Views ─────────────────────────────────────────────────
-    for i, view in enumerate(mdl_json.get("views", [])):
+
+def _view_files(views: list[dict]) -> list[ProjectFile]:
+    files: list[ProjectFile] = []
+    for i, view in enumerate(views):
         view_snake = _convert_keys_to_snake(view)
         if "name" not in view_snake:
             raise ValueError(f"View at index {i} is missing required 'name' field")
@@ -239,12 +248,7 @@ def convert_mdl_to_project(mdl_json: dict) -> list[ProjectFile]:
             files.append(
                 ProjectFile(
                     relative_path=f"{dir_path}/sql.yml",
-                    content=yaml.dump(
-                        {"statement": statement},
-                        default_flow_style=False,
-                        sort_keys=False,
-                        allow_unicode=True,
-                    ),
+                    content=_dump_yaml({"statement": statement}),
                 )
             )
         elif statement:
@@ -253,55 +257,46 @@ def convert_mdl_to_project(mdl_json: dict) -> list[ProjectFile]:
         files.append(
             ProjectFile(
                 relative_path=f"{dir_path}/metadata.yml",
-                content=yaml.dump(
-                    view_snake,
-                    default_flow_style=False,
-                    sort_keys=False,
-                    allow_unicode=True,
-                ),
+                content=_dump_yaml(view_snake),
             )
         )
+    return files
 
-    # ── Cubes ─────────────────────────────────────────────────
-    for i, cube in enumerate(mdl_json.get("cubes", [])):
+
+def _cube_files(cubes: list[dict]) -> list[ProjectFile]:
+    files: list[ProjectFile] = []
+    for i, cube in enumerate(cubes):
         cube_snake = _convert_keys_to_snake(cube)
         if "name" not in cube_snake:
             raise ValueError(f"Cube at index {i} is missing required 'name' field")
         files.append(
             ProjectFile(
                 relative_path=f"cubes/{cube_snake['name']}/metadata.yml",
-                content=yaml.dump(
-                    cube_snake,
-                    default_flow_style=False,
-                    sort_keys=False,
-                    allow_unicode=True,
-                ),
+                content=_dump_yaml(cube_snake),
             )
         )
+    return files
 
-    # ── Relationships ─────────────────────────────────────────
-    relationships = mdl_json.get("relationships", [])
-    if relationships:
-        rels_snake = [_convert_keys_to_snake(r) for r in relationships]
-        files.append(
-            ProjectFile(
-                relative_path="relationships.yml",
-                content=yaml.dump(
-                    {"relationships": rels_snake},
-                    default_flow_style=False,
-                    sort_keys=False,
-                    allow_unicode=True,
-                ),
-            )
+
+def _relationship_files(relationships: list[dict]) -> list[ProjectFile]:
+    if not relationships:
+        return []
+    rels_snake = [_convert_keys_to_snake(r) for r in relationships]
+    return [
+        ProjectFile(
+            relative_path="relationships.yml",
+            content=_dump_yaml({"relationships": rels_snake}),
         )
+    ]
 
-    # ── knowledge/ (v5: business rules under knowledge/rules/) ──
-    files.append(
+
+def _knowledge_files(instructions: str | None) -> list[ProjectFile]:
+    """knowledge/ (v5: business rules under knowledge/rules/)."""
+    files = [
         ProjectFile(
             relative_path="knowledge/knowledge.yml", content="schema_version: 1\n"
         )
-    )
-    instructions = mdl_json.get("_instructions")
+    ]
     if instructions:
         files.append(
             ProjectFile(
@@ -309,15 +304,6 @@ def convert_mdl_to_project(mdl_json: dict) -> list[ProjectFile]:
                 content=instructions.strip() + "\n",
             )
         )
-
-    # ── AGENTS.md ──────────────────────────────────────────────
-    files.append(
-        ProjectFile(
-            relative_path="AGENTS.md",
-            content=_AGENTS_MD_TEMPLATE,
-        )
-    )
-
     return files
 
 
