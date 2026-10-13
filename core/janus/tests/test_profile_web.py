@@ -309,3 +309,118 @@ def test_save_no_activate(isolated_profiles):
     )
     # "existing" remains active because activate=False
     assert profile_mod.get_active_name() == "existing"
+
+
+# ── POST /save — branches without coverage (pin current status and text) ──────
+
+
+def test_save_invalid_variant_returns_error(client):
+    """A variant outside the datasource's variants is rejected with 400."""
+    resp = client.post(
+        "/save",
+        data={
+            "_profile_name": "test-profile",
+            "datasource": "bigquery",
+            "_variant": "no-such-variant",
+        },
+    )
+    assert resp.status_code == 400
+    assert "Invalid variant." in resp.text
+
+
+def test_save_unsupported_datasource_returns_error(client):
+    """An unknown datasource name is reported as unsupported with 400."""
+    resp = client.post(
+        "/save",
+        data={"_profile_name": "test-profile", "datasource": "no-such-source"},
+    )
+    assert resp.status_code == 400
+    assert "Unsupported data source." in resp.text
+
+
+def test_save_json_that_is_not_an_object_returns_error(client):
+    """_json must decode to an object; a list is rejected as invalid JSON."""
+    resp = client.post(
+        "/save",
+        data={
+            "_profile_name": "test-profile",
+            "datasource": "postgres",
+            "_json": "[1, 2]",
+        },
+    )
+    assert resp.status_code == 400
+    assert "Invalid JSON." in resp.text
+
+
+def test_save_blank_profile_name_falls_back_to_cli_name(isolated_profiles):
+    """A blank _profile_name field uses the name the app was created with."""
+    app, result, _ = create_app("cli-name")
+    client = TestClient(app, raise_server_exceptions=True)
+    resp = client.post(
+        "/save",
+        data={"_profile_name": "   ", "datasource": "duckdb", "url": "/data"},
+    )
+    assert resp.status_code == 200
+    assert result == {"name": "cli-name", "datasource": "duckdb"}
+    assert "cli-name" in profile_mod.list_profiles()
+
+
+def test_save_value_error_from_add_profile_is_reported(client, monkeypatch):
+    """ValueError from add_profile is shown to the user with 400."""
+
+    def _reject(name, profile, activate=False):
+        raise ValueError("bad profile name")
+
+    monkeypatch.setattr(profile_mod, "add_profile", _reject)
+    resp = client.post(
+        "/save",
+        data={"_profile_name": "test-profile", "datasource": "duckdb", "url": "/d"},
+    )
+    assert resp.status_code == 400
+    assert "Failed to save profile: bad profile name" in resp.text
+
+
+def test_save_os_error_from_add_profile_is_500(client, monkeypatch):
+    """OSError from add_profile is reported with the message and status 500."""
+
+    def _disk(name, profile, activate=False):
+        raise OSError("disk full")
+
+    monkeypatch.setattr(profile_mod, "add_profile", _disk)
+    resp = client.post(
+        "/save",
+        data={"_profile_name": "test-profile", "datasource": "duckdb", "url": "/d"},
+    )
+    assert resp.status_code == 500
+    assert "Failed to save profile: disk full" in resp.text
+
+
+def test_save_unexpected_error_is_generic_500(client, monkeypatch):
+    """Any other exception returns a generic 500 without leaking its message."""
+
+    def _boom(name, profile, activate=False):
+        raise RuntimeError("secret internals")
+
+    monkeypatch.setattr(profile_mod, "add_profile", _boom)
+    resp = client.post(
+        "/save",
+        data={"_profile_name": "test-profile", "datasource": "duckdb", "url": "/d"},
+    )
+    assert resp.status_code == 500
+    assert "unexpected error" in resp.text
+    assert "secret internals" not in resp.text
+
+
+def test_failed_save_does_not_populate_result(isolated_profiles, monkeypatch):
+    """result stays empty when the save fails, so start() reports no profile."""
+
+    def _reject(name, profile, activate=False):
+        raise ValueError("nope")
+
+    monkeypatch.setattr(profile_mod, "add_profile", _reject)
+    app, result, _ = create_app("my-ds")
+    TestClient(app).post(
+        "/save",
+        data={"_profile_name": "my-ds", "datasource": "duckdb", "url": "/d"},
+    )
+    assert result == {}
