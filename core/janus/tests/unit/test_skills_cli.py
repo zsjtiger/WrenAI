@@ -63,7 +63,7 @@ ALL_SKILLS = {
     "generate-mdl",
     "dlt-connector",
     "enrich-context",
-    "genbi",
+    "creport",
 }
 
 

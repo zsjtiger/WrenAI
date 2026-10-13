@@ -10,7 +10,7 @@ from __future__ import annotations
 import base64
 from pathlib import Path
 
-from janus.genbi.providers.base import DeployError, Deployment
+from janus.creport.providers.base import DeployError, Deployment
 
 _API_URL = "https://api.vercel.com/v13/deployments"
 

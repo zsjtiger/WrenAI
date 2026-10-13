@@ -618,10 +618,10 @@ from janus.memory.cli import memory_app  # noqa: E402
 
 app.add_typer(memory_app)
 
-from janus.genbi.cli import genbi_app  # noqa: PLC0415, E402
+from janus.creport.cli import creport_app  # noqa: PLC0415, E402
 from janus.profile_cli import profile_app  # noqa: PLC0415, E402
 
-app.add_typer(genbi_app)
+app.add_typer(creport_app)
 app.add_typer(profile_app)
 
 from janus.serve_cli import serve_app  # noqa: PLC0415, E402

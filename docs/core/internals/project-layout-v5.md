@@ -3,14 +3,14 @@
 > **Internal engineering doc.** Lives in `docs/core/internals/` and is not published to the
 > docs site. It describes the on-disk structure of a Janus project at `schema_version: 5`
 > for contributors working on the project reader/writer (`core/janus/src/janus/context.py`)
-> and the GenBI app tooling (`core/janus/src/janus/genbi/`).
+> and the CReport app tooling (`core/janus/src/janus/creport/`).
 >
 > For the user-facing field surface of each YAML artifact, see the
 > [MDL schema reference](../reference/mdl.md).
 
 A Janus project is a directory of YAML/SQL source plus a few generated artifacts. v5 is the
 current layout: per-model and per-view folders, `cubes/` as pre-aggregated semantic
-objects, a first-class `knowledge/` base, and GenBI `apps/` as generated front-ends.
+objects, a first-class `knowledge/` base, and CReport `apps/` as generated front-ends.
 
 ## Version axes
 
@@ -53,7 +53,7 @@ the same JSON shape. See `_LAYOUT_VERSION_MAP` in `context.py`.
 │   ├── sql/<slug>.md               #   NL→SQL pairs — source of truth for semantic memory
 │   └── knowledge.yml               #   schema_version (knowledge axis — decoupled from MDL)
 │
-├── apps/<name>/                    # GenBI apps — generated front-ends (see below)
+├── apps/<name>/                    # CReport apps — generated front-ends (see below)
 │   ├── index.html                  #   entry point
 │   ├── mdl.json                    #   compiled MDL copied into the app
 │   └── *.parquet | *.duckdb        #   snapshot data assets (snapshot mode only)
@@ -62,7 +62,7 @@ the same JSON shape. See `_LAYOUT_VERSION_MAP` in `context.py`.
 ├── AGENTS.md                       # agent guidance for this project
 │
 ├── .janus/                          # runtime state (gitignored)
-│   ├── apps.yml                    #   GenBI app index — machine-written by `janus genbi register`
+│   ├── apps.yml                    #   CReport app index — machine-written by `janus creport register`
 │   └── memory/                     #   LanceDB semantic-memory index
 └── target/
     └── mdl.json                    # build artifact (gitignored) — `janus context build` output
@@ -92,9 +92,9 @@ caveats, and the NL→SQL pairs under `sql/` that are the source of truth for se
 memory. It has its **own** `schema_version` in `knowledge.yml`, decoupled from the MDL
 axis because knowledge and the data model evolve on different cadences.
 
-## GenBI apps — `apps/` and `.janus/apps.yml`
+## CReport apps — `apps/` and `.janus/apps.yml`
 
-`janus genbi` scaffolds, builds, and deploys small front-end apps generated from the
+`janus creport` scaffolds, builds, and deploys small front-end apps generated from the
 project. Each app is a self-contained folder under `apps/<name>/`:
 
 - `index.html` — the app entry point.

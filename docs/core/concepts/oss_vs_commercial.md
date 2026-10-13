@@ -24,7 +24,7 @@ Janus AI Commercial is the same engine built for a team. It runs as a hosted clo
 | CLI and SDK for your own agents | ✅ | ✅ |
 | MCP server and hosted REST API | ❌ | ✅ |
 | Access control defined in MDL (RLAC/CLAC) | ✅ | ✅ |
-| GenBI dashboards | ✅ | ✅ |
+| CReport dashboards | ✅ | ✅ |
 | Web UI for non-technical users | ❌ | ✅ |
 | Slack and Microsoft Teams | ❌ | ✅ |
 | Agentic and interactive answer modes (web UI, sandboxed) | ❌ | ✅ |

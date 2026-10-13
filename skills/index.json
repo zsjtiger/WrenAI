@@ -7,7 +7,7 @@
   "skills": [
     {
       "name": "janus",
-      "description": "Janus CLI discovery stub. The actual workflow guides live inside the janus CLI; this stub teaches an AI agent to call `janus skills list`, `janus skills get <name>`, and `janus ask <prompt> --guided|--direct`. Use whenever the user asks a data question, wants to install / set up Janus Engine, connect a new database, load SaaS data via dlt, generate or regenerate an MDL project, enrich a project with business context, or build & deploy a shareable GenBI web app / dashboard from a project's semantic layer (Vercel / Cloudflare).",
+      "description": "Janus CLI discovery stub. The actual workflow guides live inside the janus CLI; this stub teaches an AI agent to call `janus skills list`, `janus skills get <name>`, and `janus ask <prompt> --guided|--direct`. Use whenever the user asks a data question, wants to install / set up Janus Engine, connect a new database, load SaaS data via dlt, generate or regenerate an MDL project, enrich a project with business context, or build & deploy a shareable CReport web app / dashboard from a project's semantic layer (Vercel / Cloudflare).",
       "tags": [
         "janus",
         "discovery-stub",
@@ -15,7 +15,7 @@
         "sql",
         "mdl",
         "semantic-layer",
-        "genbi"
+        "creport"
       ],
       "repository": "https://github.com/CrossNow/JanusAI/tree/main/skills/janus"
     }

@@ -2,11 +2,11 @@
 <a href="https://crossnow.cn">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="./misc/janus-ai-banner-dark.png">
-    <img src="./misc/janus-ai-banner.png" width="100%" alt="JanusAI：面向 AI 智能体的开源 GenBI">
+    <img src="./misc/janus-ai-banner.png" width="100%" alt="JanusAI：面向 AI 智能体的开源 CReport">
   </picture>
 </a>
 
-### 面向 AI 智能体的开源 GenBI
+### 面向 AI 智能体的开源 CReport
 
 **让你的智能体生成受治理的 SQL、部署仪表盘，并把业务定义保存在 Git 中，覆盖 22+ 种数据源。**
 
@@ -35,7 +35,7 @@
 
 ## JanusAI 是什么
 
-JanusAI 是开源的**生成式 BI（GenBI）引擎**。它为你已经在用的 AI 智能体（Claude Code、Cursor、MCP 客户端、LangChain）提供一个**受治理的语义层**和一个 **AI 上下文层**，让它们把业务问题转换为正确的 SQL、把结果发布为可分享的仪表盘，并始终处在你设定的护栏之内。
+JanusAI 是开源的**生成式 BI（CReport）引擎**。它为你已经在用的 AI 智能体（Claude Code、Cursor、MCP 客户端、LangChain）提供一个**受治理的语义层**和一个 **AI 上下文层**，让它们把业务问题转换为正确的 SQL、把结果发布为可分享的仪表盘，并始终处在你设定的护栏之内。
 
 Schema 只能告诉智能体数据存放在哪里。Janus 则告诉它数据**意味着什么**：经过批准的指标定义、枚举值、单位、关联关系、示例，以及埋在文档和聊天记录里的隐性知识。这些内容都以可审阅的 YAML 和 Markdown 文件保存在你自己的代码仓库中。
 
@@ -85,17 +85,17 @@ pip install janusai -i https://pypi.tuna.tsinghua.edu.cn/simple
 
 ### 接下来
 
-连接成功后，下面三类提问覆盖了整个 GenBI 流程：
+连接成功后，下面三类提问覆盖了整个 CReport 流程：
 
 | 阶段 | 向智能体提问 | 发生的事情 |
 |---|---|---|
 | **理解** | "用 `raw/` 里的业务背景补充我的 Janus 项目。" | 运行 `janus skills get enrich-context`，把定义、示例和记忆写成可审阅的文件。 |
 | **生成** | "本季度销售额前 10 的客户是谁？" | 检索 MDL 上下文和历史查询，编写受治理的 SQL，并通过 `janus query` 执行。 |
-| **部署** | "把结果做成可筛选、可分享的仪表盘，部署到 Vercel。" | 运行 `janus skills get genbi`，构建一个浏览器端应用，并在你的 Vercel 或 Cloudflare Pages 账号上返回可访问的链接。 |
+| **部署** | "把结果做成可筛选、可分享的仪表盘，部署到 Vercel。" | 运行 `janus skills get creport`，构建一个浏览器端应用，并在你的 Vercel 或 Cloudflare Pages 账号上返回可访问的链接。 |
 
 <div align="center">
 
-**[查看完整快速开始 →](https://docs.crossnow.cn/oss/get_started/quickstart)** &nbsp;·&nbsp; [构建并部署 GenBI 应用 →](https://docs.crossnow.cn/oss/guides/genbi)
+**[查看完整快速开始 →](https://docs.crossnow.cn/oss/get_started/quickstart)** &nbsp;·&nbsp; [构建并部署 CReport 应用 →](https://docs.crossnow.cn/oss/guides/genbi)
 
 </div>
 
@@ -129,7 +129,7 @@ pip install janusai -i https://pypi.tuna.tsinghua.edu.cn/simple
 
 ## 用 `git push` 把它带给你的团队
 
-Janus 在你笔记本上写入的一切，都是保存在你自己代码仓库中的普通 YAML 和 Markdown。**Git Sync** 可以把同一个仓库变成 Janus Cloud 或自托管部署（包括离线环境）中、面向整个团队的受治理 GenBI 部署。无需导出，也无需重新建模。
+Janus 在你笔记本上写入的一切，都是保存在你自己代码仓库中的普通 YAML 和 Markdown。**Git Sync** 可以把同一个仓库变成 Janus Cloud 或自托管部署（包括离线环境）中、面向整个团队的受治理 CReport 部署。无需导出，也无需重新建模。
 
 - **无需学习新的 CLI。** 用 `janus cloud create` 或 `janus cloud link` 绑定一次目录。之后，`git push` 和 `git pull` 就是全部的操作接口。
 - **指标像代码一样评审。** 对 `net_revenue` 的修改会在 GitHub、GitLab、Bitbucket 或你自己的远程仓库中以可读的 diff 形式出现在 Pull Request 里。可以对它运行 CI，并像发布应用代码一样把 staging 推进到 production。
@@ -154,8 +154,8 @@ To cloud.crossnow.cn/acme/janus-analytics.git
 本仓库中的引擎（MDL 语义层、受治理的 text-to-SQL、MCP 服务器、CLI、22+ 连接器）采用 Apache-2.0 许可，永久免费，并可自托管。以下功能属于商业版本，以 **Janus AI Cloud** 或自托管的 **Enterprise Plus** 形式提供：
 
 - **行级和列级安全**，以及用户和用户组的访问控制
-- **GenBI 界面、仪表盘、嵌入式能力和 API**
-- **场景化 AI 工具链**：GenBI 应用、Agentic 模式、AI 辅助的上下文准备
+- **CReport 界面、仪表盘、嵌入式能力和 API**
+- **场景化 AI 工具链**：CReport 应用、Agentic 模式、AI 辅助的上下文准备
 - **高级安全与审计、支持服务和 SLA**，以及云端、VPC 和离线部署
 
 底层是同一个引擎。无论哪种方式，你的 MDL 都保存在你自己的 Git 中。**[阅读已公布的开源边界 →](https://www.crossnow.cn/en/open-core)**
@@ -173,7 +173,7 @@ Janus **就是**一个受治理的语义层，使用 **建模定义语言（MDL�
 ### 包含的内容
 
 - **引擎**：基于 Apache DataFusion。支持 BigQuery、Snowflake、PostgreSQL、ClickHouse、Amazon Redshift、Databricks、DuckDB 等。[连接数据库 →](https://docs.crossnow.cn/oss/guides/connect)
-- **GenBI 仪表盘**：由智能体构建的浏览器端应用，由 [`janus-core-wasm`](https://docs.crossnow.cn/oss/sdk/wasm) 驱动，可部署到 Vercel 或 Cloudflare Pages
+- **CReport 仪表盘**：由智能体构建的浏览器端应用，由 [`janus-core-wasm`](https://docs.crossnow.cn/oss/sdk/wasm) 驱动，可部署到 Vercel 或 Cloudflare Pages
 - **知识与记忆**：版本化的 `instructions.md` 和 `queries.yml`，以及本地 LanceDB 记忆索引，支持混合检索
 - **智能体 SDK**：`janus-langchain`（LangChain / LangGraph）、`janus-pydantic`，以及用于其他技术栈的参考 Python 集成。[SDK 概览 →](https://docs.crossnow.cn/oss/sdk/overview)
 - **受治理的执行原语**：函数、dry-plan 校验、行数限制、结构化错误
@@ -183,7 +183,7 @@ Janus **就是**一个受治理的语义层，使用 **建模定义语言（MDL�
 ```bash
 janus skills get onboarding         # 工作流指南：设置项目并完成第一条查询
 janus skills get enrich-context     # 工作流指南：补充业务上下文
-janus skills get genbi              # 工作流指南：构建并部署仪表盘
+janus skills get creport              # 工作流指南：构建并部署仪表盘
 
 janus query --sql '...'             # 通过 MDL 语义层执行查询
 janus ask "<question>" --guided     # 为能力较弱的智能体包装问题
@@ -202,9 +202,9 @@ janus ask "<question>" --direct     # 为能力较强的智能体包装问题
 ## 常见问题
 
 <details>
-<summary><b>什么是生成式 BI（GenBI）？</b></summary>
+<summary><b>什么是生成式 BI（CReport）？</b></summary>
 
-由 AI 智能体生成的商业智能。不再由人手工制作图表，而是由智能体生成受治理的 SQL、部署仪表盘并分享出去，其结果基于 AI 上下文层，因此是可信的，而不只是看似合理。Janus AI 是开源的 GenBI 引擎。
+由 AI 智能体生成的商业智能。不再由人手工制作图表，而是由智能体生成受治理的 SQL、部署仪表盘并分享出去，其结果基于 AI 上下文层，因此是可信的，而不只是看似合理。Janus AI 是开源的 CReport 引擎。
 
 </details>
 
@@ -230,20 +230,20 @@ janus ask "<question>" --direct     # 为能力较强的智能体包装问题
 </details>
 
 <details>
-<summary><b>基于 Docker 的 Janus AI GenBI 应用怎么样了？</b></summary>
+<summary><b>基于 Docker 的 Janus AI CReport 应用怎么样了？</b></summary>
 
-2026-05-07，Janus Engine 合并进本仓库的 [`core/`](./core) 目录，之前的 wren-engine 仓库已归档。原先的聊天式 BI 产品现在称为 **Janus GenBI Classic**，保留在 [`legacy/v1`](https://github.com/CrossNow/JanusAI/tree/legacy/v1) 分支（标签 `v1-final`）上，不再添加新功能或安全修复。如需使用受维护的托管版本，请访问 [Janus AI Commercial](https://crossnow.cn)。[阅读公告 →](https://github.com/CrossNow/JanusAI/discussions/2205)
+2026-05-07，Janus Engine 合并进本仓库的 [`core/`](./core) 目录，之前的 wren-engine 仓库已归档。原先的聊天式 BI 产品现在称为 **Janus CReport Classic**，保留在 [`legacy/v1`](https://github.com/CrossNow/JanusAI/tree/legacy/v1) 分支（标签 `v1-final`）上，不再添加新功能或安全修复。如需使用受维护的托管版本，请访问 [Janus AI Commercial](https://crossnow.cn)。[阅读公告 →](https://github.com/CrossNow/JanusAI/discussions/2205)
 
 </details>
 
 ## 文档
 
 - [快速开始](https://docs.crossnow.cn/oss/get_started/quickstart)：从安装 Skill 到得到第一个答案
-- [构建并部署 GenBI 应用](https://docs.crossnow.cn/oss/guides/genbi)：生成仪表盘并上线
+- [构建并部署 CReport 应用](https://docs.crossnow.cn/oss/guides/genbi)：生成仪表盘并上线
 - [核心概念](https://docs.crossnow.cn/oss/concepts/what_is_context)：什么是上下文、什么是 MDL、记忆如何工作
 - [连接数据库](https://docs.crossnow.cn/oss/guides/connect)：Postgres、BigQuery、Snowflake、DuckDB 等
 - [智能体 SDK](https://docs.crossnow.cn/oss/sdk/overview)：当前已发布的内容和下一步计划
-- [Git Sync](https://www.crossnow.cn/git-sync)：用 `git push` 把你的开源项目推送到受治理的、面向团队的 GenBI
+- [Git Sync](https://www.crossnow.cn/git-sync)：用 `git push` 把你的开源项目推送到受治理的、面向团队的 CReport
 
 中文文档：[`docs/core/zh-CN/`](./docs/core/zh-CN/README.md)
 

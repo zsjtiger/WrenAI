@@ -5,8 +5,8 @@ from types import SimpleNamespace
 
 import pytest
 
-from janus.genbi.providers import vercel as vercel_mod
-from janus.genbi.providers.base import DeployError
+from janus.creport.providers import vercel as vercel_mod
+from janus.creport.providers.base import DeployError
 
 
 def _install_fake_requests(monkeypatch, response):

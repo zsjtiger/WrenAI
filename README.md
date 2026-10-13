@@ -2,11 +2,11 @@
 <a href="https://crossnow.cn">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="./misc/janus-ai-banner-dark.png">
-    <img src="./misc/janus-ai-banner.png" width="100%" alt="JanusAI: open-source GenBI for AI agents">
+    <img src="./misc/janus-ai-banner.png" width="100%" alt="JanusAI: open-source CReport for AI agents">
   </picture>
 </a>
 
-### Open-source GenBI for AI agents
+### Open-source CReport for AI agents
 
 **Your agents generate governed SQL, deploy dashboards, and keep business definitions in Git, across 22+ data sources.**
 
@@ -35,7 +35,7 @@
 
 ## What JanusAI is
 
-JanusAI is the open-source **generative BI (GenBI) engine**. It gives the AI agents you already use (Claude Code, Cursor, MCP clients, LangChain) a **governed semantic layer** and an **AI context layer**, so they turn business questions into correct SQL, ship the answer as a shareable dashboard, and stay inside your guardrails.
+JanusAI is the open-source **generative BI (CReport) engine**. It gives the AI agents you already use (Claude Code, Cursor, MCP clients, LangChain) a **governed semantic layer** and an **AI context layer**, so they turn business questions into correct SQL, ship the answer as a shareable dashboard, and stay inside your guardrails.
 
 Schemas tell an agent where data lives. Janus tells it what the data *means*: approved metric definitions, enums, units, joins, worked examples, and the tribal knowledge buried in docs and chat threads. All of it lives as reviewable YAML and Markdown in a repo you own.
 
@@ -85,17 +85,17 @@ If HuggingFace model downloads time out, run `export HF_ENDPOINT=https://hf-mirr
 
 ### Then keep going
 
-Once you're connected, these three prompts cover the whole GenBI loop:
+Once you're connected, these three prompts cover the whole CReport loop:
 
 | Beat | Ask your agent | What happens |
 |---|---|---|
 | **Know** | "Enrich my Janus project with the business context in `raw/`." | Runs `janus skills get enrich-context`. Writes definitions, examples, and memory as reviewable files. |
 | **Generate** | "Who are our top 10 customers by sales this quarter?" | Recalls MDL context and past queries, writes governed SQL, executes via `janus query`. |
-| **Deploy** | "Turn that into a dashboard I can filter and share, deployed to Vercel." | Runs `janus skills get genbi`. Builds a browser-side app and returns a live URL on your Vercel or Cloudflare Pages account. |
+| **Deploy** | "Turn that into a dashboard I can filter and share, deployed to Vercel." | Runs `janus skills get creport`. Builds a browser-side app and returns a live URL on your Vercel or Cloudflare Pages account. |
 
 <div align="center">
 
-**[Follow the full quickstart →](https://docs.crossnow.cn/oss/get_started/quickstart)** &nbsp;·&nbsp; [Build & deploy a GenBI app →](https://docs.crossnow.cn/oss/guides/genbi)
+**[Follow the full quickstart →](https://docs.crossnow.cn/oss/get_started/quickstart)** &nbsp;·&nbsp; [Build & deploy a CReport app →](https://docs.crossnow.cn/oss/guides/genbi)
 
 </div>
 
@@ -129,7 +129,7 @@ Once you're connected, these three prompts cover the whole GenBI loop:
 
 ## Take it to your team with `git push`
 
-Everything Janus writes on your laptop is plain YAML and Markdown in a repo you own. **Git Sync** turns that same repo into a governed, team-wide GenBI deployment in Janus Cloud or a self-hosted installation, including air-gapped. Nothing to export, nothing to re-model.
+Everything Janus writes on your laptop is plain YAML and Markdown in a repo you own. **Git Sync** turns that same repo into a governed, team-wide CReport deployment in Janus Cloud or a self-hosted installation, including air-gapped. Nothing to export, nothing to re-model.
 
 - **No new CLI to learn.** Bind a directory once with `janus cloud create` or `janus cloud link`. After that, `git push` and `git pull` are the entire interface.
 - **Metrics reviewed like code.** A change to `net_revenue` shows up as a readable diff in a pull request on GitHub, GitLab, Bitbucket, or your own remote. Run CI on it. Promote staging to production like application code.
@@ -154,8 +154,8 @@ To cloud.crossnow.cn/acme/janus-analytics.git
 The engine in this repo (MDL semantic layer, governed text-to-SQL, MCP server, CLI, 22+ connectors) is Apache-2.0, free forever, and self-hostable. The following are commercial, delivered as **Janus AI Cloud** or self-hosted **Enterprise Plus**:
 
 - **Row- and column-level security** and access control with users and groups
-- **GenBI UI, dashboards, embedded and APIs**
-- **Scenario AI harnesses**: GenBI Apps, Agentic Mode, AI-assisted context preparation
+- **CReport UI, dashboards, embedded and APIs**
+- **Scenario AI harnesses**: CReport Apps, Agentic Mode, AI-assisted context preparation
 - **Advanced security and audit, support and SLAs**, plus cloud, VPC, and air-gapped deployment
 
 Same engine underneath. Your MDL stays in your Git either way. **[Read the published boundary →](https://www.crossnow.cn/en/open-core)**
@@ -173,7 +173,7 @@ Janus **is** a governed semantic layer, expressed in the **Modeling Definition L
 ### What's included
 
 - **Engine**: Apache DataFusion based. BigQuery, Snowflake, PostgreSQL, ClickHouse, Amazon Redshift, Databricks, DuckDB, and more. [Connect a database →](https://docs.crossnow.cn/oss/guides/connect)
-- **GenBI dashboards**: agent-built, browser-side apps powered by [`janus-core-wasm`](https://docs.crossnow.cn/oss/sdk/wasm), deployable to Vercel or Cloudflare Pages
+- **CReport dashboards**: agent-built, browser-side apps powered by [`janus-core-wasm`](https://docs.crossnow.cn/oss/sdk/wasm), deployable to Vercel or Cloudflare Pages
 - **Knowledge and memory**: version-controlled `instructions.md` and `queries.yml`, plus a local LanceDB memory index with hybrid retrieval
 - **Agent SDKs**: `janus-langchain` (LangChain / LangGraph), `janus-pydantic`, and a reference Python integration for other stacks. [SDK overview →](https://docs.crossnow.cn/oss/sdk/overview)
 - **Governed execution primitives**: functions, dry-plan validation, row limits, structured errors
@@ -183,7 +183,7 @@ Janus **is** a governed semantic layer, expressed in the **Modeling Definition L
 ```bash
 janus skills get onboarding         # workflow guide: set up project + first query
 janus skills get enrich-context     # workflow guide: add business context
-janus skills get genbi              # workflow guide: build & deploy a dashboard
+janus skills get creport              # workflow guide: build & deploy a dashboard
 
 janus query --sql '...'             # query through the MDL semantic layer
 janus ask "<question>" --guided     # wrap a question for a weaker agent
@@ -202,9 +202,9 @@ Vote on what ships next in [GitHub Discussions →](https://github.com/CrossNow/
 ## FAQ
 
 <details>
-<summary><b>What is generative BI (GenBI)?</b></summary>
+<summary><b>What is generative BI (CReport)?</b></summary>
 
-Business intelligence produced by AI agents. Instead of a person building charts by hand, an agent generates governed SQL, deploys a dashboard, and shares it, grounded in an AI context layer so the output is trustworthy rather than merely plausible. Janus AI is the open-source GenBI engine.
+Business intelligence produced by AI agents. Instead of a person building charts by hand, an agent generates governed SQL, deploys a dashboard, and shares it, grounded in an AI context layer so the output is trustworthy rather than merely plausible. Janus AI is the open-source CReport engine.
 
 </details>
 
@@ -230,20 +230,20 @@ The reviewable, version-controlled knowledge agents need but schemas don't provi
 </details>
 
 <details>
-<summary><b>What happened to the Docker-based Janus AI GenBI app?</b></summary>
+<summary><b>What happened to the Docker-based Janus AI CReport app?</b></summary>
 
-On 2026-05-07 Janus Engine merged into this repo under [`core/`](./core), and the previous wren-engine repo was archived. The earlier chat-first BI product is now **Janus GenBI Classic**, preserved on the [`legacy/v1`](https://github.com/CrossNow/JanusAI/tree/legacy/v1) branch (tag `v1-final`) with no new features or security fixes. For a maintained, hosted version of that experience, see [Janus AI Commercial](https://crossnow.cn). [Read the announcement →](https://github.com/CrossNow/JanusAI/discussions/2205)
+On 2026-05-07 Janus Engine merged into this repo under [`core/`](./core), and the previous wren-engine repo was archived. The earlier chat-first BI product is now **Janus CReport Classic**, preserved on the [`legacy/v1`](https://github.com/CrossNow/JanusAI/tree/legacy/v1) branch (tag `v1-final`) with no new features or security fixes. For a maintained, hosted version of that experience, see [Janus AI Commercial](https://crossnow.cn). [Read the announcement →](https://github.com/CrossNow/JanusAI/discussions/2205)
 
 </details>
 
 ## Documentation
 
 - [Quickstart](https://docs.crossnow.cn/oss/get_started/quickstart): from skill install to first answer
-- [Build & deploy a GenBI app](https://docs.crossnow.cn/oss/guides/genbi): generate a dashboard and ship it
+- [Build & deploy a CReport app](https://docs.crossnow.cn/oss/guides/genbi): generate a dashboard and ship it
 - [Concepts](https://docs.crossnow.cn/oss/concepts/what_is_context): what context is, what MDL is, how memory works
 - [Connect a database](https://docs.crossnow.cn/oss/guides/connect): Postgres, BigQuery, Snowflake, DuckDB, and more
 - [Agent SDKs](https://docs.crossnow.cn/oss/sdk/overview): what's shipping today, what's next
-- [Git Sync](https://www.crossnow.cn/git-sync): `git push` your open-source project to governed, team-wide GenBI
+- [Git Sync](https://www.crossnow.cn/git-sync): `git push` your open-source project to governed, team-wide CReport
 
 ## Community
 

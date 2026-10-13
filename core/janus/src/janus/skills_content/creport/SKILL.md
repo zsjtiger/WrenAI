@@ -1,17 +1,17 @@
 ---
-name: genbi
-description: "Turn a Janus project's context layer into a shareable, browser-side GenBI web app and deploy it to the user's Vercel or Cloudflare account. Orchestrates the full flow: `janus genbi build` returns a project-hydrated build instruction, the agent authors the app from scratch into apps/<name>/, then register → verify → deploy produce a shareable URL. Use this skill whenever the user wants to: build a dashboard from their Janus project, make a shareable analytics app, deploy their context layer as a web app, host a GenBI app on Vercel or Cloudflare Pages, or asks for a 'genbi app'."
+name: creport
+description: "Turn a Janus project's context layer into a shareable, browser-side CReport web app and deploy it to the user's Vercel or Cloudflare account. Orchestrates the full flow: `janus creport build` returns a project-hydrated build instruction, the agent authors the app from scratch into apps/<name>/, then register → verify → deploy produce a shareable URL. Use this skill whenever the user wants to: build a dashboard from their Janus project, make a shareable analytics app, deploy their context layer as a web app, host a CReport app on Vercel or Cloudflare Pages, or asks for a 'creport app'."
 license: Apache-2.0
 metadata:
   author: janusai
 ---
 
-# Janus GenBI App — Agent Workflow Guide
+# Janus CReport App — Agent Workflow Guide
 
-> This guide is served by the `janus` CLI (`janus skills get genbi`), so it
+> This guide is served by the `janus` CLI (`janus skills get creport`), so it
 > always matches your installed janusai version.
 
-Turn a Janus context layer into a shareable GenBI app — from a natural-language
+Turn a Janus context layer into a shareable CReport app — from a natural-language
 request to a public URL in one conversation.
 
 **Division of labor:** the CLI owns the authoritative build instruction (it
@@ -23,10 +23,10 @@ code by following the instruction. Never hand-write `.janus/apps.yml`.
 
 1. A Janus project is discoverable (`janus_project.yml` in cwd/ancestors, or ask
    for the path and pass `-p`).
-2. The context layer exists. If `target/mdl.json` is missing, `janus genbi
+2. The context layer exists. If `target/mdl.json` is missing, `janus creport
    build` compiles it implicitly — no separate step needed.
-3. `janus` CLI ≥ the version that ships the `genbi` command group
-   (`janus genbi --help` works).
+3. `janus` CLI ≥ the version that ships the `creport` command group
+   (`janus creport --help` works).
 
 ## Workflow
 
@@ -45,7 +45,7 @@ code by following the instruction. Never hand-write `.janus/apps.yml`.
 ### 2. Get the build instruction
 
 ```bash
-janus genbi build <name> --prompt "<the user's request, verbatim>" --data-mode <mode>
+janus creport build <name> --prompt "<the user's request, verbatim>" --data-mode <mode>
 ```
 
 For long or multi-line prompts use `--prompt-file <file>` or pipe to
@@ -109,18 +109,18 @@ copied in keeps the context layer intact regardless of how you bundle data.
 ### 4. Register and verify
 
 ```bash
-janus genbi register <name> --data-mode <mode>
-janus genbi verify <name>
+janus creport register <name> --data-mode <mode>
+janus creport verify <name>
 ```
 
 If verify fails: fix the reported problems and re-run verify. Do NOT proceed
-to deploy on a failed verify. Offer `janus genbi open <name>` for a local
+to deploy on a failed verify. Offer `janus creport open <name>` for a local
 preview before shipping.
 
 ### 5. Deploy (only if the user asked for it)
 
 ```bash
-janus genbi deploy <name> --provider vercel      # or cloudflare
+janus creport deploy <name> --provider vercel      # or cloudflare
 ```
 
 - Preview deployment by default. **Confirm with the user before `--prod`.**
@@ -148,7 +148,7 @@ URL is just gated.
 - To make the app publicly shareable, the user disables it in the Vercel
   dashboard: **Project → Settings → Deployment Protection → Vercel
   Authentication → Disabled** (or scope it to production only). This setting
-  is not controllable from `janus genbi deploy`; it's a one-time toggle per
+  is not controllable from `janus creport deploy`; it's a one-time toggle per
   project in Vercel.
 - If the user only needs a private link (viewable while logged into their
   Vercel account), leaving protection on is fine — just tell them the link
@@ -163,16 +163,16 @@ URL is just gated.
   you shouldn't have written in the first place.
 - Never pass tokens as CLI flags; they leak into shell history.
 - Confirm before production deploys.
-- All index state goes through `janus genbi register/remove` — never edit
+- All index state goes through `janus creport register/remove` — never edit
   `.janus/apps.yml` by hand.
 
 ## Quick reference
 
 | Step | Command |
 | --- | --- |
-| Get build instruction | `janus genbi build <name> --prompt "…" [--data-mode snapshot\|live]` |
-| Record the app | `janus genbi register <name> --data-mode <mode>` |
-| Preflight | `janus genbi verify <name>` |
-| Local preview | `janus genbi open <name>` |
-| Ship | `janus genbi deploy <name> --provider vercel\|cloudflare [--prod]` |
-| Inventory | `janus genbi list` / `janus genbi remove <name>` |
+| Get build instruction | `janus creport build <name> --prompt "…" [--data-mode snapshot\|live]` |
+| Record the app | `janus creport register <name> --data-mode <mode>` |
+| Preflight | `janus creport verify <name>` |
+| Local preview | `janus creport open <name>` |
+| Ship | `janus creport deploy <name> --provider vercel\|cloudflare [--prod]` |
+| Inventory | `janus creport list` / `janus creport remove <name>` |

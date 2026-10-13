@@ -1,18 +1,18 @@
 ---
-sidebar_label: Build & deploy a GenBI app
+sidebar_label: Build & deploy a CReport app
 ---
 
-# Build & deploy a GenBI app
+# Build & deploy a CReport app
 
-GenBI turns your project's context layer into a shareable, browser-side
+CReport turns your project's context layer into a shareable, browser-side
 dashboard, powered by [`janus-core-wasm`](../sdk/wasm.md), and ships it to your
-own Vercel or Cloudflare Pages account. You never type the `janus genbi`
+own Vercel or Cloudflare Pages account. You never type the `janus creport`
 commands yourself: you describe the dashboard you want in plain language, and
 your agent drives the CLI to produce a public URL.
 
 This guide shows how to **talk to your agent** to get there: how to ask for a
 dashboard and how to ask it to deploy. For the underlying commands and every
-flag, see the [`janus genbi` CLI reference](../reference/cli.md#janus-genbi--build--deploy-genbi-apps).
+flag, see the [`janus creport` CLI reference](../reference/cli.md#janus-creport--build--deploy-creport-apps).
 
 ## Before you start
 
@@ -21,8 +21,8 @@ You need two things:
 - **A Janus project**: the context layer the dashboard reads from. If you don't
   have one yet, [connect a data source](connect.md) first.
 - **An agent with the `janus` CLI**: any coding agent that can run shell
-  commands. The agent loads its own GenBI playbook on demand via
-  `janus skills get genbi`, so you don't have to teach it the workflow.
+  commands. The agent loads its own CReport playbook on demand via
+  `janus skills get creport`, so you don't have to teach it the workflow.
 
 That's it. From here on you just have a conversation.
 
@@ -56,7 +56,7 @@ have to run any of it:
   does.
 
 If you want to see exactly which commands these map to, they're all in the
-[CLI reference](../reference/cli.md#janus-genbi--build--deploy-genbi-apps).
+[CLI reference](../reference/cli.md#janus-creport--build--deploy-creport-apps).
 
 ## Snapshot vs live data
 
@@ -86,7 +86,7 @@ before deploying anything. Refine in the same breath ("make this a bar chart",
 
 ## Deploy it
 
-GenBI ships to your own **Vercel** or **Cloudflare Pages** account, the two
+CReport ships to your own **Vercel** or **Cloudflare Pages** account, the two
 providers supported today (Vercel is the default). When you're happy, ask the
 agent to ship it:
 
@@ -123,7 +123,7 @@ leave it on.
 
 ## See also
 
-- [`janus genbi` CLI reference](../reference/cli.md#janus-genbi--build--deploy-genbi-apps): every subcommand and flag
-- [`genbi` skill](../reference/skills.md#genbi): the agent's workflow playbook
+- [`janus creport` CLI reference](../reference/cli.md#janus-creport--build--deploy-creport-apps): every subcommand and flag
+- [`creport` skill](../reference/skills.md#creport): the agent's workflow playbook
 - [`dlt-connector` skill](../reference/skills.md#dlt-connector): load SaaS data before you build
 - [janus-core-wasm](../sdk/wasm.md): the in-browser engine that powers the app

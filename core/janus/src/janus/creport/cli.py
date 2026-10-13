@@ -1,4 +1,4 @@
-"""Typer sub-app for ``janus genbi`` commands."""
+"""Typer sub-app for ``janus creport`` commands."""
 
 from __future__ import annotations
 
@@ -7,9 +7,9 @@ from typing import Annotated, Optional
 
 import typer
 
-genbi_app = typer.Typer(
-    name="genbi",
-    help="Build and deploy GenBI apps from this project's context layer.",
+creport_app = typer.Typer(
+    name="creport",
+    help="Build and deploy CReport apps from this project's context layer.",
 )
 
 # App names become a path segment under <project>/apps/. Constrain them to a
@@ -60,7 +60,7 @@ ProjectPathOpt = Annotated[
 ]
 
 
-@genbi_app.command()
+@creport_app.command()
 def build(
     name: Annotated[str, typer.Argument(help="App name — written to apps/<name>/.")],
     prompt: Annotated[
@@ -91,7 +91,7 @@ def build(
         load_models,
         load_project_config,
     )
-    from janus.genbi.composer import compose_build_instruction  # noqa: PLC0415
+    from janus.creport.composer import compose_build_instruction  # noqa: PLC0415
 
     try:
         project_path = discover_project_path(path)
@@ -108,7 +108,7 @@ def build(
         )
         raise typer.Exit(1)
 
-    from janus.genbi.composer import DATA_MODES  # noqa: PLC0415
+    from janus.creport.composer import DATA_MODES  # noqa: PLC0415
 
     if data_mode not in DATA_MODES:
         typer.echo(
@@ -156,7 +156,7 @@ def _discover(path: str | None):
         raise typer.Exit(1)
 
 
-@genbi_app.command()
+@creport_app.command()
 def register(
     name: Annotated[str, typer.Argument(help="App name under apps/<name>/.")],
     data_mode: Annotated[
@@ -166,8 +166,8 @@ def register(
     path: ProjectPathOpt = None,
 ) -> None:
     """Record an agent-authored app in the project index (.janus/apps.yml)."""
-    from janus.genbi.composer import DATA_MODES  # noqa: PLC0415
-    from janus.genbi.index import register_app  # noqa: PLC0415
+    from janus.creport.composer import DATA_MODES  # noqa: PLC0415
+    from janus.creport.index import register_app  # noqa: PLC0415
 
     project_path = _discover(path)
 
@@ -183,7 +183,7 @@ def register(
     if not app_dir.is_dir():
         typer.echo(
             f"Error: no app found at {app_dir}.\n"
-            "  Write the app there first (see `janus genbi build`).",
+            "  Write the app there first (see `janus creport build`).",
             err=True,
         )
         raise typer.Exit(1)
@@ -192,15 +192,15 @@ def register(
     typer.echo(f"Registered {name} ({entry['data_mode']}, {entry['status']}).")
 
 
-@genbi_app.command(name="list")
+@creport_app.command(name="list")
 def list_apps(path: ProjectPathOpt = None) -> None:
     """List registered apps with data mode, status, and deploy state."""
-    from janus.genbi.index import deploy_state, load_index  # noqa: PLC0415
+    from janus.creport.index import deploy_state, load_index  # noqa: PLC0415
 
     project_path = _discover(path)
     apps = load_index(project_path)["apps"]
     if not apps:
-        typer.echo("No apps registered. See `janus genbi build` to create one.")
+        typer.echo("No apps registered. See `janus creport build` to create one.")
         return
 
     for name, entry in apps.items():
@@ -215,13 +215,13 @@ def list_apps(path: ProjectPathOpt = None) -> None:
         )
 
 
-@genbi_app.command()
+@creport_app.command()
 def remove(
     name: Annotated[str, typer.Argument(help="Registered app name.")],
     path: ProjectPathOpt = None,
 ) -> None:
     """Remove an app's entry from the project index."""
-    from janus.genbi.index import remove_app  # noqa: PLC0415
+    from janus.creport.index import remove_app  # noqa: PLC0415
 
     project_path = _discover(path)
     if not remove_app(project_path, name):
@@ -231,27 +231,27 @@ def remove(
 
 
 def _require_registered(project_path, name: str) -> dict:
-    from janus.genbi.index import get_app  # noqa: PLC0415
+    from janus.creport.index import get_app  # noqa: PLC0415
 
     entry = get_app(project_path, name)
     if entry is None:
         typer.echo(
             f"Error: app {name!r} is not registered.\n"
-            f"  Run `janus genbi register {name}` first.",
+            f"  Run `janus creport register {name}` first.",
             err=True,
         )
         raise typer.Exit(1)
     return entry
 
 
-@genbi_app.command()
+@creport_app.command()
 def verify(
     name: Annotated[str, typer.Argument(help="Registered app name.")],
     path: ProjectPathOpt = None,
 ) -> None:
     """Preflight an app: required files, parseable MDL, bundled data."""
-    from janus.genbi.index import update_app  # noqa: PLC0415
-    from janus.genbi.verify import verify_app  # noqa: PLC0415
+    from janus.creport.index import update_app  # noqa: PLC0415
+    from janus.creport.verify import verify_app  # noqa: PLC0415
 
     project_path = _discover(path)
     entry = _require_registered(project_path, name)
@@ -271,7 +271,7 @@ def verify(
     typer.echo(f"Verify passed for {name}.")
 
 
-@genbi_app.command(name="open")
+@creport_app.command(name="open")
 def open_app(
     name: Annotated[str, typer.Argument(help="Registered app name.")],
     port: Annotated[
@@ -298,7 +298,7 @@ def open_app(
             typer.echo("\nStopped.")
 
 
-@genbi_app.command()
+@creport_app.command()
 def deploy(
     name: Annotated[str, typer.Argument(help="Registered app name.")],
     provider: Annotated[
@@ -314,11 +314,11 @@ def deploy(
     """Verify, then ship a registered app to the user's provider account."""
     from datetime import date  # noqa: PLC0415
 
-    from janus.genbi.index import deploy_state, update_app  # noqa: PLC0415
-    from janus.genbi.providers import get_provider  # noqa: PLC0415
-    from janus.genbi.providers.base import DeployError  # noqa: PLC0415
-    from janus.genbi.tokens import resolve_token  # noqa: PLC0415
-    from janus.genbi.verify import verify_app  # noqa: PLC0415
+    from janus.creport.index import deploy_state, update_app  # noqa: PLC0415
+    from janus.creport.providers import get_provider  # noqa: PLC0415
+    from janus.creport.providers.base import DeployError  # noqa: PLC0415
+    from janus.creport.tokens import resolve_token  # noqa: PLC0415
+    from janus.creport.verify import verify_app  # noqa: PLC0415
 
     project_path = _discover(path)
     entry = _require_registered(project_path, name)

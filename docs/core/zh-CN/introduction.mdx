@@ -1,16 +1,16 @@
 # Janus AI
 
-*开源 GenBI：你的 AI 智能体在你已有的数据库上生成、部署并治理仪表盘，其依据是它们真正可以信赖的上下文层。*
+*开源 CReport：你的 AI 智能体在你已有的数据库上生成、部署并治理仪表盘，其依据是它们真正可以信赖的上下文层。*
 
 <iframe src="https://ghbtns.com/github-btn.html?user=CrossNow&repo=JanusAI&type=star&count=true&size=large" frameBorder="0" scrolling="0" height="50" title="Janus AI"></iframe>
 
-**Janus AI 是开源的 GenBI 引擎。** 它让任何 AI 智能体都能把业务问题转换为受治理的 BI，从单条 SQL 答案到可分享、可部署的仪表盘，全部运行在你已有的数据源之上。
+**Janus AI 是开源的 CReport 引擎。** 它让任何 AI 智能体都能把业务问题转换为受治理的 BI，从单条 SQL 答案到可分享、可部署的仪表盘，全部运行在你已有的数据源之上。
 
-生成式 BI 的可靠程度取决于它所依赖的上下文。因此在 GenBI 之下，Janus AI 是一个**开放的上下文层**：它位于数据源与任何智能体或应用之间，为它们提供同一份机器可读的业务理解，包括数据的真实含义、应当如何关联、哪些定义已经获得批准，以及查询应当如何针对底层数据库进行规划。
+生成式 BI 的可靠程度取决于它所依赖的上下文。因此在 CReport 之下，Janus AI 是一个**开放的上下文层**：它位于数据源与任何智能体或应用之间，为它们提供同一份机器可读的业务理解，包括数据的真实含义、应当如何关联、哪些定义已经获得批准，以及查询应当如何针对底层数据库进行规划。
 
 目标很简单：**产出可信的 BI，而不是看似合理的猜测**。所有数据使用者，无论是人还是智能体，都共享同一个受治理的上下文层。
 
-## GenBI 的三个环节
+## CReport 的三个环节
 
 | 环节 | 智能体做什么 | 依托的能力 |
 | --- | --- | --- |
@@ -86,7 +86,7 @@ Jennifer     1086.45
 4. 应用 `knowledge/rules/` 中的业务规则（默认过滤条件、标准表、业务定义）
 5. 返回结果行
 
-在此基础上，同一份上下文也驱动 *Deploy* 环节：让智能体把答案做成仪表盘，它会基于项目构建一个浏览器端 GenBI 应用，并部署到你自己的托管环境中。参见[构建并部署 GenBI 应用](/oss/guides/genbi)。
+在此基础上，同一份上下文也驱动 *Deploy* 环节：让智能体把答案做成仪表盘，它会基于项目构建一个浏览器端 CReport 应用，并部署到你自己的托管环境中。参见[构建并部署 CReport 应用](/oss/guides/genbi)。
 
 ## 开源核心包含什么
 
@@ -94,29 +94,29 @@ Jennifer     1086.45
 
 - **[MDL（建模定义语言）](/oss/concepts/what_is_mdl)**：语义契约。MDL 在你可以阅读、审阅、版本化和分叉的文件中定义模型、关联关系、计算字段、视图以及面向智能体的元数据。
 - **Rust 语义引擎**：基于 Apache DataFusion。它在 PostgreSQL、MySQL、BigQuery、Snowflake、DuckDB、ClickHouse、Trino、SQL Server、Databricks、Redshift、Oracle、Athena、Apache Spark 等受支持的数据源上规划并执行基于模型的 SQL。
-- **[`janus` CLI](/oss/reference/cli)**：用于查询、规划、校验、构建上下文、数据画像、管理记忆，以及构建和部署 GenBI 应用的命令。
-- **[GenBI 应用](/oss/guides/genbi)**：由智能体构建、在浏览器端运行的仪表盘，由 [`janus-core-wasm`](/oss/sdk/wasm) 驱动，可部署到 Vercel 或 Cloudflare Pages。
-- **[Skills](/oss/reference/skills)**：结构化的工作流，例如 `generate-mdl`、`onboarding`、`enrich-context` 和 `genbi`，由 `janus` CLI 按需提供，使 AI 编码智能体能够安全、可复现地操作 Janus AI。
+- **[`janus` CLI](/oss/reference/cli)**：用于查询、规划、校验、构建上下文、数据画像、管理记忆，以及构建和部署 CReport 应用的命令。
+- **[CReport 应用](/oss/guides/genbi)**：由智能体构建、在浏览器端运行的仪表盘，由 [`janus-core-wasm`](/oss/sdk/wasm) 驱动，可部署到 Vercel 或 Cloudflare Pages。
+- **[Skills](/oss/reference/skills)**：结构化的工作流，例如 `generate-mdl`、`onboarding`、`enrich-context` 和 `creport`，由 `janus` CLI 按需提供，使 AI 编码智能体能够安全、可复现地操作 Janus AI。
 - **框架 SDK**：[LangChain](/oss/sdk/langchain) 和 [Pydantic AI](/oss/sdk/pydantic) 集成，用于将 Janus 项目接入智能体框架。
-- **[janus-core-wasm](/oss/sdk/wasm)**：编译为 WebAssembly 的语义引擎，使理解 MDL 的 SQL（以及 GenBI 仪表盘）可以在浏览器中运行。
+- **[janus-core-wasm](/oss/sdk/wasm)**：编译为 WebAssembly 的语义引擎，使理解 MDL 的 SQL（以及 CReport 仪表盘）可以在浏览器中运行。
 
 ## 路线图
 
-当前的重点方向包括：端到端的上下文丰富、更完善的 GenBI（更多图表类型、实时数据仪表盘）、正确性闭环（包括智能体可以运行的小型黄金评测），以及更完整的智能体 SDK 覆盖。实时设计讨论和优先级路线图请参见 [GitHub Discussions](https://github.com/CrossNow/JanusAI/discussions)。
+当前的重点方向包括：端到端的上下文丰富、更完善的 CReport（更多图表类型、实时数据仪表盘）、正确性闭环（包括智能体可以运行的小型黄金评测），以及更完整的智能体 SDK 覆盖。实时设计讨论和优先级路线图请参见 [GitHub Discussions](https://github.com/CrossNow/JanusAI/discussions)。
 
 ## 从这里开始
 
 1. [安装](/oss/get_started/installation)
 2. [使用 `jaffle_shop` 示例数据快速开始](/oss/get_started/quickstart)
 3. [连接你自己的数据库](/oss/guides/connect)
-4. [构建并部署 GenBI 应用](/oss/guides/genbi)：*Generate* + *Deploy* 的成果
+4. [构建并部署 CReport 应用](/oss/guides/genbi)：*Generate* + *Deploy* 的成果
 5. [核心概念](/oss/concepts/what_is_context)：*Know* 环节背后的设计理念
 
-## 关于 "GenBI" 名称的说明
+## 关于 "CReport" 名称的说明
 
-这里的 "GenBI" 指的是这项开源的生成式 BI 能力：智能体基于 Janus 的上下文层生成受治理的答案，并部署仪表盘。
+这里的 "CReport" 指的是这项开源的生成式 BI 能力：智能体基于 Janus 的上下文层生成受治理的答案，并部署仪表盘。
 
-早期的 **Janus AI GenBI** 应用，即基于 Docker、以聊天为主的 BI 产品，现在称为 **Janus GenBI Classic**，已**停止维护（Sunset）**。其代码保存在 `legacy/v1` 分支上，不再发布安全修复。现有部署仍可继续运行，相关参考文档保留在侧边栏的 [Janus GenBI Classic · Sunset](/oss/overview/introduction) 下。如需使用经过持续维护的托管版本，请访问 [Janus AI Commercial](https://crossnow.cn)。
+早期的 **Janus AI CReport** 应用，即基于 Docker、以聊天为主的 BI 产品，现在称为 **Janus CReport Classic**，已**停止维护（Sunset）**。其代码保存在 `legacy/v1` 分支上，不再发布安全修复。现有部署仍可继续运行，相关参考文档保留在侧边栏的 [Janus CReport Classic · Sunset](/oss/overview/introduction) 下。如需使用经过持续维护的托管版本，请访问 [Janus AI Commercial](https://crossnow.cn)。
 
 ## 深入了解
 

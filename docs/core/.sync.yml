@@ -16,7 +16,7 @@ sync_files:
 
 # Directories synced (recursive copy, additive — no automatic deletion)
 # Plural names (concepts, guides) are deliberate — they keep these synced
-# folders separate from GenBI legacy folders that use singular names
+# folders separate from CReport legacy folders that use singular names
 # (concept, guide) under docs/oss/genbi/ on the docs site.
 sync_dirs:
   - get_started
@@ -29,6 +29,6 @@ sync_dirs:
 # - README.md — this folder's index
 # - .sync.yml — this file
 #
-# Not in this folder at all (lives only on the docs site, GenBI legacy):
+# Not in this folder at all (lives only on the docs site, CReport legacy):
 # - docs/oss/genbi/{overview, installation, getting_started, concept,
 #   guide, ai_service, archived}/

@@ -36,7 +36,7 @@ Uses `uv` (not Poetry). `pyproject.toml` uses `hatchling` as build backend.
 - `janus cloud auth add|list|remove` — Store/remove the credential git authenticates to a Janus Cloud project with (touches no directory)
 - `janus cloud create|link|unlink` — Bind a local directory to a Janus Cloud project's git remote. The binding *is* the git remote; after binding, plain `git push`/`git pull` are the commands
 - `janus cube list|describe|query` — Structured measure/dimension queries over cubes
-- `janus genbi build|deploy|list|open|register|remove|verify` — Build and deploy GenBI apps from this project's context layer
+- `janus creport build|deploy|list|open|register|remove|verify` — Build and deploy CReport apps from this project's context layer
 - `janus skills get|list` — Serve Janus agent skill guides
 - `janus ask` — Wrap a prompt into a processed prompt for an agent
 - `janus version` — Print the janusai version

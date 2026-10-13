@@ -1,16 +1,16 @@
 # Janus AI
 
-*Open-source GenBI: your AI agents generate, deploy, and govern dashboards on the databases you already have, grounded in a context layer they can actually trust.*
+*Open-source CReport: your AI agents generate, deploy, and govern dashboards on the databases you already have, grounded in a context layer they can actually trust.*
 
 <iframe src="https://ghbtns.com/github-btn.html?user=CrossNow&repo=JanusAI&type=star&count=true&size=large" frameBorder="0" scrolling="0" height="50" title="Janus AI"></iframe>
 
-**Janus AI is the open-source GenBI engine.** It lets any AI agent turn a business question into governed BI, from a single SQL answer to a shareable, deployed dashboard, on top of the data sources you already have.
+**Janus AI is the open-source CReport engine.** It lets any AI agent turn a business question into governed BI, from a single SQL answer to a shareable, deployed dashboard, on top of the data sources you already have.
 
-Generative BI is only as good as the context it stands on. So underneath GenBI, Janus AI is an **open context layer**: it sits between your data sources and any agent or application, and gives them the same machine-readable understanding of your business. That means what the data means, how it should be joined, which definitions are approved, and how queries should be planned against the underlying database.
+Generative BI is only as good as the context it stands on. So underneath CReport, Janus AI is an **open context layer**: it sits between your data sources and any agent or application, and gives them the same machine-readable understanding of your business. That means what the data means, how it should be joined, which definitions are approved, and how queries should be planned against the underlying database.
 
 The goal is simple: **agents that produce trustworthy BI, not plausible guesses**, on one governed context layer that every data consumer, human or agent, can share.
 
-## GenBI in three moves
+## CReport in three moves
 
 | Move | What the agent does | Powered by |
 | --- | --- | --- |
@@ -86,7 +86,7 @@ Behind the scenes, Janus AI:
 4. Applies your business rules from `knowledge/rules/` (default filters, canonical tables, business definitions)
 5. Returns rows
 
-From there, the same context drives the *Deploy* move: ask your agent to turn an answer into a dashboard and it builds a browser-side GenBI app from the project and ships it to your own hosting. See [Build & deploy a GenBI app](/oss/guides/genbi).
+From there, the same context drives the *Deploy* move: ask your agent to turn an answer into a dashboard and it builds a browser-side CReport app from the project and ships it to your own hosting. See [Build & deploy a CReport app](/oss/guides/genbi).
 
 ## What is in the open core
 
@@ -94,33 +94,33 @@ The open core includes:
 
 - **[MDL (Modeling Definition Language)](/oss/concepts/what_is_mdl)**: the semantic contract. MDL defines models, relationships, calculated fields, views, and agent-oriented metadata in files you can read, review, version, and fork.
 - **Rust semantic engine**: powered by Apache DataFusion. It plans and executes modeled SQL across supported data sources such as PostgreSQL, MySQL, BigQuery, Snowflake, DuckDB, ClickHouse, Trino, SQL Server, Databricks, Redshift, Oracle, Athena, Apache Spark, and more.
-- **[`janus` CLI](/oss/reference/cli)**: commands for querying, planning, validating, building context, profiling data, managing memory, and building & deploying GenBI apps.
-- **[GenBI apps](/oss/guides/genbi)**: agent-built, browser-side dashboards powered by [`janus-core-wasm`](/oss/sdk/wasm), deployable to Vercel or Cloudflare Pages.
-- **[Skills](/oss/reference/skills)**: structured workflows such as `generate-mdl`, `onboarding`, `enrich-context`, and `genbi`, served on demand from the `janus` CLI, that let AI coding agents operate Janus AI safely and reproducibly.
+- **[`janus` CLI](/oss/reference/cli)**: commands for querying, planning, validating, building context, profiling data, managing memory, and building & deploying CReport apps.
+- **[CReport apps](/oss/guides/genbi)**: agent-built, browser-side dashboards powered by [`janus-core-wasm`](/oss/sdk/wasm), deployable to Vercel or Cloudflare Pages.
+- **[Skills](/oss/reference/skills)**: structured workflows such as `generate-mdl`, `onboarding`, `enrich-context`, and `creport`, served on demand from the `janus` CLI, that let AI coding agents operate Janus AI safely and reproducibly.
 - **Framework SDKs**: [LangChain](/oss/sdk/langchain) and [Pydantic AI](/oss/sdk/pydantic) integrations for attaching a Janus project to agent frameworks.
-- **[janus-core-wasm](/oss/sdk/wasm)**: the semantic engine compiled to WebAssembly, so MDL-aware SQL (and GenBI dashboards) can run in the browser.
+- **[janus-core-wasm](/oss/sdk/wasm)**: the semantic engine compiled to WebAssembly, so MDL-aware SQL (and CReport dashboards) can run in the browser.
 
 ## Roadmap
 
-The active arcs are end-to-end context enrichment, richer GenBI (more chart types, live-data dashboards), a correctness loop (including small golden evals agents can run), and tighter agent SDK coverage. See [GitHub Discussions](https://github.com/CrossNow/JanusAI/discussions) for live design threads and the prioritized roadmap.
+The active arcs are end-to-end context enrichment, richer CReport (more chart types, live-data dashboards), a correctness loop (including small golden evals agents can run), and tighter agent SDK coverage. See [GitHub Discussions](https://github.com/CrossNow/JanusAI/discussions) for live design threads and the prioritized roadmap.
 
 ## Start here
 
 1. [Install](/oss/get_started/installation)
 2. [Quickstart with `jaffle_shop` sample data](/oss/get_started/quickstart)
 3. [Connect your own database](/oss/guides/connect)
-4. [Build & deploy a GenBI app](/oss/guides/genbi): the *Generate* + *Deploy* payoff
+4. [Build & deploy a CReport app](/oss/guides/genbi): the *Generate* + *Deploy* payoff
 5. [Concepts](/oss/concepts/what_is_context): the design ideas behind the *Know* move
 
-## A note on the "GenBI" name
+## A note on the "CReport" name
 
-"GenBI" here means this open-source generative-BI capability: agents that
+"CReport" here means this open-source generative-BI capability: agents that
 generate governed answers and deploy dashboards on top of Janus's context layer.
 
-The earlier **Janus AI GenBI** app, the Docker-based chat-first BI product, is
-now **Janus GenBI Classic** and is **sunset**. Its code lives on the `legacy/v1`
+The earlier **Janus AI CReport** app, the Docker-based chat-first BI product, is
+now **Janus CReport Classic** and is **sunset**. Its code lives on the `legacy/v1`
 branch and no security fixes will be issued. Existing deployments still work;
-reference docs are kept under [Janus GenBI Classic · Sunset](/oss/overview/introduction)
+reference docs are kept under [Janus CReport Classic · Sunset](/oss/overview/introduction)
 in the sidebar. For an actively maintained, hosted version of that classic
 experience, see [Janus AI Commercial](https://crossnow.cn).
 

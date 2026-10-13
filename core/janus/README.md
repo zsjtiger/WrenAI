@@ -151,24 +151,24 @@ smaller install, not a different index. When both extras are present, onnx is
 used; set `JANUS_EMBEDDING_BACKEND=sentence-transformers` to override, and
 `janus memory status` reports which one is live.
 
-**7. (Optional) Build a shareable GenBI app** — turn the context layer into a
+**7. (Optional) Build a shareable CReport app** — turn the context layer into a
 browser-side dashboard (powered by `janus-core-wasm`) and deploy it to Vercel or
 Cloudflare Pages. The CLI owns the build instruction + deterministic state; an
 agent authors the app from it:
 
 ```bash
-janus genbi build sales --prompt "orders dashboard" --data-mode snapshot  # print build instruction
+janus creport build sales --prompt "orders dashboard" --data-mode snapshot  # print build instruction
 # agent authors apps/sales/ from the instruction (mdl.json + data/*.parquet)
-janus genbi register sales --data-mode snapshot   # record the app
-janus genbi verify sales                          # preflight (files, MDL, data, secret scan)
-janus genbi open sales                            # local preview
-janus genbi deploy sales --provider vercel        # ship a shareable URL (preview; --prod for production)
+janus creport register sales --data-mode snapshot   # record the app
+janus creport verify sales                          # preflight (files, MDL, data, secret scan)
+janus creport open sales                            # local preview
+janus creport deploy sales --provider vercel        # ship a shareable URL (preview; --prod for production)
 ```
 
 Tokens come from the env / `.env` (`VERCEL_TOKEN` / `CLOUDFLARE_API_TOKEN`),
 never CLI flags; Cloudflare needs `wrangler` installed. See the
-[GenBI guide](../../docs/core/guides/genbi.md) and the
-[CLI reference](../../docs/core/reference/cli.md#janus-genbi--build--deploy-genbi-apps).
+[CReport guide](../../docs/core/guides/creport.md) and the
+[CLI reference](../../docs/core/reference/cli.md#janus-creport--build--deploy-creport-apps).
 
 **8. (Optional) Serve an MCP server** — expose the project's query, schema, and
 knowledge tools to Claude Desktop/Code, Cursor, or any MCP client. Runs

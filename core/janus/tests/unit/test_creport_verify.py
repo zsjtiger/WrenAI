@@ -1,4 +1,4 @@
-"""Behavior tests for `janus genbi verify` and `janus genbi open`."""
+"""Behavior tests for `janus creport verify` and `janus creport open`."""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ import yaml
 from typer.testing import CliRunner
 
 from janus.cli import app
-from janus.genbi.verify import verify_app
+from janus.creport.verify import verify_app
 
 runner = CliRunner()
 
@@ -33,7 +33,7 @@ def _make_project_with_app(
     app_dir = tmp_path / "apps" / "myapp"
     app_dir.mkdir(parents=True)
     if index_html:
-        (app_dir / "index.html").write_text("<html><body>GenBI</body></html>")
+        (app_dir / "index.html").write_text("<html><body>CReport</body></html>")
     if mdl_json:
         (app_dir / "mdl.json").write_text(
             json.dumps({"catalog": "janus", "schema": "public", "models": [{}]})
@@ -45,7 +45,7 @@ def _make_project_with_app(
         result = runner.invoke(
             app,
             [
-                "genbi",
+                "creport",
                 "register",
                 "myapp",
                 "--data-mode",
@@ -69,7 +69,7 @@ def _status(project: Path) -> str:
 def test_verify_passes_and_flips_status_to_built(tmp_path: Path) -> None:
     project = _make_project_with_app(tmp_path)
 
-    result = runner.invoke(app, ["genbi", "verify", "myapp", "-p", str(project)])
+    result = runner.invoke(app, ["creport", "verify", "myapp", "-p", str(project)])
 
     assert result.exit_code == 0, result.output
     assert _status(project) == "built"
@@ -78,7 +78,7 @@ def test_verify_passes_and_flips_status_to_built(tmp_path: Path) -> None:
 def test_verify_fails_on_missing_index_html(tmp_path: Path) -> None:
     project = _make_project_with_app(tmp_path, index_html=False)
 
-    result = runner.invoke(app, ["genbi", "verify", "myapp", "-p", str(project)])
+    result = runner.invoke(app, ["creport", "verify", "myapp", "-p", str(project)])
 
     assert result.exit_code != 0
     assert "index.html" in result.output
@@ -89,7 +89,7 @@ def test_verify_fails_on_invalid_mdl_json(tmp_path: Path) -> None:
     project = _make_project_with_app(tmp_path, mdl_json=False)
     (project / "apps" / "myapp" / "mdl.json").write_text("{not json")
 
-    result = runner.invoke(app, ["genbi", "verify", "myapp", "-p", str(project)])
+    result = runner.invoke(app, ["creport", "verify", "myapp", "-p", str(project)])
 
     assert result.exit_code != 0
     assert "mdl.json" in result.output
@@ -99,7 +99,7 @@ def test_verify_fails_on_invalid_mdl_json(tmp_path: Path) -> None:
 def test_verify_snapshot_requires_data_asset(tmp_path: Path) -> None:
     project = _make_project_with_app(tmp_path, data_asset=False)
 
-    result = runner.invoke(app, ["genbi", "verify", "myapp", "-p", str(project)])
+    result = runner.invoke(app, ["creport", "verify", "myapp", "-p", str(project)])
 
     assert result.exit_code != 0
     assert "data asset" in result.output
@@ -109,7 +109,7 @@ def test_verify_snapshot_requires_data_asset(tmp_path: Path) -> None:
 def test_verify_unregistered_app_errors(tmp_path: Path) -> None:
     project = _make_project_with_app(tmp_path, register=False)
 
-    result = runner.invoke(app, ["genbi", "verify", "myapp", "-p", str(project)])
+    result = runner.invoke(app, ["creport", "verify", "myapp", "-p", str(project)])
 
     assert result.exit_code != 0
     assert "not registered" in result.output
@@ -118,7 +118,7 @@ def test_verify_unregistered_app_errors(tmp_path: Path) -> None:
 def test_open_unregistered_app_errors(tmp_path: Path) -> None:
     project = _make_project_with_app(tmp_path, register=False)
 
-    result = runner.invoke(app, ["genbi", "open", "myapp", "-p", str(project)])
+    result = runner.invoke(app, ["creport", "open", "myapp", "-p", str(project)])
 
     assert result.exit_code != 0
     assert "not registered" in result.output
@@ -127,7 +127,7 @@ def test_open_unregistered_app_errors(tmp_path: Path) -> None:
 def test_verify_live_app_does_not_require_data_asset(tmp_path: Path) -> None:
     project = _make_project_with_app(tmp_path, data_mode="live", data_asset=False)
 
-    result = runner.invoke(app, ["genbi", "verify", "myapp", "-p", str(project)])
+    result = runner.invoke(app, ["creport", "verify", "myapp", "-p", str(project)])
 
     assert result.exit_code == 0, result.output
     assert _status(project) == "built"
@@ -139,7 +139,7 @@ def test_verify_fails_on_inlined_connection_credentials(tmp_path: Path) -> None:
         'const DB = "postgres://admin:s3cretpw@db.internal:5432/prod";'
     )
 
-    result = runner.invoke(app, ["genbi", "verify", "myapp", "-p", str(project)])
+    result = runner.invoke(app, ["creport", "verify", "myapp", "-p", str(project)])
 
     assert result.exit_code != 0
     assert "secret" in result.output.lower() or "credential" in result.output.lower()
@@ -153,7 +153,7 @@ def test_verify_fails_on_inlined_password_assignment(tmp_path: Path) -> None:
         '{"host": "db.internal", "password": "hunter2hunter2"}'
     )
 
-    result = runner.invoke(app, ["genbi", "verify", "myapp", "-p", str(project)])
+    result = runner.invoke(app, ["creport", "verify", "myapp", "-p", str(project)])
 
     assert result.exit_code != 0
     assert "settings.json" in result.output
@@ -166,7 +166,7 @@ def test_verify_snapshot_app_with_secret_also_fails(tmp_path: Path) -> None:
         '<script>const k = "AKIAIOSFODNN7EXAMPLE";</script>'
     )
 
-    result = runner.invoke(app, ["genbi", "verify", "myapp", "-p", str(project)])
+    result = runner.invoke(app, ["creport", "verify", "myapp", "-p", str(project)])
 
     assert result.exit_code != 0
     assert "index.html" in result.output

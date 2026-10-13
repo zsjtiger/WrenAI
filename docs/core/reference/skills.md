@@ -37,7 +37,7 @@ always matches the installed CLI.
 | **generate-mdl** | `janus skills get generate-mdl` | One-time setup: explore database schema, normalize types, scaffold MDL YAML project |
 | **enrich-context** | `janus skills get enrich-context` | Deepen business context the schema can't carry: enum/unit/null semantics, default filters, synonyms, currency rules, and named aggregation metrics as cubes — via grill or auto-pilot mode |
 | **dlt-connector** | `janus skills get dlt-connector` | Connect SaaS APIs (HubSpot, Stripe, Salesforce, GitHub, Slack, …) into DuckDB via dlt, then auto-generate a Janus project |
-| **genbi** | `janus skills get genbi` | Turn a project's context layer into a shareable, browser-side GenBI web app and deploy it to Vercel or Cloudflare Pages |
+| **creport** | `janus skills get creport` | Turn a project's context layer into a shareable, browser-side CReport web app and deploy it to Vercel or Cloudflare Pages |
 
 List them with `janus skills list`.
 
@@ -367,12 +367,12 @@ before improvising.
 
 ---
 
-## genbi
+## creport
 
-Turns a project's context layer into a shareable, browser-side GenBI web
+Turns a project's context layer into a shareable, browser-side CReport web
 app (powered by `janus-core-wasm`) and deploys it to Vercel or Cloudflare
 Pages — from a natural-language request to a public URL in one conversation.
-Full command reference: [`janus genbi`](cli.md#janus-genbi--build--deploy-genbi-apps).
+Full command reference: [`janus creport`](cli.md#janus-creport--build--deploy-creport-apps).
 
 ### CLI ↔ agent split
 
@@ -384,11 +384,11 @@ the instruction. `.janus/apps.yml` is only ever written by the CLI.
 
 | Step | Goal | Key actions |
 |------|------|-------------|
-| **1. Build** | Get the authoritative build instruction | `janus genbi build <name> --prompt "…" --data-mode snapshot\|live` — prints wasm wiring (pinned version), the model/column inventory, acceptance criteria, target folder |
+| **1. Build** | Get the authoritative build instruction | `janus creport build <name> --prompt "…" --data-mode snapshot\|live` — prints wasm wiring (pinned version), the model/column inventory, acceptance criteria, target folder |
 | **2. Author** | Write the app | Agent writes `apps/<name>/` per the instruction; copies in `mdl.json`; exports the snapshot data to `data/*.parquet` (DuckDB-backed projects — incl. dlt output — export trivially) |
-| **3. Register & verify** | Record + preflight | `janus genbi register <name> --data-mode <mode>`, then `janus genbi verify <name>` (files, parseable MDL, snapshot asset, default-deny secret scan) |
-| **4. Preview** | Local check | `janus genbi open <name>` serves the app for local review |
-| **5. Deploy** | Ship a URL | `janus genbi deploy <name> --provider vercel\|cloudflare [--prod]` — preview by default; confirm before `--prod` |
+| **3. Register & verify** | Record + preflight | `janus creport register <name> --data-mode <mode>`, then `janus creport verify <name>` (files, parseable MDL, snapshot asset, default-deny secret scan) |
+| **4. Preview** | Local check | `janus creport open <name>` serves the app for local review |
+| **5. Deploy** | Ship a URL | `janus creport deploy <name> --provider vercel\|cloudflare [--prod]` — preview by default; confirm before `--prod` |
 
 ### Data modes
 
@@ -415,12 +415,12 @@ The discovery stub routes the agent here on phrases like:
 - "build a dashboard from my Janus project"
 - "make a shareable analytics app"
 - "deploy my context layer as a web app"
-- "host a GenBI app on Vercel / Cloudflare Pages"
+- "host a CReport app on Vercel / Cloudflare Pages"
 
 ### Data origin handoff
 
 If the data is coming from a SaaS source, run [`dlt-connector`](#dlt-connector)
-first — its DuckDB output is exactly the snapshot source `genbi` bundles.
+first — its DuckDB output is exactly the snapshot source `creport` bundles.
 
 ---
 

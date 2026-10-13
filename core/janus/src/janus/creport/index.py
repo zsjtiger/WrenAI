@@ -1,6 +1,6 @@
-"""App index — the single source of truth for GenBI apps in a project.
+"""App index — the single source of truth for CReport apps in a project.
 
-Owns ``<project>/.janus/apps.yml``. Machine-written (via ``janus genbi
+Owns ``<project>/.janus/apps.yml``. Machine-written (via ``janus creport
 register``), never hand-rolled. Mirrors the ``~/.janus/profiles.yml``
 registry pattern. Secrets are never stored here — only non-secret link
 state.

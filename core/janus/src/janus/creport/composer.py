@@ -1,4 +1,4 @@
-"""Compose the `janus genbi build` instruction.
+"""Compose the `janus creport build` instruction.
 
 The CLI never builds the app — it hands the agent an authoritative,
 project-hydrated build instruction (static template + live project facts +
@@ -25,7 +25,7 @@ warehouse/API at query time:
 2. HARD RULE: warehouse credentials MUST NEVER be inlined into the app.
    The app is a public static site — anyone who opens the URL can read
    every file. Use a proxy/API with its own auth, or browser-side auth.
-   `janus genbi verify` scans for inlined credentials as best-effort
+   `janus creport verify` scans for inlined credentials as best-effort
    defense-in-depth — it catches common patterns but is NOT a guarantee;
    the HARD RULE above is what actually keeps secrets out.
 3. The endpoint the app queries must allow the deployed origin via CORS —
@@ -81,9 +81,9 @@ def compose_build_instruction(
 ) -> str:
     """Return the full build instruction for the agent. Pure — no IO."""
     return f"""\
-# GenBI App Build Instruction
+# CReport App Build Instruction
 
-You are building a self-contained, static GenBI web app powered by
+You are building a self-contained, static CReport web app powered by
 `janus-core-wasm`. The app runs the Janus engine in the browser and answers the
 user's request below using this project's context layer.
 
@@ -125,8 +125,8 @@ the app folder:
 
 ## Final steps (run these after the app is written)
 
-1. `janus genbi register {app_name} --data-mode {data_mode}`
-2. `janus genbi verify {app_name}`
+1. `janus creport register {app_name} --data-mode {data_mode}`
+2. `janus creport verify {app_name}`
 
 ## User request
 

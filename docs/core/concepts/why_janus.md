@@ -4,7 +4,7 @@ sidebar_label: Why Janus? (and how it compares)
 
 # Why Janus? (and how it compares)
 
-Janus AI is the **open-source GenBI engine**: it lets AI agents generate, deploy,
+Janus AI is the **open-source CReport engine**: it lets AI agents generate, deploy,
 and govern business intelligence on top of a context layer they can trust. This
 page is the honest version: what Janus is for, what it is *not*, and how it
 differs from the tools it sits near.
@@ -65,5 +65,5 @@ A few distinctions worth being precise about:
 ## Where to go next
 
 - [Install](/oss/get_started/installation) and the [Quickstart](/oss/get_started/quickstart)
-- [What does Janus AI mean by context?](/oss/concepts/what_is_context): the idea underneath GenBI
-- [Build & deploy a GenBI app](/oss/guides/genbi): see the payoff
+- [What does Janus AI mean by context?](/oss/concepts/what_is_context): the idea underneath CReport
+- [Build & deploy a CReport app](/oss/guides/genbi): see the payoff

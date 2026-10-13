@@ -1,4 +1,4 @@
-"""Deterministic preflight for GenBI apps.
+"""Deterministic preflight for CReport apps.
 
 Structural checks only (no browser): required files exist, the app's MDL
 parses, and snapshot apps ship a data asset. A real headless wasm smoke
@@ -110,7 +110,7 @@ class VerifyResult:
 
 def verify_app(app_dir: Path, *, data_mode: str) -> VerifyResult:
     """Run all structural checks for the app at ``app_dir``."""
-    from janus.genbi.composer import DATA_MODES  # noqa: PLC0415
+    from janus.creport.composer import DATA_MODES  # noqa: PLC0415
 
     failures: list[str] = []
 

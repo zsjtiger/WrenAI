@@ -1,4 +1,4 @@
-"""Behavior tests for `janus genbi build` — the instruction composer."""
+"""Behavior tests for `janus creport build` — the instruction composer."""
 
 from __future__ import annotations
 
@@ -58,7 +58,7 @@ def test_build_prints_instruction_and_writes_nothing(tmp_path: Path) -> None:
     result = runner.invoke(
         app,
         [
-            "genbi",
+            "creport",
             "build",
             "myapp",
             "--prompt",
@@ -82,7 +82,7 @@ def test_build_includes_model_inventory(tmp_path: Path) -> None:
     project = _make_project(tmp_path)
 
     result = runner.invoke(
-        app, ["genbi", "build", "myapp", "--prompt", "x", "-p", str(project)]
+        app, ["creport", "build", "myapp", "--prompt", "x", "-p", str(project)]
     )
 
     assert result.exit_code == 0, result.output
@@ -96,7 +96,7 @@ def test_build_includes_model_inventory(tmp_path: Path) -> None:
 
 def test_format_inventory_stringifies_non_string_column_names() -> None:
     """Non-string column names (YAML ``name: 3``) must not crash join."""
-    from janus.genbi.composer import _format_model_inventory
+    from janus.creport.composer import _format_model_inventory
 
     models = [{"name": "customers", "columns": [{"name": 3}, {"name": "id"}]}]
     assert _format_model_inventory(models) == "- **customers**: 3, id"
@@ -104,7 +104,7 @@ def test_format_inventory_stringifies_non_string_column_names() -> None:
 
 def test_build_inventory_stringifies_non_string_column_names(tmp_path: Path) -> None:
     """compose_build_instruction survives non-string column names."""
-    from janus.genbi.composer import compose_build_instruction
+    from janus.creport.composer import compose_build_instruction
 
     models = [
         {"name": "customers", "columns": [{"name": 3}, {"name": "id"}]},
@@ -125,7 +125,7 @@ def test_build_includes_wasm_wiring_and_final_steps(tmp_path: Path) -> None:
     project = _make_project(tmp_path)
 
     result = runner.invoke(
-        app, ["genbi", "build", "myapp", "--prompt", "x", "-p", str(project)]
+        app, ["creport", "build", "myapp", "--prompt", "x", "-p", str(project)]
     )
 
     assert result.exit_code == 0, result.output
@@ -136,8 +136,8 @@ def test_build_includes_wasm_wiring_and_final_steps(tmp_path: Path) -> None:
     # load sequence
     assert "loadMDL" in result.output
     # final steps: register then verify, with the app name filled in
-    assert "janus genbi register myapp --data-mode snapshot" in result.output
-    assert "janus genbi verify myapp" in result.output
+    assert "janus creport register myapp --data-mode snapshot" in result.output
+    assert "janus creport verify myapp" in result.output
 
 
 def test_build_snapshot_mode_gives_data_bundling_guidance(tmp_path: Path) -> None:
@@ -146,7 +146,7 @@ def test_build_snapshot_mode_gives_data_bundling_guidance(tmp_path: Path) -> Non
     result = runner.invoke(
         app,
         [
-            "genbi",
+            "creport",
             "build",
             "myapp",
             "--prompt",
@@ -170,7 +170,7 @@ def test_build_rejects_unknown_data_mode(tmp_path: Path) -> None:
     result = runner.invoke(
         app,
         [
-            "genbi",
+            "creport",
             "build",
             "myapp",
             "--prompt",
@@ -194,7 +194,7 @@ def test_build_accepts_prompt_file(tmp_path: Path) -> None:
     result = runner.invoke(
         app,
         [
-            "genbi",
+            "creport",
             "build",
             "myapp",
             "--prompt-file",
@@ -214,7 +214,7 @@ def test_build_reads_prompt_from_stdin(tmp_path: Path) -> None:
 
     result = runner.invoke(
         app,
-        ["genbi", "build", "myapp", "--prompt", "-", "-p", str(project)],
+        ["creport", "build", "myapp", "--prompt", "-", "-p", str(project)],
         input="stdin request body\n",
     )
 
@@ -225,7 +225,7 @@ def test_build_reads_prompt_from_stdin(tmp_path: Path) -> None:
 def test_build_requires_a_prompt(tmp_path: Path) -> None:
     project = _make_project(tmp_path)
 
-    result = runner.invoke(app, ["genbi", "build", "myapp", "-p", str(project)])
+    result = runner.invoke(app, ["creport", "build", "myapp", "-p", str(project)])
 
     assert result.exit_code != 0
     assert "prompt" in result.output.lower()
@@ -237,7 +237,7 @@ def test_build_compiles_mdl_when_missing(tmp_path: Path) -> None:
     (project / "target").rmdir()
 
     result = runner.invoke(
-        app, ["genbi", "build", "myapp", "--prompt", "x", "-p", str(project)]
+        app, ["creport", "build", "myapp", "--prompt", "x", "-p", str(project)]
     )
 
     assert result.exit_code == 0, result.output
@@ -254,7 +254,7 @@ def test_build_live_mode_gives_connection_guidance_and_hard_rule(
     result = runner.invoke(
         app,
         [
-            "genbi",
+            "creport",
             "build",
             "myapp",
             "--prompt",
@@ -279,7 +279,7 @@ def test_build_live_mode_gives_connection_guidance_and_hard_rule(
 def test_build_rejects_path_traversal_name(tmp_path: Path) -> None:
     project = _make_project(tmp_path)
     result = runner.invoke(
-        app, ["genbi", "build", "../evil", "--prompt", "x", "-p", str(project)]
+        app, ["creport", "build", "../evil", "--prompt", "x", "-p", str(project)]
     )
     assert result.exit_code != 0
     assert "invalid app name" in result.output

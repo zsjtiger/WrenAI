@@ -12,13 +12,13 @@ This page helps you pick the right mode.
 | Querying from the **terminal, scripts, or CI** yourself | [CLI](/oss/reference/cli) — plan, validate, execute, and manage memory directly | `janusai` on PyPI |
 | Building an agent on **LangChain / LangGraph** | [LangChain toolkit](./langchain.md) — exposes the project as agent tools | `janus-langchain` on PyPI |
 | Building an agent on **Pydantic AI** | [Pydantic AI toolkit](./pydantic.md) — exposes the project as agent tools | `janus-pydantic` on PyPI |
-| Embedding MDL-aware queries or **GenBI dashboards in the browser** | [WebAssembly engine](./wasm.md) — runs fully client-side; no server, no CLI bootstrap | `@janusai/janus-core-wasm` on npm |
+| Embedding MDL-aware queries or **CReport dashboards in the browser** | [WebAssembly engine](./wasm.md) — runs fully client-side; no server, no CLI bootstrap | `@janusai/janus-core-wasm` on npm |
 
 A few rules of thumb:
 
 - **Start with skills + CLI.** If your day-to-day driver is a coding agent, you get the full workflow (scaffold, enrich, query, store) with one install and nothing to build.
 - **Reach for a framework SDK** when you are shipping your own agent or application and want Janus's context layer as a toolkit inside it, instead of shelling out to the CLI.
-- **Reach for wasm** when the consumer is a browser: GenBI dashboards use it under the hood, and you can use it directly to run modeled SQL client-side.
+- **Reach for wasm** when the consumer is a browser: CReport dashboards use it under the hood, and you can use it directly to run modeled SQL client-side.
 
 ## How the pieces relate
 

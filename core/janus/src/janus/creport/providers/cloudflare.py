@@ -16,7 +16,7 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
-from janus.genbi.providers.base import DeployError, Deployment
+from janus.creport.providers.base import DeployError, Deployment
 
 # Matches the per-deployment / project URL wrangler prints on success.
 _PAGES_URL_RE = re.compile(r"https://[A-Za-z0-9.-]+\.pages\.dev\S*")

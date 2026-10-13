@@ -330,26 +330,26 @@ janus cube query \
 
 ---
 
-## Step 9: Build and deploy a GenBI dashboard (optional)
+## Step 9: Build and deploy a CReport dashboard (optional)
 
-You have answers. Now turn one into a shareable report. GenBI builds a
+You have answers. Now turn one into a shareable report. CReport builds a
 browser-side dashboard from your project's context and deploys it to your own
 Vercel or Cloudflare Pages account. You drive the whole thing through the agent.
 
 In Claude Code:
 
 ```
-Use the /janus skill to build a GenBI dashboard from the revenue cube:
+Use the /janus skill to build a CReport dashboard from the revenue cube:
 monthly revenue and order count, filterable by status. Then preview it locally.
 ```
 
-The `janus` skill pulls in the `genbi` guide (`janus skills get genbi`) and drives
+The `janus` skill pulls in the `creport` guide (`janus skills get creport`) and drives
 the build:
 
-1. **Build the instruction** (`janus genbi build`) hydrates the app spec with your MDL and the pinned `janus-core-wasm` version.
+1. **Build the instruction** (`janus creport build`) hydrates the app spec with your MDL and the pinned `janus-core-wasm` version.
 2. **Author the app** writes a self-contained app under `apps/<name>/`, choosing charts that answer the question.
 3. **Snapshot the data** exports what the dashboard needs (default snapshot mode), so the app runs fully client-side with no backend.
-4. **Verify and preview** (`janus genbi verify`, then `janus genbi open`) runs preflight checks and serves the app locally.
+4. **Verify and preview** (`janus creport verify`, then `janus creport open`) runs preflight checks and serves the app locally.
 
 Open the preview URL the agent prints (for example `http://127.0.0.1:8848/`) and
 click through it. Refine in plain language ("make it a bar chart", "drop the
@@ -363,7 +363,7 @@ Deploy the dashboard to Vercel.
 
 You supply the deploy token: add `VERCEL_TOKEN` (or `CLOUDFLARE_API_TOKEN` plus
 `CLOUDFLARE_ACCOUNT_ID`) to `~/.janus/.env`, then tell the agent to continue. It
-runs `janus genbi deploy` and returns a shareable URL. Deploys go to a preview
+runs `janus creport deploy` and returns a shareable URL. Deploys go to a preview
 URL by default; say "ship it to production" to promote it.
 
 > **Heads-up:** new Vercel projects return HTTP 401 to logged-out visitors by
@@ -371,7 +371,7 @@ URL by default; say "ship it to production" to promote it.
 > Authentication once at Project → Settings → Deployment Protection → Vercel
 > Authentication → Disabled.
 
-For the full walkthrough, see [Build and deploy a GenBI app](../guides/genbi.md).
+For the full walkthrough, see [Build and deploy a CReport app](../guides/creport.md).
 
 ---
 

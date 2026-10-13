@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
-from janus.genbi.providers.base import DeployProvider
+from janus.creport.providers.base import DeployProvider
 
 
 def get_provider(name: str) -> DeployProvider:
     """Return the adapter for ``name`` or raise KeyError with the known set."""
-    from janus.genbi.providers.cloudflare import CloudflareProvider  # noqa: PLC0415
-    from janus.genbi.providers.vercel import VercelProvider  # noqa: PLC0415
+    from janus.creport.providers.cloudflare import CloudflareProvider  # noqa: PLC0415
+    from janus.creport.providers.vercel import VercelProvider  # noqa: PLC0415
 
     registry: dict[str, type] = {
         "vercel": VercelProvider,

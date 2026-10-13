@@ -43,7 +43,7 @@ jobs:
           # behind by source-side renames/deletions must be cleaned up
           # MANUALLY by a maintainer in the docs site repo.
           # The plural folder names (concepts, guides) are deliberately
-          # different from GenBI legacy's singular names (concept, guide,
+          # different from CReport legacy's singular names (concept, guide,
           # under docs/oss/genbi/ on the docs site) to keep them in
           # separate trees under docs/oss/.
           for dir in get_started concepts guides reference sdk; do

@@ -1,4 +1,4 @@
-"""Behavior tests for the app index — `janus genbi register/list/remove`."""
+"""Behavior tests for the app index — `janus creport register/list/remove`."""
 
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ import yaml
 from typer.testing import CliRunner
 
 from janus.cli import app
-from janus.genbi.index import MalformedIndexError, index_path, load_index
+from janus.creport.index import MalformedIndexError, index_path, load_index
 
 runner = CliRunner()
 
@@ -36,7 +36,7 @@ def test_register_writes_index_entry(tmp_path: Path) -> None:
 
     result = runner.invoke(
         app,
-        ["genbi", "register", "myapp", "--data-mode", "snapshot", "-p", str(project)],
+        ["creport", "register", "myapp", "--data-mode", "snapshot", "-p", str(project)],
     )
 
     assert result.exit_code == 0, result.output
@@ -50,7 +50,7 @@ def test_register_writes_index_entry(tmp_path: Path) -> None:
 def test_register_requires_app_dir_on_disk(tmp_path: Path) -> None:
     project = _make_project(tmp_path)  # no app written
 
-    result = runner.invoke(app, ["genbi", "register", "ghost", "-p", str(project)])
+    result = runner.invoke(app, ["creport", "register", "ghost", "-p", str(project)])
 
     assert result.exit_code != 0
     assert "no app found" in result.output.lower()
@@ -60,10 +60,10 @@ def test_register_requires_app_dir_on_disk(tmp_path: Path) -> None:
 def test_register_is_idempotent_update(tmp_path: Path) -> None:
     project = _make_project(tmp_path, with_app="myapp")
 
-    r1 = runner.invoke(app, ["genbi", "register", "myapp", "-p", str(project)])
+    r1 = runner.invoke(app, ["creport", "register", "myapp", "-p", str(project)])
     r2 = runner.invoke(
         app,
-        ["genbi", "register", "myapp", "--data-mode", "live", "-p", str(project)],
+        ["creport", "register", "myapp", "--data-mode", "live", "-p", str(project)],
     )
 
     assert r1.exit_code == 0 and r2.exit_code == 0
@@ -77,12 +77,12 @@ def test_list_shows_registered_apps(tmp_path: Path) -> None:
     app2 = project / "apps" / "other"
     app2.mkdir()
     (app2 / "index.html").write_text("<html></html>")
-    runner.invoke(app, ["genbi", "register", "myapp", "-p", str(project)])
+    runner.invoke(app, ["creport", "register", "myapp", "-p", str(project)])
     runner.invoke(
-        app, ["genbi", "register", "other", "--data-mode", "live", "-p", str(project)]
+        app, ["creport", "register", "other", "--data-mode", "live", "-p", str(project)]
     )
 
-    result = runner.invoke(app, ["genbi", "list", "-p", str(project)])
+    result = runner.invoke(app, ["creport", "list", "-p", str(project)])
 
     assert result.exit_code == 0, result.output
     assert "myapp" in result.output and "other" in result.output
@@ -93,7 +93,7 @@ def test_list_shows_registered_apps(tmp_path: Path) -> None:
 def test_list_with_no_index_reports_no_apps(tmp_path: Path) -> None:
     project = _make_project(tmp_path)
 
-    result = runner.invoke(app, ["genbi", "list", "-p", str(project)])
+    result = runner.invoke(app, ["creport", "list", "-p", str(project)])
 
     assert result.exit_code == 0, result.output
     assert "no apps" in result.output.lower()
@@ -101,22 +101,22 @@ def test_list_with_no_index_reports_no_apps(tmp_path: Path) -> None:
 
 def test_remove_deletes_index_entry(tmp_path: Path) -> None:
     project = _make_project(tmp_path, with_app="myapp")
-    runner.invoke(app, ["genbi", "register", "myapp", "-p", str(project)])
+    runner.invoke(app, ["creport", "register", "myapp", "-p", str(project)])
 
-    result = runner.invoke(app, ["genbi", "remove", "myapp", "-p", str(project)])
+    result = runner.invoke(app, ["creport", "remove", "myapp", "-p", str(project)])
 
     assert result.exit_code == 0, result.output
     index = yaml.safe_load((project / ".janus" / "apps.yml").read_text())
     assert "myapp" not in index["apps"]
     # listing afterwards shows nothing
-    listed = runner.invoke(app, ["genbi", "list", "-p", str(project)])
+    listed = runner.invoke(app, ["creport", "list", "-p", str(project)])
     assert "no apps" in listed.output.lower()
 
 
 def test_remove_unknown_app_errors(tmp_path: Path) -> None:
     project = _make_project(tmp_path)
 
-    result = runner.invoke(app, ["genbi", "remove", "ghost", "-p", str(project)])
+    result = runner.invoke(app, ["creport", "remove", "ghost", "-p", str(project)])
 
     assert result.exit_code != 0
     assert "not registered" in result.output.lower()
@@ -142,7 +142,7 @@ def test_load_index_raises_on_non_mapping(tmp_path: Path) -> None:
 
 def test_register_rejects_path_traversal_name(tmp_path: Path) -> None:
     project = _make_project(tmp_path)
-    result = runner.invoke(app, ["genbi", "register", "../evil", "-p", str(project)])
+    result = runner.invoke(app, ["creport", "register", "../evil", "-p", str(project)])
     assert result.exit_code != 0
     assert "invalid app name" in result.output
 
@@ -160,7 +160,7 @@ def test_load_index_normalises_null_apps(tmp_path: Path) -> None:
     assert data["apps"] == {}
     assert data["schema_version"] == 1
     # And the normal accessor must not crash on it.
-    from janus.genbi.index import get_app
+    from janus.creport.index import get_app
 
     assert get_app(tmp_path, "missing") is None
 
@@ -195,7 +195,7 @@ def test_load_index_preserves_falsy_schema_version(tmp_path: Path) -> None:
 
 
 def test_get_app_skips_non_dict_entry(tmp_path: Path) -> None:
-    from janus.genbi.index import get_app, save_index
+    from janus.creport.index import get_app, save_index
 
     save_index(
         tmp_path,
@@ -207,7 +207,7 @@ def test_get_app_skips_non_dict_entry(tmp_path: Path) -> None:
 
 
 def test_register_app_replaces_non_dict_entry(tmp_path: Path) -> None:
-    from janus.genbi.index import load_index, register_app, save_index
+    from janus.creport.index import load_index, register_app, save_index
 
     save_index(tmp_path, {"schema_version": 1, "apps": {"bad": "not-a-map"}})
     entry = register_app(tmp_path, "bad", data_mode="snapshot")
@@ -218,7 +218,7 @@ def test_register_app_replaces_non_dict_entry(tmp_path: Path) -> None:
 
 
 def test_update_app_rejects_non_dict_entry(tmp_path: Path) -> None:
-    from janus.genbi.index import save_index, update_app
+    from janus.creport.index import save_index, update_app
     import pytest
 
     save_index(tmp_path, {"schema_version": 1, "apps": {"bad": "not-a-map"}})
@@ -227,7 +227,7 @@ def test_update_app_rejects_non_dict_entry(tmp_path: Path) -> None:
 
 
 def test_deploy_state_normalizes_non_dict() -> None:
-    from janus.genbi.index import deploy_state
+    from janus.creport.index import deploy_state
 
     assert deploy_state({"deploy": "https://x"}) == {}
     assert deploy_state({"deploy": {"last_url": "https://ok"}}) == {

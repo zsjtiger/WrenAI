@@ -1,4 +1,4 @@
-"""Behavior tests for `janus genbi deploy` — token discovery + providers."""
+"""Behavior tests for `janus creport deploy` — token discovery + providers."""
 
 from __future__ import annotations
 
@@ -10,10 +10,10 @@ import pytest
 import yaml
 from typer.testing import CliRunner
 
-import janus.genbi.providers.cloudflare as cloudflare
-import janus.genbi.providers.vercel as vercel
+import janus.creport.providers.cloudflare as cloudflare
+import janus.creport.providers.vercel as vercel
 from janus.cli import app
-from janus.genbi.tokens import resolve_token
+from janus.creport.tokens import resolve_token
 
 runner = CliRunner()
 
@@ -44,10 +44,10 @@ def _make_deployable_project(tmp_path: Path) -> Path:
     )
     app_dir = tmp_path / "apps" / "myapp"
     (app_dir / "data").mkdir(parents=True)
-    (app_dir / "index.html").write_text("<html><body>GenBI</body></html>")
+    (app_dir / "index.html").write_text("<html><body>CReport</body></html>")
     (app_dir / "mdl.json").write_text(json.dumps({"models": [{}]}))
     (app_dir / "data" / "orders.parquet").write_bytes(b"PAR1fake")
-    result = runner.invoke(app, ["genbi", "register", "myapp", "-p", str(tmp_path)])
+    result = runner.invoke(app, ["creport", "register", "myapp", "-p", str(tmp_path)])
     assert result.exit_code == 0, result.output
     return tmp_path
 
@@ -98,7 +98,7 @@ def test_deploy_tolerates_scalar_deploy_block(tmp_path: Path, monkeypatch) -> No
     goldmedal mutation-check: reverting link=deploy_state(entry) or None back to
     entry.get("deploy") must fail this test.
     """
-    import janus.genbi.providers as providers  # noqa: PLC0415
+    import janus.creport.providers as providers  # noqa: PLC0415
 
     project = _make_deployable_project(tmp_path)
     apps_yml = project / ".janus" / "apps.yml"
@@ -129,7 +129,7 @@ def test_deploy_tolerates_scalar_deploy_block(tmp_path: Path, monkeypatch) -> No
     monkeypatch.setattr(providers, "get_provider", _spy_get_provider)
 
     result = runner.invoke(
-        app, ["genbi", "deploy", "myapp", "--provider", "vercel", "-p", str(project)]
+        app, ["creport", "deploy", "myapp", "--provider", "vercel", "-p", str(project)]
     )
 
     assert not isinstance(result.exception, AttributeError), result.exception
@@ -149,7 +149,7 @@ def test_deploy_vercel_uploads_and_persists_state(tmp_path: Path, monkeypatch) -
     monkeypatch.setattr(vercel, "_request", fake)
 
     result = runner.invoke(
-        app, ["genbi", "deploy", "myapp", "--provider", "vercel", "-p", str(project)]
+        app, ["creport", "deploy", "myapp", "--provider", "vercel", "-p", str(project)]
     )
 
     assert result.exit_code == 0, result.output
@@ -182,7 +182,7 @@ def test_deploy_prod_flag_targets_production(tmp_path: Path, monkeypatch) -> Non
     result = runner.invoke(
         app,
         [
-            "genbi",
+            "creport",
             "deploy",
             "myapp",
             "--provider",
@@ -204,7 +204,7 @@ def test_deploy_without_token_gives_actionable_error(tmp_path, monkeypatch) -> N
     monkeypatch.delenv("VERCEL_TOKEN", raising=False)
 
     result = runner.invoke(
-        app, ["genbi", "deploy", "myapp", "--provider", "vercel", "-p", str(project)]
+        app, ["creport", "deploy", "myapp", "--provider", "vercel", "-p", str(project)]
     )
 
     assert result.exit_code != 0
@@ -219,7 +219,7 @@ def test_deploy_runs_verify_first_and_aborts_on_failure(tmp_path, monkeypatch) -
     monkeypatch.setattr(vercel, "_request", fake)
 
     result = runner.invoke(
-        app, ["genbi", "deploy", "myapp", "--provider", "vercel", "-p", str(project)]
+        app, ["creport", "deploy", "myapp", "--provider", "vercel", "-p", str(project)]
     )
 
     assert result.exit_code != 0
@@ -229,11 +229,11 @@ def test_deploy_runs_verify_first_and_aborts_on_failure(tmp_path, monkeypatch) -
 
 def test_deploy_unregistered_app_errors(tmp_path, monkeypatch) -> None:
     project = _make_deployable_project(tmp_path)
-    runner.invoke(app, ["genbi", "remove", "myapp", "-p", str(project)])
+    runner.invoke(app, ["creport", "remove", "myapp", "-p", str(project)])
     monkeypatch.setenv("VERCEL_TOKEN", "tok-123")
 
     result = runner.invoke(
-        app, ["genbi", "deploy", "myapp", "--provider", "vercel", "-p", str(project)]
+        app, ["creport", "deploy", "myapp", "--provider", "vercel", "-p", str(project)]
     )
 
     assert result.exit_code != 0
@@ -244,7 +244,7 @@ def test_deploy_unknown_provider_errors(tmp_path) -> None:
     project = _make_deployable_project(tmp_path)
 
     result = runner.invoke(
-        app, ["genbi", "deploy", "myapp", "--provider", "bogus", "-p", str(project)]
+        app, ["creport", "deploy", "myapp", "--provider", "bogus", "-p", str(project)]
     )
 
     assert result.exit_code != 0
@@ -293,7 +293,7 @@ def test_deploy_cloudflare_invokes_wrangler_and_persists_state(
 
     result = runner.invoke(
         app,
-        ["genbi", "deploy", "myapp", "--provider", "cloudflare", "-p", str(project)],
+        ["creport", "deploy", "myapp", "--provider", "cloudflare", "-p", str(project)],
     )
 
     assert result.exit_code == 0, result.output
@@ -331,7 +331,7 @@ def test_deploy_cloudflare_prod_uses_production_branch(tmp_path, monkeypatch) ->
     result = runner.invoke(
         app,
         [
-            "genbi",
+            "creport",
             "deploy",
             "myapp",
             "--provider",
@@ -361,7 +361,7 @@ def test_deploy_cloudflare_tolerates_existing_project(tmp_path, monkeypatch) -> 
 
     result = runner.invoke(
         app,
-        ["genbi", "deploy", "myapp", "--provider", "cloudflare", "-p", str(project)],
+        ["creport", "deploy", "myapp", "--provider", "cloudflare", "-p", str(project)],
     )
 
     assert result.exit_code == 0, result.output
@@ -375,7 +375,7 @@ def test_deploy_cloudflare_requires_account_id(tmp_path, monkeypatch) -> None:
 
     result = runner.invoke(
         app,
-        ["genbi", "deploy", "myapp", "--provider", "cloudflare", "-p", str(project)],
+        ["creport", "deploy", "myapp", "--provider", "cloudflare", "-p", str(project)],
     )
 
     assert result.exit_code != 0
@@ -390,7 +390,7 @@ def test_deploy_cloudflare_errors_when_wrangler_missing(tmp_path, monkeypatch) -
 
     result = runner.invoke(
         app,
-        ["genbi", "deploy", "myapp", "--provider", "cloudflare", "-p", str(project)],
+        ["creport", "deploy", "myapp", "--provider", "cloudflare", "-p", str(project)],
     )
 
     assert result.exit_code != 0
@@ -408,7 +408,7 @@ def test_deploy_cloudflare_surfaces_wrangler_failure(tmp_path, monkeypatch) -> N
 
     result = runner.invoke(
         app,
-        ["genbi", "deploy", "myapp", "--provider", "cloudflare", "-p", str(project)],
+        ["creport", "deploy", "myapp", "--provider", "cloudflare", "-p", str(project)],
     )
 
     assert result.exit_code != 0
@@ -424,7 +424,7 @@ def test_deploy_vercel_fails_when_response_omits_url(tmp_path, monkeypatch) -> N
     monkeypatch.setattr(vercel, "_request", _FakeTransport({"id": "dpl_1"}))  # no url
 
     result = runner.invoke(
-        app, ["genbi", "deploy", "myapp", "--provider", "vercel", "-p", str(project)]
+        app, ["creport", "deploy", "myapp", "--provider", "vercel", "-p", str(project)]
     )
 
     assert result.exit_code != 0
@@ -445,7 +445,7 @@ def test_deploy_cloudflare_fails_when_no_url_in_output(tmp_path, monkeypatch) ->
 
     result = runner.invoke(
         app,
-        ["genbi", "deploy", "myapp", "--provider", "cloudflare", "-p", str(project)],
+        ["creport", "deploy", "myapp", "--provider", "cloudflare", "-p", str(project)],
     )
 
     assert result.exit_code != 0

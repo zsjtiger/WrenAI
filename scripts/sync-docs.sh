@@ -56,7 +56,7 @@ mkdir -p "${TARGET}"
 # Stale files left behind by source-side renames or deletions must be
 # cleaned up manually by a maintainer in the docs site repo. The plural
 # folder names (concepts, guides) are deliberately different from the
-# GenBI legacy folders that use singular names (concept, guide) under
+# CReport legacy folders that use singular names (concept, guide) under
 # docs/oss/genbi/ on the docs site.
 for file in "${SYNC_FILES[@]}"; do
   cp "${REPO_ROOT}/docs/core/${file}" "${TARGET}/${file}"

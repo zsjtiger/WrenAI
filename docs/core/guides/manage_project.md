@@ -70,7 +70,7 @@ profile: pg-dev
 
 ## Project layout
 
-`janus context init` scaffolds the current layout (**v5**): per-model and per-view folders, `cubes/` for pre-aggregated semantic objects, a first-class `knowledge/` base, and (added later) GenBI `apps/`.
+`janus context init` scaffolds the current layout (**v5**): per-model and per-view folders, `cubes/` for pre-aggregated semantic objects, a first-class `knowledge/` base, and (added later) CReport `apps/`.
 
 Everything below lives **in the project** (version-controlled), except `target/` (build output) and `.janus/` (project-local runtime state), which are gitignore-able. Connection credentials and global CLI state live separately under `~/.janus/` (see [Where profiles live](#where-profiles-live)).
 
@@ -98,7 +98,7 @@ my_project/
 │
 ├── AGENTS.md                 # AI agent workflow guidance for this project
 │
-├── apps/<name>/              # (optional) generated GenBI apps — see the GenBI guide
+├── apps/<name>/              # (optional) generated CReport apps — see the CReport guide
 │   ├── index.html            #   app entry point
 │   └── mdl.json              #   compiled MDL copied into the app
 │
@@ -106,14 +106,14 @@ my_project/
 │   └── mdl.json              # compiled MDL — `janus context build`
 └── .janus/                    # project-local runtime state (gitignore-able)
     ├── memory/               #   LanceDB semantic index over knowledge/sql/ — `janus memory index`
-    └── apps.yml              #   GenBI app index — written by `janus genbi register`
+    └── apps.yml              #   CReport app index — written by `janus creport register`
 ```
 
 `knowledge/` carries what the database schema cannot — business rules, glossary terms, named metrics, caveats, and the NL→SQL pairs under `knowledge/sql/` (written by `janus memory store`). It tracks its **own** `schema_version` in `knowledge.yml`, decoupled from the MDL layout version because knowledge and the data model evolve on different cadences. `knowledge/rules/` supersedes the older single-file `instructions.md`, and `knowledge/sql/` supersedes `queries.yml`; both legacy files are still read for back-compat but are no longer scaffolded.
 
 The `memory` extra builds a semantic (embedding) index under `.janus/memory/`; without it, recall falls back to reading `knowledge/sql/*.md` directly — so `knowledge/sql/`, not the index, is the source of truth.
 
-`apps/<name>/` and `.janus/apps.yml` are added by the [GenBI workflow](genbi.md); `.janus/apps.yml` is machine-written via `janus genbi register/remove` — never edit it by hand.
+`apps/<name>/` and `.janus/apps.yml` are added by the [CReport workflow](creport.md); `.janus/apps.yml` is machine-written via `janus creport register/remove` — never edit it by hand.
 
 ## Profile management
 
