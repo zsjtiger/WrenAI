@@ -8,7 +8,7 @@ import os
 import re
 from dataclasses import dataclass
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Callable
 
 import yaml
 
@@ -485,131 +485,161 @@ def _model_files(imported_models: list[dict[str, Any]]) -> list[ProjectFile]:
 
 def convert_dbt_target_to_janus_profile(target: DbtTarget) -> dict[str, Any]:
     """Convert a resolved dbt target into a Janus profile payload."""
+    builder = _PROFILE_BUILDERS.get(target.datasource)
+    if builder is None:
+        raise DbtLoadError(
+            f"dbt adapter '{target.adapter_type}' maps to datasource "
+            f"'{target.datasource}', but profile conversion has not been "
+            "implemented yet."
+        )
+    return builder(target)
+
+
+def _duckdb_profile(target: DbtTarget) -> dict[str, Any]:
+    path_value = str(_require_output_field(target.output, "path"))
+    db_path = Path(path_value).expanduser()
+    if not db_path.is_absolute():
+        db_path = (target.project_dir / db_path).resolve()
+    url = db_path if not db_path.suffix else db_path.parent
+    return _build_janus_profile("duckdb", {"url": str(url), "format": "duckdb"})
+
+
+def _postgres_profile(target: DbtTarget) -> dict[str, Any]:
     output = target.output
-    datasource = target.datasource
-
-    if datasource == "duckdb":
-        path_value = str(_require_output_field(output, "path"))
-        db_path = Path(path_value).expanduser()
-        if not db_path.is_absolute():
-            db_path = (target.project_dir / db_path).resolve()
-        url = db_path if not db_path.suffix else db_path.parent
-        return _build_janus_profile("duckdb", {"url": str(url), "format": "duckdb"})
-
-    if datasource == "postgres":
-        return _build_janus_profile(
-            "postgres",
-            {
-                "host": str(_require_output_field(output, "host")),
-                "port": str(output.get("port", "5432")),
-                "database": str(_require_output_field(output, "dbname", "database")),
-                "user": str(_require_output_field(output, "user")),
-                "password": str(output["password"]) if output.get("password") else None,
-            },
-        )
-
-    if datasource in {"mysql", "redshift", "mssql", "clickhouse"}:
-        return _build_janus_profile(
-            datasource,
-            {
-                "host": str(_require_output_field(output, "host")),
-                "port": str(_require_output_field(output, "port")),
-                "database": str(
-                    _require_output_field(output, "dbname", "database", "catalog")
-                ),
-                "user": str(_require_output_field(output, "user")),
-                "password": str(output["password"]) if output.get("password") else None,
-            },
-        )
-
-    if datasource == "snowflake":
-        return _build_janus_profile(
-            "snowflake",
-            {
-                "account": str(_require_output_field(output, "account")),
-                "user": str(_require_output_field(output, "user")),
-                "password": str(output["password"]) if output.get("password") else None,
-                "database": str(_require_output_field(output, "database")),
-                "schema": str(_require_output_field(output, "schema")),
-                "warehouse": output.get("warehouse"),
-            },
-        )
-
-    if datasource == "trino":
-        return _build_janus_profile(
-            "trino",
-            {
-                "host": str(_require_output_field(output, "host")),
-                "port": str(output.get("port", "8080")),
-                "catalog": str(_require_output_field(output, "database", "catalog")),
-                "schema": str(_require_output_field(output, "schema")),
-                "user": output.get("user"),
-                "password": (
-                    str(output["password"]) if output.get("password") else None
-                ),
-            },
-        )
-
-    if datasource == "athena":
-        return _build_janus_profile(
-            "athena",
-            {
-                "s3_staging_dir": str(
-                    _require_output_field(output, "s3_staging_dir", "s3_data_dir")
-                ),
-                "region_name": output.get("region_name"),
-                "schema_name": output.get("schema", output.get("schema_name")),
-                "aws_access_key_id": output.get("aws_access_key_id"),
-                "aws_secret_access_key": output.get("aws_secret_access_key"),
-                "aws_session_token": output.get("aws_session_token"),
-                "role_arn": output.get("role_arn"),
-                "role_session_name": output.get("role_session_name"),
-            },
-        )
-
-    if datasource == "spark":
-        return _build_janus_profile(
-            "spark",
-            {
-                "host": str(_require_output_field(output, "host")),
-                "port": str(output.get("port", "15002")),
-            },
-        )
-
-    if datasource == "databricks":
-        payload = {
-            "databricks_type": "token",
-            "server_hostname": str(
-                _require_output_field(output, "server_hostname", "host")
-            ),
-            "http_path": str(_require_output_field(output, "http_path", "httpPath")),
-            "access_token": str(
-                _require_output_field(output, "token", "access_token", "accessToken")
-            ),
-        }
-        if output.get("catalog"):
-            payload["catalog"] = str(output["catalog"])
-        return _build_janus_profile(
-            "databricks",
-            payload,
-        )
-
-    if datasource == "bigquery":
-        credentials = _bigquery_credentials_base64(output)
-        return _build_janus_profile(
-            "bigquery",
-            {
-                "bigquery_type": "dataset",
-                "project_id": str(_require_output_field(output, "project")),
-                "dataset_id": str(_require_output_field(output, "dataset")),
-                "credentials": credentials,
-            },
-        )
-
-    raise DbtLoadError(
-        f"dbt adapter '{target.adapter_type}' maps to datasource '{datasource}', "
-        "but profile conversion has not been implemented yet."
+    return _build_janus_profile(
+        "postgres",
+        {
+            "host": str(_require_output_field(output, "host")),
+            "port": str(output.get("port", "5432")),
+            "database": str(_require_output_field(output, "dbname", "database")),
+            "user": str(_require_output_field(output, "user")),
+            "password": str(output["password"]) if output.get("password") else None,
+        },
     )
+
+
+def _host_database_profile(target: DbtTarget) -> dict[str, Any]:
+    """mysql, redshift, mssql and clickhouse share one connection shape."""
+    output = target.output
+    return _build_janus_profile(
+        target.datasource,
+        {
+            "host": str(_require_output_field(output, "host")),
+            "port": str(_require_output_field(output, "port")),
+            "database": str(
+                _require_output_field(output, "dbname", "database", "catalog")
+            ),
+            "user": str(_require_output_field(output, "user")),
+            "password": str(output["password"]) if output.get("password") else None,
+        },
+    )
+
+
+def _snowflake_profile(target: DbtTarget) -> dict[str, Any]:
+    output = target.output
+    return _build_janus_profile(
+        "snowflake",
+        {
+            "account": str(_require_output_field(output, "account")),
+            "user": str(_require_output_field(output, "user")),
+            "password": str(output["password"]) if output.get("password") else None,
+            "database": str(_require_output_field(output, "database")),
+            "schema": str(_require_output_field(output, "schema")),
+            "warehouse": output.get("warehouse"),
+        },
+    )
+
+
+def _trino_profile(target: DbtTarget) -> dict[str, Any]:
+    output = target.output
+    return _build_janus_profile(
+        "trino",
+        {
+            "host": str(_require_output_field(output, "host")),
+            "port": str(output.get("port", "8080")),
+            "catalog": str(_require_output_field(output, "database", "catalog")),
+            "schema": str(_require_output_field(output, "schema")),
+            "user": output.get("user"),
+            "password": (str(output["password"]) if output.get("password") else None),
+        },
+    )
+
+
+def _athena_profile(target: DbtTarget) -> dict[str, Any]:
+    output = target.output
+    return _build_janus_profile(
+        "athena",
+        {
+            "s3_staging_dir": str(
+                _require_output_field(output, "s3_staging_dir", "s3_data_dir")
+            ),
+            "region_name": output.get("region_name"),
+            "schema_name": output.get("schema", output.get("schema_name")),
+            "aws_access_key_id": output.get("aws_access_key_id"),
+            "aws_secret_access_key": output.get("aws_secret_access_key"),
+            "aws_session_token": output.get("aws_session_token"),
+            "role_arn": output.get("role_arn"),
+            "role_session_name": output.get("role_session_name"),
+        },
+    )
+
+
+def _spark_profile(target: DbtTarget) -> dict[str, Any]:
+    output = target.output
+    return _build_janus_profile(
+        "spark",
+        {
+            "host": str(_require_output_field(output, "host")),
+            "port": str(output.get("port", "15002")),
+        },
+    )
+
+
+def _databricks_profile(target: DbtTarget) -> dict[str, Any]:
+    output = target.output
+    payload = {
+        "databricks_type": "token",
+        "server_hostname": str(
+            _require_output_field(output, "server_hostname", "host")
+        ),
+        "http_path": str(_require_output_field(output, "http_path", "httpPath")),
+        "access_token": str(
+            _require_output_field(output, "token", "access_token", "accessToken")
+        ),
+    }
+    if output.get("catalog"):
+        payload["catalog"] = str(output["catalog"])
+    return _build_janus_profile("databricks", payload)
+
+
+def _bigquery_profile(target: DbtTarget) -> dict[str, Any]:
+    output = target.output
+    credentials = _bigquery_credentials_base64(output)
+    return _build_janus_profile(
+        "bigquery",
+        {
+            "bigquery_type": "dataset",
+            "project_id": str(_require_output_field(output, "project")),
+            "dataset_id": str(_require_output_field(output, "dataset")),
+            "credentials": credentials,
+        },
+    )
+
+
+_PROFILE_BUILDERS: dict[str, Callable[[DbtTarget], dict[str, Any]]] = {
+    "duckdb": _duckdb_profile,
+    "postgres": _postgres_profile,
+    "mysql": _host_database_profile,
+    "redshift": _host_database_profile,
+    "mssql": _host_database_profile,
+    "clickhouse": _host_database_profile,
+    "snowflake": _snowflake_profile,
+    "trino": _trino_profile,
+    "athena": _athena_profile,
+    "spark": _spark_profile,
+    "databricks": _databricks_profile,
+    "bigquery": _bigquery_profile,
+}
 
 
 def _build_janus_profile(datasource: str, payload: dict[str, Any]) -> dict[str, Any]:
