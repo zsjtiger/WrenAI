@@ -359,8 +359,7 @@ class CTERewriter:
         model→column mappings. Column order follows the manifest definition
         (via insertion order) so ``SELECT *`` preserves schema order.
         """
-        copy = ast.copy()
-        copy = qualify_tables(copy, dialect=self.dialect)
+        copy = qualify_tables(ast.copy(), dialect=self.dialect)
 
         # Resolve every table ref to its canonical (manifest-case) model name
         # BEFORE normalize_identifiers strips case from quoted identifiers.
@@ -383,56 +382,8 @@ class CTERewriter:
                 copy, alias_to_model, user_table_refs, star_models
             )
 
-        # Unquote model table refs on the collection-only copy so a quoted
-        # mixed-case model name (e.g. ``"JANUS_AI_CaseTest"``) folds to the
-        # dialect's natural case during ``normalize_identifiers`` and matches
-        # the dialect-folded qualify schema key. This mirrors the column
-        # unquoting below: without it, the quoted reference preserves its case,
-        # never matches the schema, ``qualify_columns`` leaves the column
-        # unqualified, and the model CTE collapses to ``SELECT 1``.
-        #
-        # Only table refs that resolved to a model are unquoted (user CTEs are
-        # excluded by ``_build_alias_map``), so a user CTE's case matching
-        # between its definition and reference is untouched. ``user_table_refs``
-        # has already captured the original quoting for CTE-alias mirroring, and
-        # this copy is never emitted — the user's SQL is not mutated.
-        model_refs = set(alias_to_model)
-        for tbl in copy.find_all(exp.Table):
-            ident = tbl.this
-            if (
-                isinstance(ident, exp.Identifier)
-                and ident.quoted
-                and ident.name in model_refs
-            ):
-                ident.set("quoted", False)
-
-        # Record each column reference's quoting (by node identity), then unquote
-        # it on the copy. The quoting drives CTE-alias mirroring; it is attributed
-        # to a resolved model *after* qualification (below) so a quoted reference
-        # to one source can't flip an unrelated model's CTE alias.
-        # - Recording quoting lets the model CTE expose the column with the same
-        #   quoting the user wrote (mirroring), so the untouched user reference
-        #   binds.
-        # - Unquoting on the copy makes a quoted mixed-case ref (e.g. ``"Year"``)
-        #   fold to the dialect's natural case during ``normalize_identifiers``
-        #   so it matches the dialect-folded qualify schema. Janus resolves column
-        #   names case-insensitively (see ``_col_orig_name``); the copy is only
-        #   used for collection, so the fold is safe. Without it a quoted
-        #   ``"Year"`` never binds and the model CTE collapses to ``SELECT 1``.
-        #
-        # Quoting is recorded from *every* column reference (SELECT, WHERE, JOIN,
-        # GROUP BY, ORDER BY, ...), not just the SELECT list — a column used only
-        # in WHERE still needs its CTE alias to mirror it. The node identities
-        # survive ``normalize_identifiers`` / ``qualify_columns``, so each
-        # reference can be matched back to its resolved model afterwards.
-        quoting_by_id: dict[int, bool] = {}
-        for col in copy.find_all(exp.Column):
-            ident = col.this
-            if not isinstance(ident, exp.Identifier):
-                continue
-            quoting_by_id[id(col)] = ident.quoted
-            if ident.quoted:
-                ident.set("quoted", False)
+        self._unquote_model_table_refs(copy, set(alias_to_model))
+        quoting_by_id = self._unquote_column_refs(copy)
 
         copy = normalize_identifiers(copy, dialect=self.dialect)
         qualified = qualify_columns(
@@ -442,18 +393,86 @@ class CTERewriter:
             allow_partial_qualification=True,
         )
 
-        # Ensure every referenced model appears in the result, even if no
-        # specific columns are referenced (e.g. SELECT COUNT(*) FROM model).
-        # Use dict as ordered set to preserve insertion order and deduplicate.
+        used, col_quoting = self._attribute_column_refs(
+            qualified, alias_to_model, quoting_by_id
+        )
+        return (
+            {m: None if m in star_models else list(cols) for m, cols in used.items()},
+            user_table_refs,
+            col_quoting,
+        )
+
+    @staticmethod
+    def _unquote_model_table_refs(copy: exp.Expression, model_refs: set[str]) -> None:
+        """Unquote model table refs on the collection-only copy.
+
+        A quoted mixed-case model name (e.g. ``"JANUS_AI_CaseTest"``) must fold
+        to the dialect's natural case during ``normalize_identifiers`` so it
+        matches the dialect-folded qualify schema key. Without this the quoted
+        reference never matches, ``qualify_columns`` leaves the column
+        unqualified, and the model CTE collapses to ``SELECT 1``.
+
+        Only table refs that resolved to a model are unquoted (user CTEs are
+        excluded by ``_build_alias_map``), so a user CTE's case matching between
+        its definition and reference is untouched. The copy is never emitted —
+        the user's SQL is not mutated.
+        """
+        for tbl in copy.find_all(exp.Table):
+            ident = tbl.this
+            if (
+                isinstance(ident, exp.Identifier)
+                and ident.quoted
+                and ident.name in model_refs
+            ):
+                ident.set("quoted", False)
+
+    @staticmethod
+    def _unquote_column_refs(copy: exp.Expression) -> dict[int, bool]:
+        """Record each column reference's quoting (by node identity), then unquote it.
+
+        The recorded quoting drives CTE-alias mirroring; it is attributed to a
+        resolved model *after* qualification so a quoted reference to one source
+        can't flip an unrelated model's CTE alias. Unquoting on the copy makes a
+        quoted mixed-case ref (e.g. ``"Year"``) fold to the dialect's natural case
+        so it matches the dialect-folded qualify schema. Janus resolves column
+        names case-insensitively (see ``_col_orig_name``); the copy is only used
+        for collection, so the fold is safe.
+
+        Quoting is recorded from *every* column reference (SELECT, WHERE, JOIN,
+        GROUP BY, ORDER BY, ...), not just the SELECT list. The node identities
+        survive ``normalize_identifiers`` / ``qualify_columns``, so each reference
+        can be matched back to its resolved model afterwards.
+        """
+        quoting_by_id: dict[int, bool] = {}
+        for col in copy.find_all(exp.Column):
+            ident = col.this
+            if not isinstance(ident, exp.Identifier):
+                continue
+            quoting_by_id[id(col)] = ident.quoted
+            if ident.quoted:
+                ident.set("quoted", False)
+        return quoting_by_id
+
+    @staticmethod
+    def _attribute_column_refs(
+        qualified: exp.Expression,
+        alias_to_model: dict[str, str],
+        quoting_by_id: dict[int, bool],
+    ) -> tuple[dict[str, dict[str, None]], dict[str, dict[str, bool]]]:
+        """Map each qualified column reference to its model.
+
+        Returns ``(used, col_quoting)``. ``used`` is an ordered set per model
+        (every referenced model appears, even with no columns, e.g. a
+        ``SELECT COUNT(*)``). ``col_quoting`` holds quoting *per resolved model*
+        so a quoted reference to one source can't flip another model's CTE
+        alias. Quoted wins within a model. A column referenced only via a
+        non-model source (user CTE, external table) is never attributed here.
+        """
         used: dict[str, dict[str, None]] = {m: {} for m in alias_to_model.values()}
         # Lowercase index for column.table lookups — column qualifier may have
         # been normalized (lowercased) by qualify_columns even though we built
         # the alias map from the pre-normalize AST.
         alias_lookup = {k.lower(): v for k, v in alias_to_model.items()}
-        # Quoting recorded *per resolved model* (``{model: {col_lower: quoted}}``)
-        # so a quoted reference to one source can't flip another model's CTE
-        # alias. Quoted-wins within a model. A column referenced only via a
-        # non-model source (user CTE, external table) is never attributed here.
         col_quoting: dict[str, dict[str, bool]] = {}
         for col in qualified.find_all(exp.Column):
             table_ref = col.table
@@ -472,12 +491,7 @@ class CTERewriter:
                 per[low] = True
             else:
                 per.setdefault(low, False)
-
-        return (
-            {m: None if m in star_models else list(cols) for m, cols in used.items()},
-            user_table_refs,
-            col_quoting,
-        )
+        return used, col_quoting
 
     def _collect_columns_case_sensitive(
         self,
