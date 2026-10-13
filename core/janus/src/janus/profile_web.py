@@ -39,6 +39,109 @@ TEMPLATES_DIR = Path(__file__).parent / "templates"
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 
 
+_INTERNAL_FORM_KEYS = frozenset({"datasource", "_profile_name", "_variant", "_json"})
+
+
+def _error_html(message: str, status_code: int = 400) -> HTMLResponse:
+    return HTMLResponse(
+        f'<small style="color:var(--pico-color-red-500)">{message}</small>',
+        status_code=status_code,
+    )
+
+
+def _form_text(form, key: str) -> str | None:
+    """The stripped value of a text form field, or None when absent or blank."""
+    raw = form.get(key)
+    if isinstance(raw, str) and raw.strip():
+        return raw.strip()
+    return None
+
+
+async def _fields_endpoint(request: Request):
+    ds = request.query_params.get("datasource", "").lower()
+    variant = request.query_params.get("_variant") or None
+    if not ds:
+        return HTMLResponse("")
+    variants = get_variants(ds)
+    try:
+        field_list = get_fields(ds, variant=variant)
+    except ValueError:
+        field_list = []
+    return templates.TemplateResponse(
+        request,
+        "_profile_fields.html",
+        {
+            "datasource": ds,
+            "fields": field_list,
+            "variants": variants,
+            "current_variant": variant or (variants[0] if variants else None),
+        },
+    )
+
+
+def _datasource_error(ds: str, variant_key: str | None) -> HTMLResponse | None:
+    """Reject an unknown datasource or a variant the datasource does not have."""
+    try:
+        valid_variants = get_variants(ds)
+        if valid_variants and variant_key and variant_key not in valid_variants:
+            return _error_html("✗ Invalid variant.")
+        get_fields(ds, variant=variant_key)
+    except ValueError:
+        return _error_html("✗ Unsupported data source.")
+    return None
+
+
+def _profile_from_form(form, ds: str, variant_key: str | None) -> dict[str, Any]:
+    """Build the profile dict from the form.
+
+    ``_json`` replaces the individual fields when present; it must decode to
+    an object, otherwise ``json.JSONDecodeError`` is raised for the caller.
+    """
+    profile: dict[str, Any] = {"datasource": ds}
+    if variant_key:
+        profile[f"{ds}_type"] = variant_key
+
+    raw_json = form.get("_json")
+    if isinstance(raw_json, str) and raw_json.strip():
+        parsed = json.loads(raw_json)
+        if not isinstance(parsed, dict):
+            raise json.JSONDecodeError("expected object", raw_json, 0)
+        profile.update(parsed)
+    else:
+        for k, v in form.items():
+            if k not in _INTERNAL_FORM_KEYS and isinstance(v, str) and v.strip():
+                profile[k] = v.strip()
+    return profile
+
+
+def _persist_profile(name: str, profile: dict[str, Any], activate: bool):
+    """Save the profile; return an error response on failure, else None."""
+    from janus.profile import add_profile  # noqa: PLC0415
+
+    try:
+        add_profile(name, profile, activate=activate)
+    except ValueError as exc:
+        return _error_html(f"✗ Failed to save profile: {escape(str(exc))}")
+    except OSError as exc:
+        return _error_html(
+            f"✗ Failed to save profile: {escape(str(exc))}", status_code=500
+        )
+    except Exception:
+        logger.exception("Unexpected error while saving profile '%s'", name)
+        return _error_html(
+            "✗ Failed to save profile due to an unexpected error.", status_code=500
+        )
+    return None
+
+
+def _schedule_shutdown(server_ref: list) -> None:
+    """Stop the server shortly after the save response has been delivered."""
+    srv = server_ref[0] if server_ref else None
+    if srv is not None:
+        loop = asyncio.get_running_loop()
+        loop.call_later(0.5, lambda: setattr(srv, "should_exit", True))
+
+
 def create_app(
     profile_name: str,
     activate: bool = False,
@@ -65,115 +168,27 @@ def create_app(
             },
         )
 
-    async def fields_endpoint(request: Request):
-        ds = request.query_params.get("datasource", "").lower()
-        variant = request.query_params.get("_variant") or None
-        if not ds:
-            return HTMLResponse("")
-        variants = get_variants(ds)
-        try:
-            field_list = get_fields(ds, variant=variant)
-        except ValueError:
-            field_list = []
-        return templates.TemplateResponse(
-            request,
-            "_profile_fields.html",
-            {
-                "datasource": ds,
-                "fields": field_list,
-                "variants": variants,
-                "current_variant": variant or (variants[0] if variants else None),
-            },
-        )
-
     async def save(request: Request):
-        from janus.profile import add_profile  # noqa: PLC0415
-
         form = await request.form()
-        raw_ds = form.get("datasource")
-        ds = raw_ds.strip().lower() if isinstance(raw_ds, str) else ""
-
-        raw_name = form.get("_profile_name")
-        name = (
-            raw_name.strip()
-            if isinstance(raw_name, str) and raw_name.strip()
-            else profile_name
-        )
-
-        raw_variant = form.get("_variant")
-        variant_key = (
-            raw_variant.strip()
-            if isinstance(raw_variant, str) and raw_variant.strip()
-            else None
-        )
+        ds = (_form_text(form, "datasource") or "").lower()
+        name = _form_text(form, "_profile_name") or profile_name
+        variant_key = _form_text(form, "_variant")
 
         if not ds:
-            return HTMLResponse(
-                '<small style="color:var(--pico-color-red-500)">✗ Please select a data source.</small>',
-                status_code=400,
-            )
-
+            return _error_html("✗ Please select a data source.")
+        error = _datasource_error(ds, variant_key)
+        if error is not None:
+            return error
         try:
-            valid_variants = get_variants(ds)
-            if valid_variants and variant_key and variant_key not in valid_variants:
-                return HTMLResponse(
-                    '<small style="color:var(--pico-color-red-500)">✗ Invalid variant.</small>',
-                    status_code=400,
-                )
-            get_fields(ds, variant=variant_key)
-        except ValueError:
-            return HTMLResponse(
-                '<small style="color:var(--pico-color-red-500)">✗ Unsupported data source.</small>',
-                status_code=400,
-            )
+            profile = _profile_from_form(form, ds, variant_key)
+        except json.JSONDecodeError:
+            return _error_html("✗ Invalid JSON.")
 
-        profile: dict[str, Any] = {"datasource": ds}
-        if variant_key:
-            profile[f"{ds}_type"] = variant_key
-
-        _INTERNAL = {"datasource", "_profile_name", "_variant", "_json"}
-        raw_json = form.get("_json")
-        if isinstance(raw_json, str) and raw_json.strip():
-            try:
-                parsed = json.loads(raw_json)
-                if not isinstance(parsed, dict):
-                    raise json.JSONDecodeError("expected object", raw_json, 0)
-                profile.update(parsed)
-            except json.JSONDecodeError:
-                return HTMLResponse(
-                    '<small style="color:var(--pico-color-red-500)">✗ Invalid JSON.</small>',
-                    status_code=400,
-                )
-        else:
-            for k, v in form.items():
-                if k not in _INTERNAL and isinstance(v, str) and v.strip():
-                    profile[k] = v.strip()
-
-        try:
-            add_profile(name, profile, activate=activate)
-        except ValueError as exc:
-            return HTMLResponse(
-                f'<small style="color:var(--pico-color-red-500)">✗ Failed to save profile: {escape(str(exc))}</small>',
-                status_code=400,
-            )
-        except OSError as exc:
-            return HTMLResponse(
-                f'<small style="color:var(--pico-color-red-500)">✗ Failed to save profile: {escape(str(exc))}</small>',
-                status_code=500,
-            )
-        except Exception:
-            logger.exception("Unexpected error while saving profile '%s'", name)
-            return HTMLResponse(
-                '<small style="color:var(--pico-color-red-500)">✗ Failed to save profile due to an unexpected error.</small>',
-                status_code=500,
-            )
+        error = _persist_profile(name, profile, activate)
+        if error is not None:
+            return error
         result.update({"name": name, "datasource": ds})
-
-        # Schedule graceful shutdown after response is delivered
-        srv = server_ref[0] if server_ref else None
-        if srv is not None:
-            loop = asyncio.get_running_loop()
-            loop.call_later(0.5, lambda: setattr(srv, "should_exit", True))
+        _schedule_shutdown(server_ref)
 
         return HTMLResponse(
             f'<small style="color:var(--pico-color-green-500)">'
@@ -183,7 +198,7 @@ def create_app(
     app = Starlette(
         routes=[
             Route("/", index),
-            Route("/fields", fields_endpoint),
+            Route("/fields", _fields_endpoint),
             Route("/save", save, methods=["POST"]),
         ]
     )
