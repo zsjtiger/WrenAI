@@ -205,51 +205,65 @@ def index(
     from janus.memory.index_backend import resolve_backend  # noqa: PLC0415
 
     if resolve_backend() == "grep":
-        from janus.context import discover_project_path  # noqa: PLC0415
-        from janus.memory.markdown import load_query_pairs  # noqa: PLC0415
-
-        project_path = resolve_project_path()
-        n = len(load_query_pairs(project_path))
-        typer.echo(
-            f"grep backend: {n} pair(s) in knowledge/sql/ — no index build needed."
-        )
-        typer.echo(
-            "`janus memory recall` works over grep; semantic schema search "
-            "(`janus memory fetch`) needs `janus[memory]`.",
-            err=True,
-        )
+        _report_grep_index()
         return
 
     manifest = _load_manifest(mdl)
-
     if include_instructions and mdl is None:
-        try:
-            from janus.context import (  # noqa: I001, PLC0415
-                discover_project_path,
-                load_rules,
-            )
-
-            project_path = discover_project_path()
-            instr, _ = load_rules(project_path)
-            if instr:
-                manifest["_instructions"] = instr
-        except (
-            SystemExit,
-            FileNotFoundError,
-            PermissionError,
-            IsADirectoryError,
-            UnicodeDecodeError,
-            ImportError,
-            ModuleNotFoundError,
-        ):
-            pass  # instructions are optional; never fail index because of them
+        _attach_project_instructions(manifest)
 
     mem_store = _get_store(path)
+    _index_schema_items(mem_store, manifest, seed_queries=not no_seed)
 
+    # Rebuild query history from knowledge/sql/*.md (source of truth).
+    # Legacy queries.yml is still loaded when present, for the transition.
+    if not no_queries:
+        _sync_project_queries(mem_store)
+
+
+def _report_grep_index() -> None:
+    """The grep backend reads knowledge/sql/*.md directly: nothing to build."""
+    from janus.memory.markdown import load_query_pairs  # noqa: PLC0415
+
+    project_path = resolve_project_path()
+    n = len(load_query_pairs(project_path))
+    typer.echo(f"grep backend: {n} pair(s) in knowledge/sql/ — no index build needed.")
+    typer.echo(
+        "`janus memory recall` works over grep; semantic schema search "
+        "(`janus memory fetch`) needs `janus[memory]`.",
+        err=True,
+    )
+
+
+def _attach_project_instructions(manifest: dict) -> None:
+    """Add the project's rules to the manifest. Optional: never fail on them."""
+    try:
+        from janus.context import (  # noqa: I001, PLC0415
+            discover_project_path,
+            load_rules,
+        )
+
+        project_path = discover_project_path()
+        instr, _ = load_rules(project_path)
+        if instr:
+            manifest["_instructions"] = instr
+    except (
+        SystemExit,
+        FileNotFoundError,
+        PermissionError,
+        IsADirectoryError,
+        UnicodeDecodeError,
+        ImportError,
+        ModuleNotFoundError,
+    ):
+        pass  # instructions are optional; never fail index because of them
+
+
+def _index_schema_items(mem_store, manifest: dict, *, seed_queries: bool) -> None:
     # Backend errors are RuntimeErrors, so they pass this branch untouched and
     # reach _MemoryGroup -- none of them is a manifest problem.
     try:
-        result = mem_store.index_schema(manifest, seed_queries=not no_seed)
+        result = mem_store.index_schema(manifest, seed_queries=seed_queries)
     except ValueError as e:
         typer.echo(f"Malformed manifest: {e}", err=True)
         raise typer.Exit(1) from e
@@ -259,67 +273,69 @@ def index(
         + "."
     )
 
-    # ── Rebuild query history from knowledge/sql/*.md (source of truth) ──
-    # Legacy queries.yml is still loaded when present, for the transition.
-    if not no_queries:
-        try:
-            from janus.context import discover_project_path  # noqa: PLC0415
-            from janus.memory.markdown import load_query_pairs  # noqa: PLC0415
 
-            project_path = discover_project_path(explicit=None)
+def _sync_project_queries(mem_store) -> None:
+    """Load knowledge/sql/*.md and the legacy queries.yml into query history."""
+    try:
+        from janus.context import discover_project_path  # noqa: PLC0415
+        from janus.memory.markdown import load_query_pairs  # noqa: PLC0415
 
-            md_pairs = load_query_pairs(project_path)
-            res = mem_store.sync_markdown_queries(md_pairs)
-            if res["loaded"] or res["updated"] or res["forgotten"]:
-                typer.echo(
-                    f"Indexed {res['loaded'] + res['updated']} pair(s) from "
-                    f"knowledge/sql/."
-                    + (
-                        f" Forgot {res['forgotten']} stale pair(s)."
-                        if res["forgotten"]
-                        else ""
-                    ),
-                    err=True,
-                )
+        project_path = discover_project_path(explicit=None)
+        _sync_markdown_pairs(mem_store, load_query_pairs(project_path))
+        _load_legacy_queries_file(mem_store, project_path / "queries.yml")
+    except (
+        SystemExit,
+        FileNotFoundError,
+        PermissionError,
+        IsADirectoryError,
+        UnicodeDecodeError,
+        ImportError,
+        ModuleNotFoundError,
+        yaml.YAMLError,
+        KeyError,
+        TypeError,
+        ValueError,
+    ) as e:
+        if not isinstance(e, (SystemExit, ImportError, ModuleNotFoundError)):
+            typer.echo(
+                f"Warning: failed to load queries.yml: {e}",
+                err=True,
+            )
 
-            queries_file = project_path / "queries.yml"
-            if queries_file.exists():
-                raw = queries_file.read_text(encoding="utf-8")
-                doc = yaml.safe_load(raw)
-                if doc and isinstance(doc, dict) and doc.get("pairs"):
-                    # Tag legacy=queries.yml explicitly so these rows are
-                    # distinguishable from markdown-backed ones in
-                    # `memory list/dump/forget --source`. They are already
-                    # safe from sync_markdown_queries, whose forget pass is
-                    # scoped to rows carrying its own provenance tag.
-                    legacy_pairs = [{**p, "source": "legacy"} for p in doc["pairs"]]
-                    load_result = mem_store.load_queries(legacy_pairs, upsert=False)
-                    loaded = load_result["loaded"]
-                    skipped = load_result["skipped"]
-                    if loaded:
-                        typer.echo(
-                            f"Loaded {loaded} pair(s) from queries.yml (legacy)"
-                            f" ({skipped} skipped).",
-                            err=True,
-                        )
-        except (
-            SystemExit,
-            FileNotFoundError,
-            PermissionError,
-            IsADirectoryError,
-            UnicodeDecodeError,
-            ImportError,
-            ModuleNotFoundError,
-            yaml.YAMLError,
-            KeyError,
-            TypeError,
-            ValueError,
-        ) as e:
-            if not isinstance(e, (SystemExit, ImportError, ModuleNotFoundError)):
-                typer.echo(
-                    f"Warning: failed to load queries.yml: {e}",
-                    err=True,
-                )
+
+def _sync_markdown_pairs(mem_store, md_pairs: list) -> None:
+    res = mem_store.sync_markdown_queries(md_pairs)
+    if res["loaded"] or res["updated"] or res["forgotten"]:
+        typer.echo(
+            f"Indexed {res['loaded'] + res['updated']} pair(s) from "
+            f"knowledge/sql/."
+            + (
+                f" Forgot {res['forgotten']} stale pair(s)." if res["forgotten"] else ""
+            ),
+            err=True,
+        )
+
+
+def _load_legacy_queries_file(mem_store, queries_file) -> None:
+    if not queries_file.exists():
+        return
+    raw = queries_file.read_text(encoding="utf-8")
+    doc = yaml.safe_load(raw)
+    if doc and isinstance(doc, dict) and doc.get("pairs"):
+        # Tag legacy=queries.yml explicitly so these rows are distinguishable
+        # from markdown-backed ones in `memory list/dump/forget --source`. They
+        # are already safe from sync_markdown_queries, whose forget pass is
+        # scoped to rows carrying its own provenance tag.
+        legacy_pairs = [{**p, "source": "legacy"} for p in doc["pairs"]]
+        load_result = mem_store.load_queries(legacy_pairs, upsert=False)
+        loaded = load_result["loaded"]
+        skipped = load_result["skipped"]
+        if loaded:
+            typer.echo(
+                f"Loaded {loaded} pair(s) from queries.yml (legacy)"
+                f" ({skipped} skipped).",
+                err=True,
+            )
 
 
 @memory_app.command()
