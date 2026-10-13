@@ -115,7 +115,7 @@ janus cube describe revenue
 janus cube query --cube revenue --measures total --time-dimension "order_date:month"
 ```
 
-转换器会为你生成 `DATE_TRUNC` / `GROUP BY` / `WHERE` 子句，并通过与 `janus --sql` 相同的引擎路径执行。完整的 YAML 结构请参阅 [Cube 指南](../../docs/core/guides/modeling/cube.md)，所有参数请参阅 [CLI 参考](../../docs/core/reference/cli.md#janus-cube--pre-aggregation-queries)。
+转换器会为你生成 `DATE_TRUNC` / `GROUP BY` / `WHERE` 子句，并通过与 `janus --sql` 相同的引擎路径执行。完整的 YAML 结构请参阅 [Cube 指南](../../docs/core/guides/cubes.md)，所有参数请参阅 [CLI 参考](../../docs/core/reference/cli.md#janus-cube--pre-aggregation-queries)。
 
 **5.（可选）配置安全策略** —— 创建 `~/.janus/config.json`：
 

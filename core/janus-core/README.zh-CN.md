@@ -3,7 +3,7 @@
 
 Janus Core 模块是 Janus 引擎的语义核心。要了解 Janus 引擎的概念，请参阅 [Janus 引擎文档](https://docs.crossnow.cn/oss/engine/concept/what_is_semantics)。
 
-本模块被 ibis-server 的 API v3 用于 SQL 规划。此外，还有一个用于 Python 绑定的模块 [janus-core-py](../janus-core-py/)，同样被 [ibis-server](../ibis-server/) 使用。
+本模块被 ibis-server 的 API v3 用于 SQL 规划。此外，还有一个用于 Python 绑定的模块 [janus-core-py](../janus-core-py/)，同样被 ibis-server 使用。
 
 ## 如何测试 / 构建
 

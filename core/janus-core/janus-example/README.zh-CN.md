@@ -18,4 +18,4 @@ cargo run --example datafusion-apply
 
 ## 单进程
 - [`datafusion-apply.rs`](examples/datafusion-apply.rs)：将建模定义语言（MDL）应用于 DataFusion，以查询本地 CSV 文件
-- [`plan_to_sql.rs`](examples/plan_to-sql.rs)：应用 MDL，从 DataFusion 的 `Expr` 和 `LogicalPlan` 生成 SQL
+- [`plan_to_sql.rs`](examples/plan-sql.rs)：应用 MDL，从 DataFusion 的 `Expr` 和 `LogicalPlan` 生成 SQL
