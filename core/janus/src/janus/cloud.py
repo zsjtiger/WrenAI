@@ -1687,16 +1687,7 @@ def create(
     `janus cloud auth add` followed by `janus cloud link` completes the bind by
     hand — nothing about the project itself needs to be redone.
     """
-    target = target.resolve()
-    check_not_nested(target)
-    check_helper_command_serviceable()
-    check_not_already_bound(target)
-    check_git_identity_usable(target)
-    # Built before anything is created, so a project that does not compile
-    # costs nothing: every refusal above this line leaves no server-side state,
-    # and this one must not either.
-    check_project_builds(target)
-
+    target = _preflight_create(target)
     api_host = host.rstrip("/")
     resolved_git_host = (git_host or host).rstrip("/")
 
@@ -1727,6 +1718,50 @@ def create(
         org_id=project.org_id,
         api_key=project_key,
     )
+    _configure_git_or_explain(target, project, host, api_host, resolved_git_host)
+    token = _login_or_explain(target, project, host, api_host, git_host, project_key)
+    outcome = _link_or_explain(target, project, api_host, resolved_git_host, token)
+    _push_models_or_explain(target, project, api_host)
+    return project, outcome
+
+
+def _preflight_create(target: Path) -> Path:
+    """Refuse every case that must not leave server-side state behind.
+
+    Returns the resolved target. Runs before anything is created, so a
+    refusal here costs nothing on the server.
+    """
+    target = target.resolve()
+    check_not_nested(target)
+    check_helper_command_serviceable()
+    check_not_already_bound(target)
+    check_git_identity_usable(target)
+    # Built before anything is created, so a project that does not compile
+    # costs nothing: every refusal above this line leaves no server-side state,
+    # and this one must not either.
+    check_project_builds(target)
+    return target
+
+
+def _recovery_hint(target: Path, host: str, project: CreatedProject) -> str:
+    return (
+        f"The project's key is already stored, so nothing needs to be "
+        f"re-entered. Finish with:\n"
+        f"  janus cloud link {target}\n"
+        f"Or, if you no longer want it, delete project {project.id} — "
+        f"`janus cloud auth remove --host {host} --project {project.id}` "
+        f"drops the stored key."
+    )
+
+
+def _configure_git_or_explain(
+    target: Path,
+    project: CreatedProject,
+    host: str,
+    api_host: str,
+    resolved_git_host: str,
+) -> None:
+    """Configure the git credential helper, naming the project if it fails."""
     # And configure git, for the same reason. `login` writes the helper only
     # after the git-token call succeeds — which is the call that can fail here
     # — so storing the key alone left the recovery this hint promises unable to
@@ -1734,17 +1769,6 @@ def create(
     # and git would prompt for a username. Serviceability was checked in the
     # pre-flight above and the write is idempotent, so doing it here costs
     # nothing and makes the hint true.
-
-    def _recovery_hint() -> str:
-        return (
-            f"The project's key is already stored, so nothing needs to be "
-            f"re-entered. Finish with:\n"
-            f"  janus cloud link {target}\n"
-            f"Or, if you no longer want it, delete project {project.id} — "
-            f"`janus cloud auth remove --host {host} --project {project.id}` "
-            f"drops the stored key."
-        )
-
     try:
         configure_git_credential_helper(resolved_git_host)
     except CloudError as exc:
@@ -1757,11 +1781,21 @@ def create(
         raise CloudError(
             f"Project {project.id} was created on {api_host}, but configuring "
             f"git to authenticate to it failed:\n{exc}\n"
-            f"{_recovery_hint()}"
+            f"{_recovery_hint(target, host, project)}"
         ) from exc
 
+
+def _login_or_explain(
+    target: Path,
+    project: CreatedProject,
+    host: str,
+    api_host: str,
+    git_host: str | None,
+    project_key: str,
+):
+    """Log in with the new project key, naming the project if it fails."""
     try:
-        token = login(
+        return login(
             host=host,
             project_id=project.id,
             api_key=project_key,
@@ -1775,7 +1809,7 @@ def create(
                 "only produces agent-mode projects, which are the only kind "
                 "that get a git repository at all. There is nothing to bind "
                 "to; this project has no git remote.\n"
-                f"{_recovery_hint()}\n"
+                f"{_recovery_hint(target, host, project)}\n"
                 "(`janus cloud link` cannot help here either, until the "
                 "project is actually AGENTIC — delete this project and "
                 "retry `create`, or ask your org admin about the AGENTIC "
@@ -1783,11 +1817,21 @@ def create(
             ) from exc
         raise CloudError(
             f"Project {project.id} was created on {api_host}, but binding "
-            f"this directory to it failed: {exc}\n{_recovery_hint()}"
+            f"this directory to it failed: {exc}\n"
+            f"{_recovery_hint(target, host, project)}"
         ) from exc
 
+
+def _link_or_explain(
+    target: Path,
+    project: CreatedProject,
+    api_host: str,
+    resolved_git_host: str,
+    token,
+) -> LinkOutcome:
+    """Bind the directory to the new project's remote, naming it on failure."""
     try:
-        outcome = link(
+        return link(
             target,
             git_host=resolved_git_host,
             api_host=api_host,
@@ -1820,6 +1864,11 @@ def create(
             "does not linger unused."
         ) from exc
 
+
+def _push_models_or_explain(
+    target: Path, project: CreatedProject, api_host: str
+) -> None:
+    """Push the bound project so its models deploy, naming the project on failure."""
     # The models reach the cloud here, and only here. `link` has committed the
     # project's files and set the upstream; pushing them is what fires the
     # repository's `.hooks/deploy-modeling.yaml` and turns them into the
@@ -1836,4 +1885,3 @@ def create(
             "  git push\n"
             "which is also what deploys them."
         )
-    return project, outcome
