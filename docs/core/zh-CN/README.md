@@ -10,13 +10,18 @@
 
 ## 中文版本状态
 
-| 部分 | 状态 |
-|---|---|
-| 介绍 | ✅ 已翻译（[introduction.mdx](introduction.mdx)） |
-| 概念 | ⏳ 待翻译，见英文版 [concepts](../concepts/) |
-| 快速开始、安装、指南、参考、SDK | ⏳ 待翻译，见英文版 |
+| 部分 | 页面 | 状态 |
+|---|---|---|
+| 介绍 | [introduction.mdx](introduction.mdx) | ✅ 已翻译 |
+| 快速开始 | [安装](get_started/installation.md) | ✅ 已翻译（快速开始正文仍待翻译） |
+| 指南 | [连接数据库](guides/connect.md)、[建模](guides/model.md)、[Cube 预聚合](guides/cubes.md)、[MCP 服务器](guides/mcp.md)、[CReport 应用](guides/creport.md) | ✅ 已翻译 |
+| 指南 | 提升回答质量、项目管理、dbt 集成、OSI | ⏳ 待翻译（见英文版） |
+| 概念 | 上下文、MDL、记忆、正确性等 | ⏳ 待翻译（见英文版） |
+| 参考 | CLI、MDL、Skills、架构、迁移、运维 | ⏳ 待翻译（见英文版，CLI 参考最长，建议下一步处理） |
+| SDK | 概览、LangChain、Pydantic AI、WASM | ⏳ 待翻译（见英文版） |
+| 快速开始（Agent 配置） | `get_started/quickstart-with-agent/` | ⏳ 待翻译（按 Agent 分别的配置页，共 50+ 个） |
 
-在英文页面翻译完成之前，中文页面中的内部链接仍指向英文站点（`/oss/...`），以保证链接有效。
+在英文页面翻译完成之前，中文页面中指向未翻译页面的链接会指向英文站点（`/oss/...`），以保证链接有效。
 
 ## 注意
 
