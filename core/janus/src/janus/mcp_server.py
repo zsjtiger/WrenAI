@@ -211,6 +211,11 @@ def _register_query_tools(mcp: FastMCP, ctx: ServeContext) -> None:
 
 
 def _register_context_tools(mcp: FastMCP, ctx: ServeContext) -> None:
+    _register_model_tools(mcp, ctx)
+    _register_cube_tools(mcp, ctx)
+
+
+def _register_model_tools(mcp: FastMCP, ctx: ServeContext) -> None:
     @mcp.tool(
         annotations=ToolAnnotations(title="Get MDL", readOnlyHint=True),
     )
@@ -290,6 +295,8 @@ def _register_context_tools(mcp: FastMCP, ctx: ServeContext) -> None:
 
         return {"data_source": load_project_config(ctx.project).get("data_source")}
 
+
+def _register_cube_tools(mcp: FastMCP, ctx: ServeContext) -> None:
     @mcp.tool(
         annotations=ToolAnnotations(title="List Cubes", readOnlyHint=True),
     )
@@ -361,6 +368,11 @@ def _register_context_tools(mcp: FastMCP, ctx: ServeContext) -> None:
 
 
 def _register_knowledge_tools(mcp: FastMCP, ctx: ServeContext) -> None:
+    _register_recall_tools(mcp, ctx)
+    _register_stored_knowledge_tools(mcp, ctx)
+
+
+def _register_recall_tools(mcp: FastMCP, ctx: ServeContext) -> None:
     @mcp.tool(
         annotations=ToolAnnotations(title="Get Instructions", readOnlyHint=True),
     )
@@ -448,6 +460,8 @@ def _register_knowledge_tools(mcp: FastMCP, ctx: ServeContext) -> None:
 
         return {"schema": schema_indexer.describe_schema(build_json(ctx.project))}
 
+
+def _register_stored_knowledge_tools(mcp: FastMCP, ctx: ServeContext) -> None:
     @mcp.tool(
         annotations=ToolAnnotations(title="List Stored Queries", readOnlyHint=True),
     )
