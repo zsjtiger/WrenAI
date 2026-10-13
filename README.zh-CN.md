@@ -160,7 +160,44 @@ janus serve mcp                                   # stdio，供本地 MCP 客户
 janus serve mcp --transport http --port 8080      # HTTP，绑定 127.0.0.1
 ```
 
-默认情况下服务器只提供只读工具。传入 `--allow-write` 可启用 `store_query` 工具，传入 `--no-connect` 则只转换 SQL 而不在数据库上执行。
+启动参数：
+
+| 参数 | 作用 |
+|---|---|
+| `--transport stdio\|http` | 传输方式（默认 `stdio`）。 |
+| `--host`、`--port` | `http` 模式的绑定地址（默认 `127.0.0.1:8080`）。 |
+| `--project PATH` | 项目根目录，不在当前目录时使用。 |
+| `--profile NAME` | 使用的连接配置文件。 |
+| `--allow-write` | 启用 `store_query` 写入工具，默认关闭。 |
+| `--no-connect` | 只做转换：禁用 `run_sql`、`dry_run` 和 `query_cube`。 |
+
+**工具**
+
+| 类别 | 工具 | 作用 |
+|---|---|---|
+| 查询 | `run_sql` | 用 MDL 模型名执行 SQL 并返回行数据（默认最多 1000 行，上限 10000 行）。 |
+| 查询 | `dry_run` | 在数据源上校验 SQL，不返回数据。 |
+| 查询 | `dry_plan` | 通过 MDL 展开 SQL，不连接数据库。 |
+| 查询 | `query_cube` | 执行结构化 Cube 查询；设置 `sql_only` 时只返回 SQL。 |
+| 模型 | `get_mdl`、`list_models`、`describe_model` | 读取编译后的 MDL，列出并描述模型。 |
+| 模型 | `get_data_source`、`describe_schema`、`list_functions` | 数据源信息、完整 Schema 和可用函数。 |
+| Cube | `list_cubes`、`describe_cube` | 列出 Cube 及其度量和维度。 |
+| 知识 | `get_instructions`、`get_context` | 供智能体使用的业务规则和项目上下文。 |
+| 知识 | `list_knowledge`、`list_stored_queries` | 浏览知识文件和已保存的 NL→SQL 对。 |
+| 召回 | `recall_queries` | 按自然语言搜索历史 NL→SQL 对。 |
+| 写入 | `store_query` | 把确认过的 NL→SQL 对保存到 `knowledge/sql/`，需要 `--allow-write`。 |
+
+**资源**
+
+- `janus://mdl`：编译后的 MDL。
+- `janus://instructions`：业务规则。
+- `janus://project`：`janus_project.yml` 中的名称、catalog、schema 和数据源。
+- `janus://agents`：项目的 `AGENTS.md`（如果存在）。
+- `janus://knowledge/{name}` 和 `janus://knowledge/{subdir}/{name}`：知识文件。
+
+**提示词**
+
+- `janus_workflow`：引导智能体用 Janus 回答数据问题的工作流程。
 
 ### 构建并部署 CReport 应用
 

@@ -160,7 +160,44 @@ janus serve mcp                                   # stdio, for local MCP clients
 janus serve mcp --transport http --port 8080      # HTTP on 127.0.0.1
 ```
 
-By default the server exposes read-only tools. Pass `--allow-write` to enable the `store_query` tool, or `--no-connect` to transpile SQL without running it against a database.
+Flags:
+
+| Flag | Effect |
+|---|---|
+| `--transport stdio\|http` | Transport (default `stdio`). |
+| `--host`, `--port` | Bind address for `http` (default `127.0.0.1:8080`). |
+| `--project PATH` | Project root, if not the current directory. |
+| `--profile NAME` | Connection profile to use. |
+| `--allow-write` | Enable the `store_query` write tool. Off by default. |
+| `--no-connect` | Transpile only: disables `run_sql`, `dry_run` and `query_cube`. |
+
+**Tools**
+
+| Group | Tool | What it does |
+|---|---|---|
+| Query | `run_sql` | Run SQL against MDL model names and return rows (default 1000 rows, max 10000). |
+| Query | `dry_run` | Check SQL against the data source without returning rows. |
+| Query | `dry_plan` | Expand SQL through the MDL without connecting to a database. |
+| Query | `query_cube` | Run a structured cube query, or return its SQL with `sql_only`. |
+| Models | `get_mdl`, `list_models`, `describe_model` | Read the compiled MDL, or list and describe models. |
+| Models | `get_data_source`, `describe_schema`, `list_functions` | Data source details, the full schema, and supported functions. |
+| Cubes | `list_cubes`, `describe_cube` | List cubes and their measures and dimensions. |
+| Knowledge | `get_instructions`, `get_context` | Business rules and project context for the agent. |
+| Knowledge | `list_knowledge`, `list_stored_queries` | Browse knowledge files and stored NL→SQL pairs. |
+| Recall | `recall_queries` | Search past NL→SQL pairs by natural language. |
+| Write | `store_query` | Save a confirmed NL→SQL pair to `knowledge/sql/`. Requires `--allow-write`. |
+
+**Resources**
+
+- `janus://mdl`: the compiled MDL.
+- `janus://instructions`: business rules.
+- `janus://project`: name, catalog, schema and data source from `janus_project.yml`.
+- `janus://agents`: the project's `AGENTS.md`, if present.
+- `janus://knowledge/{name}` and `janus://knowledge/{subdir}/{name}`: knowledge files.
+
+**Prompt**
+
+- `janus_workflow`: a guided workflow for answering a data question with Janus.
 
 ### Build and deploy a CReport app
 
