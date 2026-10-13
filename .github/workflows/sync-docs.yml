@@ -16,7 +16,7 @@ permissions:
 
 jobs:
   sync-docs:
-    if: ${{ github.repository == 'CrossNow/janusai' }}
+    if: ${{ github.repository == 'CrossNow/JanusAI' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout JanusAI
@@ -72,5 +72,5 @@ jobs:
           git push origin "${BRANCH}"
           gh pr create \
             --title "docs: sync Janus AI Core docs from JanusAI" \
-            --body "Auto-synced from [JanusAI@\`${GITHUB_SHA::8}\`](https://github.com/CrossNow/janusai/commit/${GITHUB_SHA})." \
+            --body "Auto-synced from [JanusAI@\`${GITHUB_SHA::8}\`](https://github.com/CrossNow/JanusAI/commit/${GITHUB_SHA})." \
             --base "${{ vars.DOCS_REPO_BRANCH }}"

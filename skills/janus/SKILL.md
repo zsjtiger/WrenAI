@@ -29,7 +29,7 @@ janus skills get genbi                   # build & deploy a shareable GenBI web 
 
 ## Reference docs
 
-Full reference docs live on the web: <https://github.com/CrossNow/janusai/tree/main/docs/core>
+Full reference docs live on the web: <https://github.com/CrossNow/JanusAI/tree/main/docs/core>
 
 ```bash
 janus docs connection-info <ds>          # required + optional connection fields for a data source

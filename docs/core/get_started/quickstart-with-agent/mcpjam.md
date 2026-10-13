@@ -13,7 +13,7 @@ MCPJam development tool.
 ## Install Janus skills
 
 ```bash
-npx skills add CrossNow/janusai --agent mcpjam
+npx skills add CrossNow/JanusAI --agent mcpjam
 ```
 
 ## Run onboarding

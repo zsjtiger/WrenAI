@@ -13,7 +13,7 @@ Tencent CodeBuddy coding agent.
 ## Install Janus skills
 
 ```bash
-npx skills add CrossNow/janusai --agent codebuddy
+npx skills add CrossNow/JanusAI --agent codebuddy
 ```
 
 ## Run onboarding

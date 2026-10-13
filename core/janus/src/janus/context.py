@@ -21,7 +21,7 @@ _TARGET_FILE = "mdl.json"
 _AGENTS_MD_TEMPLATE = """\
 # AGENTS.md
 
-This project uses [Janus Engine](https://github.com/CrossNow/janusai) as the semantic layer for data querying. Queries are written against MDL model names, not raw database tables.
+This project uses [Janus Engine](https://github.com/CrossNow/JanusAI) as the semantic layer for data querying. Queries are written against MDL model names, not raw database tables.
 
 ## Answering data questions
 

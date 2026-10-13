@@ -5,7 +5,7 @@ edition = "2021"
 license = "Apache-2.0"
 description = "Proc macro for generating Python-binding manifest types for the Janus semantic engine"
 homepage = "https://crossnow.cn"
-repository = "https://github.com/CrossNow/janusai"
+repository = "https://github.com/CrossNow/JanusAI"
 keywords = ["macro", "proc-macro", "pyo3", "janus", "mdl"]
 categories = ["development-tools::procedural-macro-helpers"]
 

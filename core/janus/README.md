@@ -2,7 +2,7 @@
 
 [![PyPI version](https://img.shields.io/pypi/v/janusai.svg)](https://pypi.org/project/janusai/)
 [![Python](https://img.shields.io/pypi/pyversions/janusai.svg)](https://pypi.org/project/janusai/)
-[![License](https://img.shields.io/pypi/l/janusai.svg)](https://github.com/CrossNow/janusai/blob/main/LICENSE)
+[![License](https://img.shields.io/pypi/l/janusai.svg)](https://github.com/CrossNow/JanusAI/blob/main/LICENSE)
 
 Janus AI CLI and Python SDK — semantic SQL layer for 20+ data sources.
 

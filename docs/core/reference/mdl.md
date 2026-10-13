@@ -197,7 +197,7 @@ The handle is traversed by calculated columns on the same model:
 > `Schema error: No field named orders.customer.first_name`, because relationship
 > columns are excluded from the schema a model registers with the engine —
 > `Model::get_physical_columns` keeps only columns whose `relationship` is unset.
-> Tracked in [#2688](https://github.com/CrossNow/janusai/issues/2688).
+> Tracked in [#2688](https://github.com/CrossNow/JanusAI/issues/2688).
 
 #### Column rename via `expression`
 

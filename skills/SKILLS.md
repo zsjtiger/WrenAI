@@ -24,13 +24,13 @@ janus ask "<question>" --direct          # wrap a question for a stronger LLM
 
 ```bash
 pip install janusai                 # the CLI (everything is here)
-npx skills add CrossNow/janusai            # install the discovery stub for AI clients
+npx skills add CrossNow/JanusAI            # install the discovery stub for AI clients
 ```
 
 Or via Claude Code's plugin marketplace:
 
 ```text
-/plugin marketplace add CrossNow/janusai --path skills
+/plugin marketplace add CrossNow/JanusAI --path skills
 /plugin install janus@janus
 ```
 

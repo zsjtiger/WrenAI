@@ -88,10 +88,10 @@ dev = [
 
 [project.urls]
 Homepage      = "https://crossnow.cn"
-Documentation = "https://github.com/CrossNow/janusai/tree/main/sdk/wren-langchain#readme"
-Repository    = "https://github.com/CrossNow/janusai"
-Issues        = "https://github.com/CrossNow/janusai/issues"
-Changelog     = "https://github.com/CrossNow/janusai/blob/main/sdk/wren-langchain/CHANGELOG.md"
+Documentation = "https://github.com/CrossNow/JanusAI/tree/main/sdk/wren-langchain#readme"
+Repository    = "https://github.com/CrossNow/JanusAI"
+Issues        = "https://github.com/CrossNow/JanusAI/issues"
+Changelog     = "https://github.com/CrossNow/JanusAI/blob/main/sdk/wren-langchain/CHANGELOG.md"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/janus_langchain"]

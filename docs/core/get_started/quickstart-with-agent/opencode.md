@@ -13,7 +13,7 @@ SST's open-source coding agent.
 ## Install Janus skills
 
 ```bash
-npx skills add CrossNow/janusai --agent opencode
+npx skills add CrossNow/JanusAI --agent opencode
 ```
 
 ## Run onboarding

@@ -14,7 +14,7 @@ Huawei Cloud CodeArts Doer.
 ## Install Janus skills
 
 ```bash
-npx skills add CrossNow/janusai --agent codearts-agent
+npx skills add CrossNow/JanusAI --agent codearts-agent
 ```
 
 ## Run onboarding

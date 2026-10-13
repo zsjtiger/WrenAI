@@ -2,7 +2,7 @@
   "name": "janusai",
   "description": "Discovery stub for the Janus AI agent skill bundle. The actual workflow guides and prompt helpers live inside the janus CLI (`pip install janusai`) and are served by `janus skills get` / `janus ask`.",
   "homepage": "https://janus.ai",
-  "repository": "https://github.com/CrossNow/janusai",
+  "repository": "https://github.com/CrossNow/JanusAI",
   "license": "Apache-2.0",
   "skills": [
     {
@@ -17,7 +17,7 @@
         "semantic-layer",
         "genbi"
       ],
-      "repository": "https://github.com/CrossNow/janusai/tree/main/skills/wren"
+      "repository": "https://github.com/CrossNow/JanusAI/tree/main/skills/wren"
     }
   ]
 }

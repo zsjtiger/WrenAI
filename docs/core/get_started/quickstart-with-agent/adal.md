@@ -13,7 +13,7 @@ A lightweight coding agent.
 ## Install Janus skills
 
 ```bash
-npx skills add CrossNow/janusai --agent adal
+npx skills add CrossNow/JanusAI --agent adal
 ```
 
 ## Run onboarding

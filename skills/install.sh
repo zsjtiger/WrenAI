@@ -9,11 +9,11 @@
 # Usage:
 #   ./install.sh                # install the discovery stub
 #   ./install.sh --force        # overwrite an existing install
-#   curl -fsSL https://raw.githubusercontent.com/CrossNow/janusai/main/skills/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/CrossNow/JanusAI/main/skills/install.sh | bash
 
 set -euo pipefail
 
-REPO="CrossNow/janusai"
+REPO="CrossNow/JanusAI"
 BRANCH="${JANUS_SKILLS_BRANCH:-main}"
 DEST="${CLAUDE_SKILLS_DIR:-$HOME/.claude/skills}"
 SKILL="janus"
@@ -66,4 +66,4 @@ echo "Done. Invoke the skill in your AI client:"
 echo "  /$SKILL"
 echo ""
 echo "To update later, re-run with --force:"
-echo "  curl -fsSL https://raw.githubusercontent.com/CrossNow/janusai/main/skills/install.sh | bash -s -- --force"
+echo "  curl -fsSL https://raw.githubusercontent.com/CrossNow/JanusAI/main/skills/install.sh | bash -s -- --force"

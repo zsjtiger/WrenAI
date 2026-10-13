@@ -13,7 +13,7 @@ VS Code coding agent (fork of Roo Code).
 ## Install Janus skills
 
 ```bash
-npx skills add CrossNow/janusai --agent kilo
+npx skills add CrossNow/JanusAI --agent kilo
 ```
 
 ## Run onboarding

@@ -13,7 +13,7 @@ shareAI Kode coding agent.
 ## Install Janus skills
 
 ```bash
-npx skills add CrossNow/janusai --agent kode
+npx skills add CrossNow/JanusAI --agent kode
 ```
 
 ## Run onboarding

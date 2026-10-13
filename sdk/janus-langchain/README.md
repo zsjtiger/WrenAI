@@ -1,6 +1,6 @@
 # janus-langchain
 
-LangChain and LangGraph integration for [Janus AI Core](https://github.com/CrossNow/janusai).
+LangChain and LangGraph integration for [Janus AI Core](https://github.com/CrossNow/JanusAI).
 
 Attach a CLI-prepared Janus project to a LangChain agent in three lines:
 

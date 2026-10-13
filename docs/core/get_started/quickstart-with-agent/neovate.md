@@ -13,7 +13,7 @@ Neovate coding agent.
 ## Install Janus skills
 
 ```bash
-npx skills add CrossNow/janusai --agent neovate
+npx skills add CrossNow/JanusAI --agent neovate
 ```
 
 ## Run onboarding

@@ -74,7 +74,7 @@ The CLI reads the active profile for connection info and datasource. Use `janus 
 
 For memory-specific decisions, see the `memory` reference (run `janus skills get usage --full`).
 For SQL syntax, CTE-based modeling, and error diagnosis, see the `janus-sql` reference (run `janus skills get usage --full`).
-For project structure, MDL field definitions, and CLI workflow details, see the [documentation](https://github.com/CrossNow/janusai/tree/main/docs/core).
+For project structure, MDL field definitions, and CLI workflow details, see the [documentation](https://github.com/CrossNow/JanusAI/tree/main/docs/core).
 
 ---
 

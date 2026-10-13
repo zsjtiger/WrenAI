@@ -14,7 +14,7 @@ iFlow CLI agent.
 ## Install Janus skills
 
 ```bash
-npx skills add CrossNow/janusai --agent iflow-cli
+npx skills add CrossNow/JanusAI --agent iflow-cli
 ```
 
 ## Run onboarding

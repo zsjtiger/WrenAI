@@ -35,12 +35,12 @@
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/CrossNow/janusai.git",
+    "url": "git+https://github.com/CrossNow/JanusAI.git",
     "directory": "core/janus-core-wasm"
   },
-  "homepage": "https://github.com/CrossNow/janusai/tree/main/core/wren-core-wasm#readme",
+  "homepage": "https://github.com/CrossNow/JanusAI/tree/main/core/wren-core-wasm#readme",
   "bugs": {
-    "url": "https://github.com/CrossNow/janusai/issues"
+    "url": "https://github.com/CrossNow/JanusAI/issues"
   },
   "publishConfig": {
     "access": "public"

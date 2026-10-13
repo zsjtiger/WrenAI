@@ -21,8 +21,8 @@ classifiers = [
 
 [project.urls]
 Homepage = "https://www.crossnow.cn/"
-Repository = "https://github.com/CrossNow/janusai"
-Issues = "https://github.com/CrossNow/janusai/issues"
+Repository = "https://github.com/CrossNow/JanusAI"
+Issues = "https://github.com/CrossNow/JanusAI/issues"
 
 [dependency-groups]
 dev = [

@@ -40,7 +40,7 @@ Full API documentation is published on [docs.rs](https://docs.rs/janus-semantic-
 
 - Janus documentation: <https://docs.crossnow.cn>
 - Project home: <https://crossnow.cn>
-- Source: <https://github.com/CrossNow/janusai>
+- Source: <https://github.com/CrossNow/JanusAI>
 
 ## License
 

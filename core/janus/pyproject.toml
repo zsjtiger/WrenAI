@@ -88,8 +88,8 @@ janus = "janus.cli:app"
 
 [project.urls]
 Homepage = "https://crossnow.cn"
-Repository = "https://github.com/CrossNow/janusai"
-Issues = "https://github.com/CrossNow/janusai/issues"
+Repository = "https://github.com/CrossNow/JanusAI"
+Issues = "https://github.com/CrossNow/JanusAI/issues"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/janus"]

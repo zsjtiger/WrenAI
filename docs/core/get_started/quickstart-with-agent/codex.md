@@ -14,7 +14,7 @@ OpenAI Codex CLI.
 ## Install Janus skills
 
 ```bash
-npx skills add CrossNow/janusai --agent codex
+npx skills add CrossNow/JanusAI --agent codex
 ```
 
 ## Run onboarding

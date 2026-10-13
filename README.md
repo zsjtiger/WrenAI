@@ -16,14 +16,14 @@
 
 <br/>
 
-[![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://github.com/CrossNow/janusai/blob/main/LICENSE)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://github.com/CrossNow/JanusAI/blob/main/LICENSE)
 [![PyPI](https://img.shields.io/pypi/v/janusai?label=janusai)](https://pypi.org/project/janusai/)
-[![GitHub Release](https://img.shields.io/github/v/release/CrossNow/janusai?logo=github&label=release)](https://github.com/CrossNow/janusai/releases)
+[![GitHub Release](https://img.shields.io/github/v/release/CrossNow/JanusAI?logo=github&label=release)](https://github.com/CrossNow/JanusAI/releases)
 [![Discord](https://img.shields.io/discord/1227143286951514152?logo=discord&label=Discord)](https://discord.gg/5DvshJqG8Z)
 [![Follow on X](https://img.shields.io/badge/follow-@getwrenai-blue?logo=x&logoColor=white)](https://x.com/getwrenai)
-![Stars](https://img.shields.io/github/stars/CrossNow/janusai?style=social)
+![Stars](https://img.shields.io/github/stars/CrossNow/JanusAI?style=social)
 
-<a href="https://trendshift.io/repositories/9263" target="_blank"><img src="https://trendshift.io/api/badge/repositories/9263" alt="CrossNow/janusai | Trendshift" width="250" height="55" /></a>
+<a href="https://trendshift.io/repositories/9263" target="_blank"><img src="https://trendshift.io/api/badge/repositories/9263" alt="CrossNow/JanusAI | Trendshift" width="250" height="55" /></a>
 
 </div>
 
@@ -55,7 +55,7 @@ Add connector extras as you need them, for example `pip install "janusai[postgre
 **2. Teach your agent about Janus**
 
 ```bash
-npx skills add CrossNow/janusai
+npx skills add CrossNow/JanusAI
 ```
 
 This installs a ~50-line discovery stub. Your agent fetches full workflow guides from the CLI on demand, so instructions always match the installed version.
@@ -193,7 +193,7 @@ Full reference: [CLI](./docs/core/reference/cli.md) · [MDL](./docs/core/referen
 - **End-to-end correctness primitives**: value profiling, rich retrieval, structured errors, golden eval runner
 - **Agent-native distribution**: first-class SDKs across major agent frameworks
 
-Vote on what ships next in [GitHub Discussions →](https://github.com/CrossNow/janusai/discussions)
+Vote on what ships next in [GitHub Discussions →](https://github.com/CrossNow/JanusAI/discussions)
 
 ## FAQ
 
@@ -228,7 +228,7 @@ The reviewable, version-controlled knowledge agents need but schemas don't provi
 <details>
 <summary><b>What happened to the Docker-based Janus AI GenBI app?</b></summary>
 
-On 2026-05-07 Janus Engine merged into this repo under [`core/`](./core), and the previous `Canner/wren-engine` repo was archived. The earlier chat-first BI product is now **Janus GenBI Classic**, preserved on the [`legacy/v1`](https://github.com/CrossNow/janusai/tree/legacy/v1) branch (tag `v1-final`) with no new features or security fixes. For a maintained, hosted version of that experience, see [Janus AI Commercial](https://crossnow.cn). [Read the announcement →](https://github.com/CrossNow/janusai/discussions/2205)
+On 2026-05-07 Janus Engine merged into this repo under [`core/`](./core), and the previous `Canner/wren-engine` repo was archived. The earlier chat-first BI product is now **Janus GenBI Classic**, preserved on the [`legacy/v1`](https://github.com/CrossNow/JanusAI/tree/legacy/v1) branch (tag `v1-final`) with no new features or security fixes. For a maintained, hosted version of that experience, see [Janus AI Commercial](https://crossnow.cn). [Read the announcement →](https://github.com/CrossNow/JanusAI/discussions/2205)
 
 </details>
 
@@ -244,7 +244,7 @@ On 2026-05-07 Janus Engine merged into this repo under [`core/`](./core), and th
 ## Community
 
 - 💬 [Discord](https://discord.gg/5DvshJqG8Z): get unstuck fast, chat with the team and other builders
-- 🐙 [GitHub Discussions](https://github.com/CrossNow/janusai/discussions): design conversations, RFCs, roadmap votes
+- 🐙 [GitHub Discussions](https://github.com/CrossNow/JanusAI/discussions): design conversations, RFCs, roadmap votes
 - 🐦 [Twitter / X](https://x.com/getwrenai): release notes and short updates
 - 🗞 [Blog](https://www.crossnow.cn/blog): vision, post-mortems, deep dives
 
@@ -252,7 +252,7 @@ On 2026-05-07 Janus Engine merged into this repo under [`core/`](./core), and th
 
 We build in the open. Issues, PRs, connectors, SDK integrations, and docs fixes are all welcome.
 
-- **New here?** Pick up a [`good first issue`](https://github.com/CrossNow/janusai/labels/good%20first%20issue).
+- **New here?** Pick up a [`good first issue`](https://github.com/CrossNow/JanusAI/labels/good%20first%20issue).
 - [Contributor guide](./CONTRIBUTING.md): setup, conventions, and the contribution bar
 - [Architecture map](./docs/core/reference/architecture.md): find the right place to land your change
 
@@ -279,8 +279,8 @@ examples/            Example projects
 
 ## Contributors
 
-<a href="https://github.com/CrossNow/janusai/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=CrossNow/janusai" alt="JanusAI contributors" />
+<a href="https://github.com/CrossNow/JanusAI/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=CrossNow/JanusAI" alt="JanusAI contributors" />
 </a>
 
 ## License
@@ -291,7 +291,7 @@ Apache 2.0. See [LICENSE](./LICENSE).
 
 <div align="center">
 
-**If JanusAI saved you time, [star the repo](https://github.com/CrossNow/janusai) ⭐. It's the fastest way to help more agent builders find it.**
+**If JanusAI saved you time, [star the repo](https://github.com/CrossNow/JanusAI) ⭐. It's the fastest way to help more agent builders find it.**
 
 **[Get started ↑](#quickstart)** &nbsp;·&nbsp; **[Join Discord →](https://discord.gg/5DvshJqG8Z)** &nbsp;·&nbsp; **[See Git Sync →](https://www.crossnow.cn/git-sync)**
 

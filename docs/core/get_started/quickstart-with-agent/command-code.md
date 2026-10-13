@@ -13,7 +13,7 @@ Command Code agent.
 ## Install Janus skills
 
 ```bash
-npx skills add CrossNow/janusai --agent command-code
+npx skills add CrossNow/JanusAI --agent command-code
 ```
 
 ## Run onboarding

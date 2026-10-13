@@ -14,7 +14,7 @@ GitHub Copilot CLI / Coding Agent.
 ## Install Janus skills
 
 ```bash
-npx skills add CrossNow/janusai --agent github-copilot
+npx skills add CrossNow/JanusAI --agent github-copilot
 ```
 
 ## Run onboarding

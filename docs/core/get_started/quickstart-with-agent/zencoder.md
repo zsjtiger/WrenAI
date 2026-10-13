@@ -14,7 +14,7 @@ Zencoder coding agent.
 ## Install Janus skills
 
 ```bash
-npx skills add CrossNow/janusai --agent zencoder
+npx skills add CrossNow/JanusAI --agent zencoder
 ```
 
 ## Run onboarding

@@ -14,7 +14,7 @@ Augment Code coding agent.
 ## Install Janus skills
 
 ```bash
-npx skills add CrossNow/janusai --agent augment
+npx skills add CrossNow/JanusAI --agent augment
 ```
 
 ## Run onboarding

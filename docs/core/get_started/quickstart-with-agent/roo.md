@@ -13,7 +13,7 @@ Open-source VS Code coding agent.
 ## Install Janus skills
 
 ```bash
-npx skills add CrossNow/janusai --agent roo
+npx skills add CrossNow/JanusAI --agent roo
 ```
 
 ## Run onboarding

@@ -14,7 +14,7 @@ Mistral's Vibe coding agent.
 ## Install Janus skills
 
 ```bash
-npx skills add CrossNow/janusai --agent mistral-vibe
+npx skills add CrossNow/JanusAI --agent mistral-vibe
 ```
 
 ## Run onboarding

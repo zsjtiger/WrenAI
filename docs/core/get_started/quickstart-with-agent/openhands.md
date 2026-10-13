@@ -14,7 +14,7 @@ All-Hands open-source coding agent.
 ## Install Janus skills
 
 ```bash
-npx skills add CrossNow/janusai --agent openhands
+npx skills add CrossNow/JanusAI --agent openhands
 ```
 
 ## Run onboarding

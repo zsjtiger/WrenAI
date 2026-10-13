@@ -8,7 +8,7 @@ This page helps you pick the right mode.
 
 | If you are… | Use | Package / install |
 |---|---|---|
-| Working with an **AI coding agent** (Claude Code, Cursor, Codex, …) | [Skills](/oss/reference/skills) — workflow guides the agent fetches from the CLI on demand | `npx skills add CrossNow/janusai` |
+| Working with an **AI coding agent** (Claude Code, Cursor, Codex, …) | [Skills](/oss/reference/skills) — workflow guides the agent fetches from the CLI on demand | `npx skills add CrossNow/JanusAI` |
 | Querying from the **terminal, scripts, or CI** yourself | [CLI](/oss/reference/cli) — plan, validate, execute, and manage memory directly | `janusai` on PyPI |
 | Building an agent on **LangChain / LangGraph** | [LangChain toolkit](./langchain.md) — exposes the project as agent tools | `janus-langchain` on PyPI |
 | Building an agent on **Pydantic AI** | [Pydantic AI toolkit](./pydantic.md) — exposes the project as agent tools | `janus-pydantic` on PyPI |

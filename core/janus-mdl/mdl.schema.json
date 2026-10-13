@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://raw.githubusercontent.com/CrossNow/janusai/main/wren-mdl/mdl.schema.json",
+  "$id": "https://raw.githubusercontent.com/CrossNow/JanusAI/main/wren-mdl/mdl.schema.json",
   "title": "JanusMDL Manifest Schema",
   "description": "A schema for JanusMDL manifest file",
   "$defs": {
@@ -229,7 +229,7 @@
     "$schema": {
       "description": "the schema of JanusMDL",
       "type": "string",
-      "const": "https://raw.githubusercontent.com/CrossNow/janusai/main/wren-mdl/mdl.schema.json"
+      "const": "https://raw.githubusercontent.com/CrossNow/JanusAI/main/wren-mdl/mdl.schema.json"
     },
     "layoutVersion": {
       "description": "the MDL wire-format layout version (default 1)",

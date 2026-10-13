@@ -14,7 +14,7 @@ Qoder coding IDE.
 ## Install Janus skills
 
 ```bash
-npx skills add CrossNow/janusai --agent qoder
+npx skills add CrossNow/JanusAI --agent qoder
 ```
 
 ## Run onboarding

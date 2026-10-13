@@ -33,7 +33,7 @@ concurrency:
 
 jobs:
   sync-lock:
-    if: ${{ github.repository == 'CrossNow/janusai' }}
+    if: ${{ github.repository == 'CrossNow/JanusAI' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout main

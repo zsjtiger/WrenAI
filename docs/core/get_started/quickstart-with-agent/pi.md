@@ -13,7 +13,7 @@ Pi Mono coding agent.
 ## Install Janus skills
 
 ```bash
-npx skills add CrossNow/janusai --agent pi
+npx skills add CrossNow/JanusAI --agent pi
 ```
 
 ## Run onboarding

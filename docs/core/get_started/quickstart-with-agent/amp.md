@@ -13,7 +13,7 @@ Sourcegraph's coding agent. Uses the shared `.agents/skills/` directory.
 ## Install Janus skills
 
 ```bash
-npx skills add CrossNow/janusai --agent amp
+npx skills add CrossNow/JanusAI --agent amp
 ```
 
 ## Run onboarding

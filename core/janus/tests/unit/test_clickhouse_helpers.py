@@ -206,7 +206,7 @@ def test_clickhouse_arrow_table_preserves_duplicate_column_names() -> None:
 # ---------------------------------------------------------------------------
 # 4. Nullable(...) and LowCardinality(...) type parsing
 #
-# Regression for CrossNow/janusai#2184: Nullable(T) columns were mapped to
+# Regression for CrossNow/JanusAI#2184: Nullable(T) columns were mapped to
 # UNKNOWN in older ibis-server; the current SDK uses sqlglot which strips
 # the Nullable wrapper automatically. These tests prevent silent regressions.
 # ---------------------------------------------------------------------------
@@ -290,7 +290,7 @@ def test_clickhouse_arrow_table_nullable_columns_preserve_none_values() -> None:
 # ---------------------------------------------------------------------------
 # 5. Default port tracks the effective ``secure`` value (connection_url branch)
 #
-# Regression for CrossNow/janusai#2412 / #2416: the port-less default must follow
+# Regression for CrossNow/JanusAI#2412 / #2416: the port-less default must follow
 # the *effective* TLS setting (kwargs > query param > scheme), not the scheme
 # alone, and string overrides like ``?secure=false`` must not be truthy.
 # ---------------------------------------------------------------------------

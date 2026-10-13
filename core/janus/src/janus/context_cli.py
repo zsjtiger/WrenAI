@@ -411,7 +411,7 @@ def init(
     typer.echo("")
     typer.echo(
         "Next: Install agent skills via "
-        "`curl -fsSL https://raw.githubusercontent.com/CrossNow/janusai/main/skills/install.sh | bash`, "
+        "`curl -fsSL https://raw.githubusercontent.com/CrossNow/JanusAI/main/skills/install.sh | bash`, "
         "then use the `janus-generate-mdl` skill in your agent to populate models/"
         " (or edit them manually). Run `janus context build` when done."
     )

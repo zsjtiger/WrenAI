@@ -13,7 +13,7 @@ The Cursor IDE.
 ## Install Janus skills
 
 ```bash
-npx skills add CrossNow/janusai --agent cursor
+npx skills add CrossNow/JanusAI --agent cursor
 ```
 
 ## Run onboarding

@@ -13,7 +13,7 @@ Dexto coding agent.
 ## Install Janus skills
 
 ```bash
-npx skills add CrossNow/janusai --agent dexto
+npx skills add CrossNow/JanusAI --agent dexto
 ```
 
 ## Run onboarding
