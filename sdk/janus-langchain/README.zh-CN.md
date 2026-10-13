@@ -212,6 +212,6 @@ toolkit = JanusToolkit.from_project("/path/to/test-project3")
 
 ## 许可证
 
-Apache License 2.0。完整文本见 [LICENSE](./LICENSE)，路径与许可证的对应关系见[仓库级 LICENSE](../../LICENSE)。
+Apache License 2.0。完整文本见 [LICENSE](./LICENSE)。
 
 “Janus”、“JanusAI” 以及项目的 logo 是 Canner, Inc. 的商标，不适用 Apache 2.0 许可；其使用另行规定。

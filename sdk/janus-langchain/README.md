@@ -241,8 +241,7 @@ elsewhere on the same machine.
 
 ## License
 
-Apache License 2.0. See [LICENSE](./LICENSE) for the full text, or the
-[repository-level LICENSE](../../LICENSE) for the path-to-license map.
+Apache License 2.0. See [LICENSE](./LICENSE) for the full text.
 
 The names "Janus", "JanusAI", and the project's logos are trademarks of
 Canner, Inc. and are not licensed under Apache 2.0; their use is governed
