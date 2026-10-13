@@ -275,6 +275,3 @@ wasm-pack build --target web --release
 - 在 Node 中，请向 `JanusEngine.init()` 传入 `wasmUrl: BufferSource`——Node 的 fetch 无法加载 `file://` URL。
 - WASM 二进制文件原始大小约 68 MB，gzip 压缩后约 14 MB。
 
-## 许可证
-
-Apache-2.0

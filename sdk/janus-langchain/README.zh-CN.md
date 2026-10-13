@@ -210,8 +210,3 @@ toolkit = JanusToolkit.from_project("/path/to/test-project3")
 - **没有热重载机制。** 每次工具调用都会重新读取 `target/mdl.json`，因此 CLI 执行 `janus context build` 后的更新会被自动读取。修改 profile 则需要重新构造 toolkit。
 - **不要在 agent 正在使用同一项目时运行 `janus memory index`。** 该操作会删除并重建 LanceDB schema 表，并发读取可能会短暂失败。
 
-## 许可证
-
-Apache License 2.0。完整文本见 [LICENSE](./LICENSE)。
-
-“Janus”、“JanusAI” 以及项目的 logo 是 Canner, Inc. 的商标，不适用 Apache 2.0 许可；其使用另行规定。

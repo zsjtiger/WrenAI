@@ -125,6 +125,3 @@ See `scripts/publish.sh` for local publishing to PyPI/TestPyPI:
 ./scripts/publish.sh            # Build + publish to PyPI
 ```
 
-## License
-
-Apache-2.0

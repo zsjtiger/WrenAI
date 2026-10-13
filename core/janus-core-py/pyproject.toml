@@ -4,13 +4,11 @@ version = "0.8.0"
 description = "Python bindings for Janus Engine semantic layer (janus-core)"
 readme = "README.md"
 requires-python = ">=3.11"
-license = { text = "Apache-2.0" }
 authors = [{ name = "Janus AI", email = "contact@crossnow.cn" }]
 keywords = ["sql", "semantic-layer", "data-modeling", "analytics", "janus", "janusai", "datafusion"]
 classifiers = [
   "Development Status :: 4 - Beta",
   "Intended Audience :: Developers",
-  "License :: OSI Approved :: Apache Software License",
   "Operating System :: OS Independent",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: Implementation :: CPython",

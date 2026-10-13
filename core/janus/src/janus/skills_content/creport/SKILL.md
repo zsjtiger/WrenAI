@@ -1,7 +1,6 @@
 ---
 name: creport
 description: "Turn a Janus project's context layer into a shareable, browser-side CReport web app and deploy it to the user's Vercel or Cloudflare account. Orchestrates the full flow: `janus creport build` returns a project-hydrated build instruction, the agent authors the app from scratch into apps/<name>/, then register → verify → deploy produce a shareable URL. Use this skill whenever the user wants to: build a dashboard from their Janus project, make a shareable analytics app, deploy their context layer as a web app, host a CReport app on Vercel or Cloudflare Pages, or asks for a 'creport app'."
-license: Apache-2.0
 metadata:
   author: janusai
 ---

@@ -1,7 +1,6 @@
 ---
 name: onboarding
 description: "Onboard a user to Janus Engine end-to-end. Walks through environment checks, project scaffolding, connection configuration via .env, and first query. Use when: user wants to install Janus Engine, set up a new data source connection, or bootstrap a new project from scratch. Triggers: '/janus-onboarding', 'install janus', 'set up janus engine', 'janus onboarding', 'connect new database to janus'."
-license: Apache-2.0
 metadata:
   author: janusai
 ---

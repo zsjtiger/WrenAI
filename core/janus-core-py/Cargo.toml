@@ -3,7 +3,6 @@ name = "janus-core-py"
 version = "0.1.0"
 edition = "2021"
 description = "Python bindings for Janus Engine semantic layer (janus-core)"
-license = "Apache-2.0"
 repository = "https://github.com/CrossNow/JanusAI"
 include = ["/src", "pyproject.toml", "Cargo.toml", "Cargo.lock"]
 

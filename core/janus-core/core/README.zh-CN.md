@@ -37,10 +37,6 @@ use janus_core::mdl::AnalyzedJanusMDL;
 - 项目主页：<https://crossnow.cn>
 - 源代码：<https://github.com/CrossNow/JanusAI>
 
-## 许可证
-
-基于 [Apache License, Version 2.0](LICENSE) 授权。
-
 ## 自定义访问控制
 
 默认的 `JanusAccessControlProvider` 会评估 MDL 的行规则和列规则。

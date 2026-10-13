@@ -4,7 +4,6 @@
 
 [![PyPI version](https://img.shields.io/pypi/v/janusai.svg)](https://pypi.org/project/janusai/)
 [![Python](https://img.shields.io/pypi/pyversions/janusai.svg)](https://pypi.org/project/janusai/)
-[![License](https://img.shields.io/pypi/l/janusai.svg)](https://github.com/CrossNow/JanusAI/blob/main/LICENSE)
 
 Janus AI 命令行工具与 Python SDK —— 面向 20+ 数据源的语义 SQL 层。
 
@@ -264,6 +263,3 @@ make publish-test                # 上传到 TestPyPI
 CONFIRM=yes make publish         # 上传到 PyPI
 ```
 
-## 许可证
-
-Apache-2.0

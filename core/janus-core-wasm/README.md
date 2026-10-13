@@ -290,6 +290,3 @@ wasm-pack build --target web --release
 - In Node, pass `wasmUrl: BufferSource` to `JanusEngine.init()` — Node's fetch can't load `file://` URLs.
 - WASM binary is ~68 MB raw / ~14 MB gzip.
 
-## License
-
-Apache-2.0

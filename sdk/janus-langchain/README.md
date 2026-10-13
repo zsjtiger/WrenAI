@@ -239,10 +239,3 @@ elsewhere on the same machine.
 - **No hot reload mechanism.** `target/mdl.json` is re-read on every tool call, so `janus context build` updates from CLI are picked up automatically. Profile changes require constructing a new toolkit.
 - **Don't run `janus memory index` while an agent is using the same project.** The index operation drops and recreates the LanceDB schema table; concurrent reads may transiently fail.
 
-## License
-
-Apache License 2.0. See [LICENSE](./LICENSE) for the full text.
-
-The names "Janus", "JanusAI", and the project's logos are trademarks of
-Canner, Inc. and are not licensed under Apache 2.0; their use is governed
-separately.

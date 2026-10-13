@@ -3,7 +3,6 @@ name = "janus-core-wasm"
 version = "0.1.0"
 edition = "2021"
 authors = ["Canner <dev@cannerdata.com>"]
-license = "Apache-2.0"
 description = "Janus Engine compiled to WebAssembly — browser-native semantic layer + query execution"
 repository = "https://github.com/CrossNow/JanusAI"
 

@@ -39,7 +39,6 @@ changed is where the files live and how they reach the agent.
 name: <name>              # matches the parent directory; lowercase, hyphens
 description: "What this skill does and when to trigger it. Include trigger
   keywords so an AI client can match it to user intent."
-license: Apache-2.0
 metadata:
   author: janusai
 ---

@@ -43,10 +43,6 @@ Full API documentation is published on [docs.rs](https://docs.rs/janus-semantic-
 - Project home: <https://crossnow.cn>
 - Source: <https://github.com/CrossNow/JanusAI>
 
-## License
-
-Licensed under the [Apache License, Version 2.0](LICENSE).
-
 ## Custom access control
 
 The default `JanusAccessControlProvider` evaluates MDL row and column rules.

@@ -2,7 +2,6 @@
 name = "janus-core-base"
 version = "0.4.0"
 edition = "2021"
-license = "Apache-2.0"
 description = "Shared MDL manifest types for the Janus semantic engine"
 homepage = "https://crossnow.cn"
 repository = "https://github.com/CrossNow/JanusAI"

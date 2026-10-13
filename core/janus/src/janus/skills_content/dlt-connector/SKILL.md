@@ -1,7 +1,6 @@
 ---
 name: dlt-connector
 description: "Connect SaaS data (HubSpot, Stripe, Salesforce, GitHub, Slack, etc.) to Janus Engine for SQL analysis. Guides the user through the full flow: install dlt, pick a SaaS source, set up credentials, run the data pipeline into DuckDB, then auto-generate a Janus semantic project from the loaded data. Use this skill whenever the user mentions: connecting SaaS data, importing data from an API, dlt pipelines, loading HubSpot/Stripe/Salesforce/GitHub/Slack data, querying SaaS data with SQL, or setting up a new data source from a REST API. Also trigger when the user already has a dlt-produced DuckDB file and wants to create a Janus project from it."
-license: Apache-2.0
 metadata:
   author: janusai
 ---

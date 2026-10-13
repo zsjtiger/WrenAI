@@ -104,6 +104,3 @@ ipc_bytes = ctx.query("SELECT * FROM my_catalog.my_schema.customer")
 ./scripts/publish.sh            # 构建并发布到 PyPI
 ```
 
-## 许可证
-
-Apache-2.0
