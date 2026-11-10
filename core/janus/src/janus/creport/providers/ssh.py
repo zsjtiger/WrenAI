@@ -131,8 +131,21 @@ def _ssh_argv(cfg: dict, remote_cmd: str) -> list[str]:
 
 
 def _run(argv: list[str], data: bytes) -> subprocess.CompletedProcess:
-    """Run ssh with the tarball on stdin. Patched in tests."""
-    return subprocess.run(argv, input=data, capture_output=True, timeout=600)
+    """Run ssh with the tarball on stdin. Patched in tests.
+
+    Failures to start or finish ssh are turned into DeployError here so the
+    CLI reports them as messages rather than a traceback.
+    """
+    try:
+        return subprocess.run(argv, input=data, capture_output=True, timeout=600)
+    except FileNotFoundError as exc:
+        raise DeployError(
+            "the 'ssh' command was not found on PATH; install an OpenSSH client to use --provider ssh"
+        ) from exc
+    except subprocess.TimeoutExpired as exc:
+        raise DeployError(
+            f"upload to {argv[-2]} timed out after {exc.timeout:.0f}s"
+        ) from exc
 
 
 class SshProvider:

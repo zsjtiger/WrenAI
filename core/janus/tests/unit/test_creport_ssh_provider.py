@@ -320,3 +320,58 @@ def test_cli_deploy_over_ssh_needs_no_token_and_persists_state(
     assert deploy["provider"] == "ssh"
     assert deploy["last_url"] == "https://apps.example.test/myapp/"
     assert deploy["environment"] == "production"
+
+
+# ── ssh unavailable or hanging ───────────────────────────────────────────────
+
+
+def test_missing_ssh_binary_is_a_deploy_error(tmp_path, monkeypatch) -> None:
+    _configure(monkeypatch, tmp_path)
+
+    def no_ssh(argv, **kwargs):
+        raise FileNotFoundError(2, "No such file or directory", "ssh")
+
+    monkeypatch.setattr(ssh.subprocess, "run", no_ssh)
+    with pytest.raises(DeployError, match="'ssh' command was not found"):
+        get_provider("ssh").deploy(
+            _build(tmp_path), app_name="myapp", token="", prod=True, link=None
+        )
+
+
+def test_hanging_upload_is_a_deploy_error(tmp_path, monkeypatch) -> None:
+    _configure(monkeypatch, tmp_path)
+
+    def hang(argv, **kwargs):
+        raise subprocess.TimeoutExpired(argv, kwargs.get("timeout", 600))
+
+    monkeypatch.setattr(ssh.subprocess, "run", hang)
+    with pytest.raises(DeployError, match="timed out"):
+        get_provider("ssh").deploy(
+            _build(tmp_path), app_name="myapp", token="", prod=True, link=None
+        )
+
+
+def test_cli_reports_missing_ssh_without_traceback(tmp_path, monkeypatch) -> None:
+    project = _deployable_project(tmp_path / "proj")
+    _configure(monkeypatch, tmp_path / "server")
+
+    def no_ssh(argv, **kwargs):
+        raise FileNotFoundError(2, "No such file or directory", "ssh")
+
+    monkeypatch.setattr(ssh.subprocess, "run", no_ssh)
+    result = runner.invoke(
+        app,
+        [
+            "creport",
+            "deploy",
+            "myapp",
+            "--provider",
+            "ssh",
+            "--prod",
+            "-p",
+            str(project),
+        ],
+    )
+    assert result.exit_code == 1
+    assert "'ssh' command was not found" in result.output
+    assert not isinstance(result.exception, FileNotFoundError)
