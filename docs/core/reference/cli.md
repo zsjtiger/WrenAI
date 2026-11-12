@@ -444,8 +444,9 @@ Reports columns in YAML but not in the database and the reverse, type
 mismatches (after normalization), primary-key differences, missing tables, and
 database tables no model references. Calculated columns and `ref_sql` models are
 not compared. Exit code: `0` no drift, `1` drift, `2` the database could not be
-read or no profile is bound. Primary keys are not compared for connectors that
-cannot report keys (Trino, Athena, DataFusion, Spark).
+read or no profile is bound. A composite primary key in the database is noted,
+not compared, since MDL keys are single columns. Primary keys are not compared for
+connectors that cannot report keys (Trino, Athena, DataFusion, Spark).
 
 ### `janus context draft`
 

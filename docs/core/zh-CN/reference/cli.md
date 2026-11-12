@@ -402,6 +402,8 @@ janus context diff --json             # 机器可读的报告
 
 报告内容包括：YAML 中有而数据库中没有的列（反之亦然）、类型不一致（经过归一化后比较）、主键不一致、缺失的表，以及没有模型引用的数据库表。计算列和 `ref_sql` 模型不做比较。退出码：`0` 无差异，`1` 有差异，`2` 无法读取数据库或未绑定 profile。无法报告主键的连接器（Trino、Athena、DataFusion、Spark）不比较主键。
 
+数据库中的复合主键只记录说明，不做比较，因为 MDL 的主键是单列。
+
 ### `janus context draft`
 
 ```bash
