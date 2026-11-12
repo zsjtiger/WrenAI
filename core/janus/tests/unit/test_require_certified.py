@@ -69,7 +69,7 @@ def test_require_certified_must_be_a_boolean(tmp_path) -> None:
     (tmp_path / "config.json").write_text('{"require_certified": "yes"}')
     with pytest.raises(JanusError) as exc:
         load_config(tmp_path)
-    assert exc.value.code == ErrorCode.GENERIC_USER_ERROR
+    assert exc.value.error_code == ErrorCode.GENERIC_USER_ERROR
     assert "require_certified" in str(exc.value)
 
 
