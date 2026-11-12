@@ -322,7 +322,8 @@ def _bridge_models(extra_attribute: bool = False):
             [("product_id", "INTEGER")],
             primary_key="product_id",
         ),
-        model_dict("order_items", "order_items", columns, primary_key="order_id"),
+        # A bridge has a composite key, which MDL cannot express: no primary_key.
+        model_dict("order_items", "order_items", columns),
     ]
 
 
@@ -440,4 +441,47 @@ def test_cli_finds_foreign_keys_among_unpromoted_drafts(make_project):
     body = json.loads(result.output)
     assert any(
         s["model"] == "orders" and s["column"] == "cust_id" for s in body["suggestions"]
+    )
+
+
+def test_warehouse_prefixes_do_not_block_a_match():
+    """dim_store is referenced by store_key: the prefix is not part of the name."""
+    models = [
+        model_dict(
+            "dim_store",
+            "dim_store",
+            [("store_key", "INTEGER")],
+            primary_key="store_key",
+        ),
+        model_dict(
+            "sales",
+            "sales",
+            [("sale_id", "INTEGER"), ("store_key", "INTEGER")],
+            primary_key="sale_id",
+        ),
+    ]
+    s = _by_column(
+        infer_foreign_keys(models, [], DataSource.duckdb), "sales", "store_key"
+    )
+    assert (s.target_model, s.target_column) == ("dim_store", "store_key")
+    assert s.status == STATUS_SUGGESTED
+
+
+def test_a_models_own_primary_key_is_not_suggested_as_a_foreign_key():
+    """companies.company_id is its own key; a same-named key in another table
+    must not make it look like a reference."""
+    models = [
+        model_dict(
+            "company", "company", [("company_id", "INTEGER")], primary_key="company_id"
+        ),
+        model_dict(
+            "companies",
+            "companies",
+            [("company_id", "INTEGER")],
+            primary_key="company_id",
+        ),
+    ]
+    result = infer_foreign_keys(models, [], DataSource.duckdb)
+    assert not any(
+        s.model == "companies" and s.column == "company_id" for s in result.suggestions
     )

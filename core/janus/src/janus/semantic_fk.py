@@ -115,12 +115,25 @@ def _singular(word: str) -> str:
     return word
 
 
+_WAREHOUSE_PREFIXES = ("dim_", "fact_", "tbl_", "stg_", "raw_", "v_")
+
+
 def _model_forms(name: str) -> set[str]:
+    """Names a column stem may use for a model: the name, its singular, and both
+    without a warehouse prefix (``dim_store`` -> ``store``)."""
     lower = name.lower()
-    forms = {lower, _singular(lower)}
-    if "_" in lower:
-        head, _, tail = lower.rpartition("_")
-        forms.add(f"{head}_{_singular(tail)}")
+    bare = lower
+    for prefix in _WAREHOUSE_PREFIXES:
+        if lower.startswith(prefix) and len(lower) > len(prefix):
+            bare = lower[len(prefix) :]
+            break
+    forms: set[str] = set()
+    for variant in {lower, bare}:
+        forms.add(variant)
+        forms.add(_singular(variant))
+        if "_" in variant:
+            head, _, tail = variant.rpartition("_")
+            forms.add(f"{head}_{_singular(tail)}")
     return forms
 
 
@@ -298,9 +311,14 @@ def infer_foreign_keys(
 
     for model in models:
         mname = str(model["name"])
+        own_key = str(model.get("primary_key") or "").lower()
         for column in model.get("columns") or []:
             cname = str(column.get("name") or "")
             if not cname or cname.lower() in declared.get(mname.lower(), {}):
+                continue
+            # A model's own single-column primary key is not a foreign key, even
+            # when another table happens to use the same name for its key.
+            if own_key and cname.lower() == own_key:
                 continue
             candidates = _rule_candidates(model, column, targets, dialect)
             if not candidates:

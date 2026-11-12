@@ -130,7 +130,12 @@ def _rule_name(node: exp.Expression) -> str:
 
 
 def _normalize(node: exp.Expression, dialect: str) -> str:
-    return node.sql(dialect=dialect).lower()
+    """The expression's identity: SQL text with table qualifiers removed, so that
+    ``sum(f.net_amount)`` and ``sum(net_amount)`` are the same measure."""
+    bare = node.copy()
+    for col in bare.find_all(exp.Column):
+        col.set("table", None)
+    return bare.sql(dialect=dialect).lower()
 
 
 def _tables_of(tree: exp.Expression) -> list[str]:

@@ -298,3 +298,18 @@ def test_cli_json_output(make_project):
     )
     body = json.loads(result.output)
     assert body["attributes"][0]["expression"] == "sum(amount)"
+
+
+def test_table_qualifiers_do_not_split_one_measure():
+    """sum(f.amount) and sum(amount) are the same measure, counted across queries."""
+    pairs = [
+        _pair("SELECT SUM(f.amount) FROM orders f", "a.md"),
+        _pair("SELECT SUM(amount) FROM orders", "b.md"),
+    ]
+    found = [
+        a
+        for a in mine_attributes(pairs, _models(), "duckdb").attributes
+        if a.name == "total_amount"
+    ]
+    assert len(found) == 1
+    assert found[0].occurrences == 2
