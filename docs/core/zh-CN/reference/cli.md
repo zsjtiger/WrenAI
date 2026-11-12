@@ -353,6 +353,69 @@ YAML 结构和校验规则，参见 [Cube 指南](../guides/cubes.md)。
 
 ---
 
+## `janus context`：认证、漂移、草稿与审核
+
+### 认证
+
+在模型的 `metadata.yml` 中标记认证：
+
+```yaml
+properties:
+  certified: "true"      # 或 "false"；YAML 布尔值 true 也可以
+  owner: finance-team
+```
+
+`janus context validate` 会拒绝其他取值。`janus context show` 以及 MCP 的 `list_models` / `describe_model` 会显示认证状态。只有当 `~/.janus/config.json` 中 `require_certified` 为 `true` 时才会**强制**执行：引擎会拒绝规划读取未认证模型的查询。直接使用引擎（例如不经过 CLI 配置的 Python SDK）不做检查。
+
+### 查询结果的溯源
+
+MCP 工具 `run_sql` 和 `query_cube` 会返回 `provenance` 对象：
+
+```json
+{
+  "models": ["orders"],
+  "cubes": [],
+  "knowledge": ["knowledge/sql/total-revenue.md"],
+  "certified": {"orders": false},
+  "expanded_sql": "SELECT ..."
+}
+```
+
+`models` 列出展开后的 SQL 实际读取的模型。`knowledge` 原样返回调用方传入的 `knowledge/` 路径（例如来自 `recall_queries`）；`knowledge/` 之外的路径会被拒绝。仅当 `include_sql=true` 时才返回 `expanded_sql`。使用未认证模型时会增加 `warnings` 条目。
+
+### `janus context diff`
+
+```bash
+janus context diff                    # 比较 models/ 与绑定的数据库
+janus context diff --schema public    # 只比较一个 schema 或 BigQuery dataset
+janus context diff --json             # 机器可读的报告
+```
+
+报告内容包括：YAML 中有而数据库中没有的列（反之亦然）、类型不一致（经过归一化后比较）、主键不一致、缺失的表，以及没有模型引用的数据库表。计算列和 `ref_sql` 模型不做比较。退出码：`0` 无差异，`1` 有差异，`2` 无法读取数据库或未绑定 profile。无法报告主键的连接器（Trino、Athena、DataFusion、Spark）不比较主键。
+
+### `janus context draft`
+
+```bash
+janus context draft --from-db         # 为未建模的表生成草稿
+janus context draft                   # 列出待处理的草稿
+janus context draft apply orders      # 把一个草稿提升到 models/
+```
+
+草稿写入 `draft/models/<name>/`，外键会变成 `draft/relationships.yml` 中的候选关系。在 `apply` 之前，`models/` 不会被修改。每个草稿带有 `properties.draft: "true"`；`apply` 会去掉该标记、添加两端都已存在的关系，并校验项目。校验失败时会回滚移动。
+
+### `janus context review`
+
+智能体通过 MCP 工具 `propose_correction` 提出修改（仅在 `janus serve mcp --allow-write` 时可用）。提案以 `pending` 状态保存在 `knowledge/corrections/` 下。
+
+```bash
+janus context review                  # 列出待处理的提案
+janus context review --all            # 包括已应用和已拒绝的
+janus context review approve <id>     # 合并到模型的 metadata.yml
+janus context review reject <id> --reason "不是真正的问题"
+```
+
+受保护的字段（`name`、`table_reference`、`ref_sql`）不能被提议修改。批准后校验失败的修改会回滚，并保持 `pending`。
+
 ## `janus serve`：MCP 服务器
 
 把项目的查询、Schema 和知识工具作为本地 MCP 服务器提供给 MCP 客户端（Claude Desktop/Code、Cursor 或任何支持 MCP 的 IDE）。服务器在进程内嵌入引擎，没有独立后端，因此只要运行过 `janus context build`，就可以直接从项目目录启动。
@@ -422,6 +485,25 @@ janus serve mcp --transport http --port 8080     # 本地 Streamable HTTP，供�
 完整的客户端接入演示，参见 [MCP 指南](../guides/mcp.md)。
 
 ---
+
+### `janus serve api`
+
+```bash
+janus serve api                              # 127.0.0.1:8090
+janus serve api --port 9000 --token "$TOKEN" # 需要 bearer token
+```
+
+通过 HTTP 提供 JSON 接口，与 MCP 使用同一个引擎，并共用查询实现（行数上限、溯源和警告与 `run_sql` 一致）。
+
+| 方法 | 路径 | 请求体 | 返回 |
+|---|---|---|---|
+| GET | `/health` | | `{"ok": true}` |
+| GET | `/models` | | 模型列表，含 `certified` |
+| GET | `/models/{name}` | | 单个模型的列和主键 |
+| POST | `/query` | `{"sql", "limit"?, "knowledge"?, "include_sql"?}` | 行数据和 `provenance` |
+| POST | `/dry-plan` | `{"sql"}` | 展开后的 SQL，不访问数据库 |
+
+绑定非回环地址时必须提供 `--token`（或 `JANUS_API_TOKEN`）。没有匹配的 `Authorization: Bearer <token>` 的请求返回 `401`。输入错误返回 `400`，引擎拒绝的查询返回 `422`。
 
 ## `janus skills`：智能体工作流指南
 

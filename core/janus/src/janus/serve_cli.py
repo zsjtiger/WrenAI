@@ -209,6 +209,73 @@ def serve_mcp(
     run_server(ctx, transport=transport, host=host, port=port)
 
 
+@serve_app.command("api")
+def serve_api(
+    host: Annotated[
+        str,
+        typer.Option(
+            "--host",
+            help="Bind address. Non-loopback addresses require --token.",
+        ),
+    ] = "127.0.0.1",
+    port: Annotated[int, typer.Option("--port", help="Bind port.")] = 8090,
+    project: Annotated[
+        Optional[Path],
+        typer.Option("--project", help="Override project root."),
+    ] = None,
+    profile: Annotated[
+        Optional[str],
+        typer.Option("--profile", help="Connection profile name."),
+    ] = None,
+    token: Annotated[
+        Optional[str],
+        typer.Option(
+            "--token",
+            envvar="JANUS_API_TOKEN",
+            help="Bearer token required on every request (env: JANUS_API_TOKEN).",
+        ),
+    ] = None,
+    no_connect: Annotated[
+        bool,
+        typer.Option(
+            "--no-connect",
+            help="Transpile-only mode: /query is unavailable.",
+        ),
+    ] = False,
+) -> None:
+    """Serve the query and context endpoints over HTTP (same engine as MCP)."""
+    _ensure_mcp_installed()
+
+    from loguru import logger  # noqa: PLC0415
+
+    from janus.api_server import run_api  # noqa: PLC0415
+    from janus.cli import _build_engine  # noqa: PLC0415
+    from janus.mcp_server import ServeContext  # noqa: PLC0415
+
+    project_path = resolve_project_path(str(project) if project else None)
+    mdl_path = _require_mdl_file(project_path)
+    if _mdl_is_stale(project_path, mdl_path):
+        logger.warning("MDL may be stale — re-run `janus context build`")
+
+    connection_info = _profile_connection_info(profile) if profile is not None else None
+    engine = _build_engine(
+        str(mdl_path), connection_info, None, conn_required=not no_connect
+    )
+    atexit.register(lambda: engine.close() if hasattr(engine, "close") else None)
+
+    ctx = ServeContext(
+        project=project_path,
+        engine=engine,
+        allow_write=False,
+        no_connect=no_connect,
+    )
+    try:
+        run_api(ctx, host=host, port=port, token=token or None)
+    except ValueError as exc:
+        typer.echo(f"Error: {exc}", err=True)
+        raise typer.Exit(1) from exc
+
+
 def _check_transport(transport: str) -> None:
     if transport not in {"stdio", "http"}:
         typer.echo(

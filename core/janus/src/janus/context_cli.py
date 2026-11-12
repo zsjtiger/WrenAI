@@ -9,6 +9,7 @@ from typing import Annotated, Optional
 import typer
 
 from janus.cli_common import ProjectPathOpt, resolve_project_path
+from janus.model.certification import is_certified
 
 context_app = typer.Typer(
     name="context",
@@ -801,7 +802,10 @@ def show(
                 n_cols = len(m.get("columns", []))
                 pk = m.get("primary_key", "—")
                 source = "ref_sql" if m.get("ref_sql") else "table"
-                typer.echo(f"  {m['name']}  ({source}, {n_cols} columns, pk={pk})")
+                cert = " certified" if is_certified(m.get("properties")) else ""
+                typer.echo(
+                    f"  {m['name']}  ({source}, {n_cols} columns, pk={pk}){cert}"
+                )
 
         if views:
             typer.echo(f"\nViews ({len(views)}):")
@@ -1258,3 +1262,226 @@ def _show_from_osi(
             typer.echo(f"  {r.get('name', '?')}  ({models_str}, MANY_TO_ONE)")
     if manifest.get("_instructions"):
         typer.echo("\nInstructions: present (from OSI ai_context + metrics)")
+
+
+# ----------------------------------------------------------------------
+# Drift detection, draft generation and the correction queue
+# ----------------------------------------------------------------------
+
+_SchemaOpt = Annotated[
+    Optional[str],
+    typer.Option("--schema", help="Only this schema (or BigQuery dataset)."),
+]
+_JsonOpt = Annotated[bool, typer.Option("--json", help="Print machine-readable JSON.")]
+
+
+def _connect_or_exit(project_path: Path):
+    from janus.context_db import (  # noqa: PLC0415
+        ProjectConnectionError,
+        open_project_connector,
+    )
+
+    try:
+        return open_project_connector(project_path)
+    except ProjectConnectionError as exc:
+        typer.echo(f"Error: {exc}", err=True)
+        raise typer.Exit(2) from exc
+
+
+@context_app.command()
+def diff(
+    path: ProjectPathOpt = None,
+    schema: _SchemaOpt = None,
+    as_json: _JsonOpt = False,
+) -> None:
+    """Compare the YAML models with the live database.
+
+    Reports missing or extra tables and columns, type mismatches, primary-key
+    differences, and database tables no model references. Exit code: 0 when
+    they agree, 1 when they differ, 2 when the database cannot be read.
+    """
+    from janus.context import load_models  # noqa: PLC0415
+    from janus.context_db import (  # noqa: PLC0415
+        ProjectConnectionError,
+        resolve_project_datasource,
+    )
+    from janus.context_diff import diff_models, render_text  # noqa: PLC0415
+
+    project_path = resolve_project_path(path)
+    try:
+        data_source = resolve_project_datasource(project_path)
+    except ProjectConnectionError as exc:
+        typer.echo(f"Error: {exc}", err=True)
+        raise typer.Exit(2) from exc
+
+    connector = _connect_or_exit(project_path)
+    try:
+        report = diff_models(
+            load_models(project_path), connector, data_source, schema=schema
+        )
+    except Exception as exc:  # noqa: BLE001 - surface any driver error as exit 2
+        typer.echo(f"Error: could not read the database: {exc}", err=True)
+        raise typer.Exit(2) from exc
+    finally:
+        connector.close()
+
+    if as_json:
+        typer.echo(json.dumps(report.to_dict(), indent=2, ensure_ascii=False))
+    else:
+        typer.echo(render_text(report))
+    if report.has_drift:
+        raise typer.Exit(1)
+
+
+draft_app = typer.Typer(
+    name="draft",
+    help="Draft MDL models from the database. Nothing is written to models/ until `apply`.",
+    invoke_without_command=True,
+)
+context_app.add_typer(draft_app, name="draft")
+
+
+@draft_app.callback()
+def draft_main(
+    ctx: typer.Context,
+    path: ProjectPathOpt = None,
+    from_db: Annotated[
+        bool,
+        typer.Option("--from-db", help="Generate drafts from the bound database."),
+    ] = False,
+    schema: _SchemaOpt = None,
+) -> None:
+    """Without options, list pending drafts. With --from-db, generate them."""
+    if ctx.invoked_subcommand is not None:
+        return
+    from janus.context_db import (  # noqa: PLC0415
+        ProjectConnectionError,
+        resolve_project_datasource,
+    )
+    from janus.context_draft import generate_drafts, list_drafts  # noqa: PLC0415
+
+    project_path = resolve_project_path(path)
+    if not from_db:
+        pending = list_drafts(project_path)
+        if not pending:
+            typer.echo("No drafts. Run `janus context draft --from-db` to create some.")
+        for name in pending:
+            typer.echo(f"  {name}")
+        return
+
+    try:
+        data_source = resolve_project_datasource(project_path)
+    except ProjectConnectionError as exc:
+        typer.echo(f"Error: {exc}", err=True)
+        raise typer.Exit(2) from exc
+    connector = _connect_or_exit(project_path)
+    try:
+        result = generate_drafts(project_path, connector, data_source, schema=schema)
+    except Exception as exc:  # noqa: BLE001
+        typer.echo(f"Error: could not read the database: {exc}", err=True)
+        raise typer.Exit(2) from exc
+    finally:
+        connector.close()
+
+    typer.echo(f"Drafted {len(result.models)} model(s) under draft/models/.")
+    for name in result.models:
+        typer.echo(f"  + {name}")
+    if result.relationships:
+        typer.echo(
+            f"Drafted {len(result.relationships)} relationship(s) in draft/relationships.yml."
+        )
+    for note in result.skipped:
+        typer.echo(f"  skipped {note}")
+    for note in result.notes:
+        typer.echo(f"  note: {note}")
+    typer.echo(
+        "Review the drafts, then promote each with `janus context draft apply <model>`."
+    )
+
+
+@draft_app.command("apply")
+def draft_apply(
+    model: Annotated[str, typer.Argument(help="Draft model name to promote.")],
+    path: ProjectPathOpt = None,
+) -> None:
+    """Move a draft model into models/ and validate the project."""
+    from janus.context_draft import apply_draft  # noqa: PLC0415
+
+    project_path = resolve_project_path(path)
+    try:
+        added = apply_draft(project_path, model)
+    except ValueError as exc:
+        typer.echo(f"Error: {exc}", err=True)
+        raise typer.Exit(1) from exc
+    typer.echo(f"Applied draft '{model}' to models/{model}/.")
+    for name in added:
+        typer.echo(f"  + relationship {name}")
+
+
+review_app = typer.Typer(
+    name="review",
+    help="Review correction proposals queued by agents (knowledge/corrections/).",
+    invoke_without_command=True,
+)
+context_app.add_typer(review_app, name="review")
+
+
+@review_app.callback()
+def review_main(
+    ctx: typer.Context,
+    path: ProjectPathOpt = None,
+    show_all: Annotated[
+        bool, typer.Option("--all", help="Include applied and rejected proposals.")
+    ] = False,
+) -> None:
+    """List pending corrections (or all of them with --all)."""
+    if ctx.invoked_subcommand is not None:
+        return
+    from janus.context_corrections import list_corrections  # noqa: PLC0415
+
+    project_path = resolve_project_path(path)
+    records = list_corrections(project_path, None if show_all else "pending")
+    if not records:
+        typer.echo("No pending corrections.")
+        return
+    for record in records:
+        typer.echo(
+            f"{record['id']}  [{record.get('status')}]  model {record.get('model')}: "
+            f"{record.get('problem')}"
+        )
+        typer.echo(f"    change: {record.get('proposed_change')}")
+
+
+@review_app.command("approve")
+def review_approve(
+    correction_id: Annotated[str, typer.Argument(help="Correction id.")],
+    path: ProjectPathOpt = None,
+) -> None:
+    """Merge a pending correction into its model's metadata.yml."""
+    from janus.context_corrections import approve_correction  # noqa: PLC0415
+
+    project_path = resolve_project_path(path)
+    try:
+        meta_path = approve_correction(project_path, correction_id)
+    except ValueError as exc:
+        typer.echo(f"Error: {exc}", err=True)
+        raise typer.Exit(1) from exc
+    typer.echo(f"Applied {correction_id} to {meta_path.relative_to(project_path)}.")
+
+
+@review_app.command("reject")
+def review_reject(
+    correction_id: Annotated[str, typer.Argument(help="Correction id.")],
+    reason: Annotated[str, typer.Option("--reason", help="Why it is rejected.")],
+    path: ProjectPathOpt = None,
+) -> None:
+    """Reject a pending correction. The record is kept for the audit trail."""
+    from janus.context_corrections import reject_correction  # noqa: PLC0415
+
+    project_path = resolve_project_path(path)
+    try:
+        reject_correction(project_path, correction_id, reason)
+    except ValueError as exc:
+        typer.echo(f"Error: {exc}", err=True)
+        raise typer.Exit(1) from exc
+    typer.echo(f"Rejected {correction_id}.")

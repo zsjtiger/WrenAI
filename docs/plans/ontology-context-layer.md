@@ -1,6 +1,6 @@
 # 方案：认证定义、溯源、漂移检测与修正闭环
 
-状态：草案 · 范围：`core/janus`（CLI、MCP、策略层）及 MDL 元数据约定
+状态：P1–P5 已实现（见第 9 节）· 范围：`core/janus`（CLI、MCP、策略层）及 MDL 元数据约定
 
 ## 1. 背景与目标
 
@@ -177,3 +177,20 @@ def list_keys(self, table: TableInfo) -> KeyInfo: ...   # 主键和外键
 - 所有新增命令都有 `--help`，并在 `docs/core/reference/cli.md` 中有对应说明。
 - 新增测试全部通过，且不依赖 `memory` 额外依赖或外部服务。
 - 现有的 `janus context validate`、`janus --sql`、`janus memory check` 的行为不变。
+
+## 9. 实现状态
+
+| 阶段 | 状态 | 实现位置 | 与方案的差异 |
+|---|---|---|---|
+| P1 认证与 Rust 强制执行 | 完成 | `mdl/mod.rs`（`require_certified`）、`model/certification.py`、`context.py`（validate）、`mcp_server.py`、`engine.py` | `warnings` 由 MCP 层结果附加，而不是 `policy.py`，因为策略层拿不到查询结果 |
+| P1 溯源 | 完成 | `engine.query_with_provenance`、`mcp_server._with_provenance` | `models` 取自展开后 SQL 中的 CTE 名称，只包含实际被读取的模型 |
+| P2 连接器结构读取 | 完成（20 个 `DataSource`） | `connector/introspection.py`、`connector/factory.py` | 实际 `DataSource` 有 20 个（不是 22 个）。只有 DuckDB 做了真实数据库测试；其余方言的 SQL 未经过对应服务器验证。Trino、Athena、DataFusion、Spark 不能读取主键 |
+| P2 `context diff` | 完成 | `context_diff.py`、`context_cli.py` | 退出码：0 无差异，1 有差异，2 无法读取数据库 |
+| P3 `context draft --from-db` | 完成 | `context_draft.py` | 未实现 `--suggest-terms`（LLM 推断），按方案默认关闭 |
+| P4 修正队列 | 完成 | `context_corrections.py`、`mcp_server.py`（`propose_correction`）、`context_cli.py`（`review`） | 受保护字段：`name`、`table_reference`、`ref_sql` |
+| P5 HTTP API | 完成 | `api_server.py`、`serve_cli.py`（`serve api`） | 只提供查询和模型接口，不含写入。非回环地址必须提供 token |
+
+### 已知限制
+
+- 只有 DuckDB 做了真实数据库测试。Postgres、MySQL 等连接器的结构读取 SQL 需要对应服务器才能验证。
+- `memory` 额外依赖缺失时，`tests/unit/test_memory.py` 中 6 个用例失败（`huggingface_hub` 未安装），与本次改动无关。

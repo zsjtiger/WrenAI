@@ -31,6 +31,7 @@ from janus.config import JanusConfig
 from janus.connector.factory import get_connector
 from janus.mdl import get_manifest_extractor, get_session_context, to_json_base64
 from janus.mdl.cte_rewriter import CTERewriter, get_sqlglot_dialect
+from janus.model.certification import is_certified
 from janus.model.data_source import DataSource
 from janus.model.error import (
     DIALECT_SQL,
@@ -44,6 +45,31 @@ from janus.policy import (
     validate_planned_sql,
     validate_sql_policy,
 )
+
+
+def _planned_models(
+    dialect_sql: str, dialect: str, manifest_str: str
+) -> dict[str, bool]:
+    """Models the planned SQL reads, mapped to their certification.
+
+    Planning turns each model the query touches into a CTE named after it, so
+    the CTE aliases that match a manifest model name are the models used. This
+    is what ``provenance.models`` reports; models that are only in the scoped
+    manifest but never read by the plan are not included.
+    """
+    manifest = json.loads(base64.b64decode(manifest_str))
+    certified = {
+        m["name"]: is_certified(m.get("properties"))
+        for m in manifest.get("models", [])
+        if isinstance(m, dict) and isinstance(m.get("name"), str)
+    }
+    by_lower = {name.lower(): name for name in certified}
+    used: dict[str, bool] = {}
+    for cte in parse_one(dialect_sql, dialect=dialect).find_all(exp.CTE):
+        name = by_lower.get(cte.alias.lower())
+        if name is not None:
+            used[name] = certified[name]
+    return used
 
 
 class JanusEngine:
@@ -121,10 +147,25 @@ class JanusEngine:
         properties: dict | None = None,
     ) -> pa.Table:
         """Transpile and execute SQL, return results as an Arrow table."""
-        dialect_sql = self.dry_plan(sql, properties)
+        table, _, _ = self.query_with_provenance(sql, limit, properties)
+        return table
+
+    def query_with_provenance(
+        self,
+        sql: str,
+        limit: int | None = None,
+        properties: dict | None = None,
+    ) -> tuple[pa.Table, dict[str, bool], str]:
+        """Like ``query``, also returning what the plan used.
+
+        Returns ``(table, models, expanded_sql)``. ``models`` maps each model
+        name the plan reads to whether it is certified (see
+        ``_planned_models``); ``expanded_sql`` is the target-dialect SQL that ran.
+        """
+        dialect_sql, models = self._plan_with_models(sql, properties)
         connector = self._get_connector()
         try:
-            return connector.query(dialect_sql, limit)
+            return connector.query(dialect_sql, limit), models, dialect_sql
         except JanusError:
             raise
         except TimeoutError as e:
@@ -175,6 +216,11 @@ class JanusEngine:
     # ------------------------------------------------------------------
 
     def _plan(self, sql: str, properties: dict | None) -> str:
+        return self._plan_with_models(sql, properties)[0]
+
+    def _plan_with_models(
+        self, sql: str, properties: dict | None
+    ) -> tuple[str, dict[str, bool]]:
         session_properties = dict(properties or {})
         if self._config.require_certified:
             # Same name as the engine's REQUIRE_CERTIFIED_PROPERTY; the engine
@@ -253,7 +299,9 @@ class JanusEngine:
             # Planning inlines MDL view statements and model ``ref_sql``, so the
             # output can carry a mutating statement the input never did.
             validate_planned_sql(dialect_sql, dialect)
-            return dialect_sql
+            return dialect_sql, _planned_models(
+                dialect_sql, dialect, effective_manifest
+            )
         except JanusError:
             raise
         except Exception as e:

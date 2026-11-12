@@ -18,6 +18,15 @@ pytestmark = pytest.mark.unit
 V5_GOLDEN = Path(__file__).resolve().parents[4] / "examples" / "v5-jaffle"
 
 
+def _with_provenance(fn):
+    """Adapt a ``(sql, limit)`` fake into ``engine.query_with_provenance``."""
+
+    def wrapped(sql, limit=None, properties=None):
+        return fn(sql, limit), {}, sql
+
+    return wrapped
+
+
 def _get_tool(mcp, name: str):
     """Return a registered tool implementation for handler-level tests.
 
@@ -240,7 +249,7 @@ def test_workflow_text_no_write_omits_store_query(tmp_path):
 
 def test_run_sql_negative_limit_rejected(tmp_path):
     engine = Mock()
-    engine.query.return_value = pa.table({"value": []})
+    engine.query_with_provenance.return_value = (pa.table({"value": []}), {}, "")
     ctx = _make_ctx(tmp_path, engine=engine)
     mcp = build_server(ctx)
     run_sql = _get_tool(mcp, "run_sql")
@@ -248,7 +257,7 @@ def test_run_sql_negative_limit_rejected(tmp_path):
     with pytest.raises(ValueError, match="non-negative"):
         run_sql(sql="SELECT 1", limit=-1)
 
-    engine.query.assert_not_called()
+    engine.query_with_provenance.assert_not_called()
 
 
 # ── Cube queries embed truncation probes in generated SQL ──────────────────
@@ -305,7 +314,7 @@ def test_query_cube_execution_bakes_probe_into_sql_not_connector():
         seen["limit"] = limit
         return pa.table({"customer_id": list(range(3))})
 
-    engine.query = fake_query
+    engine.query_with_provenance = _with_provenance(fake_query)
 
     ctx = _make_ctx(V5_GOLDEN, engine=engine)
     mcp = build_server(ctx)
@@ -337,7 +346,7 @@ def test_query_cube_truncation_probe_detects_truncation():
         # Return the probe row alongside the requested rows.
         return pa.table({"customer_id": list(range(4))})
 
-    engine.query = fake_query
+    engine.query_with_provenance = _with_provenance(fake_query)
 
     ctx = _make_ctx(V5_GOLDEN, engine=engine)
     mcp = build_server(ctx)
@@ -363,7 +372,7 @@ def test_query_cube_not_truncated_when_rows_fit():
         assert limit is None
         return pa.table({"customer_id": list(range(3))})
 
-    engine.query = fake_query
+    engine.query_with_provenance = _with_provenance(fake_query)
 
     ctx = _make_ctx(V5_GOLDEN, engine=engine)
     mcp = build_server(ctx)
@@ -383,7 +392,9 @@ def test_query_cube_not_truncated_when_rows_fit():
 def test_query_cube_negative_limit_rejected_consistently():
     """Execution and SQL-only reject negative limits before SQL generation."""
     engine = Mock()
-    engine.query = lambda sql, limit: pa.table({"customer_id": []})
+    engine.query_with_provenance = _with_provenance(
+        lambda sql, limit: pa.table({"customer_id": []})
+    )
 
     ctx = _make_ctx(V5_GOLDEN, engine=engine)
     mcp = build_server(ctx)
@@ -458,8 +469,10 @@ def test_query_cube_order_by_repeatable_matches_comma_form():
 def test_query_cube_order_by_survives_execution_probe():
     """ORDER BY and the N+1 probe coexist; the connector still gets no limit."""
     engine = Mock()
-    engine.query.return_value = pa.table(
-        {"customer_id": [1, 2], "total_revenue": [9.0, 8.0]}
+    engine.query_with_provenance.return_value = (
+        pa.table({"customer_id": [1, 2], "total_revenue": [9.0, 8.0]}),
+        {},
+        "",
     )
 
     ctx = _make_ctx(V5_GOLDEN, engine=engine)
@@ -474,7 +487,7 @@ def test_query_cube_order_by_survives_execution_probe():
         limit=5,
     )
 
-    sql, connector_limit = engine.query.call_args[0]
+    sql, connector_limit = engine.query_with_provenance.call_args[0]
     assert "ORDER BY 2 DESC" in sql.upper()
     assert sql.upper().endswith("LIMIT 6")
     assert connector_limit is None

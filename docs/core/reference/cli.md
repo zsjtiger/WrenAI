@@ -384,6 +384,89 @@ validation rules.
 
 ---
 
+## `janus context` — Certification, Drift, Drafts and Review
+
+### Certification
+
+Mark a model as certified in its `metadata.yml`:
+
+```yaml
+properties:
+  certified: "true"      # or "false"; a YAML boolean true also works
+  owner: finance-team
+```
+
+`janus context validate` rejects any other value. `janus context show` and the
+MCP `list_models` / `describe_model` tools report certification. Certification
+is only *enforced* when `require_certified` is `true` in `~/.janus/config.json`;
+the engine then refuses to plan a query that reads an uncertified model. Direct
+use of the engine (for example the Python SDK without the CLI config) does not
+check it.
+
+### Provenance on query results
+
+The MCP tools `run_sql` and `query_cube` return a `provenance` object:
+
+```json
+{
+  "models": ["orders"],
+  "cubes": [],
+  "knowledge": ["knowledge/sql/total-revenue.md"],
+  "certified": {"orders": false},
+  "expanded_sql": "SELECT ..."
+}
+```
+
+`models` lists the models the planned SQL reads. `knowledge` echoes the
+`knowledge/` paths the caller passes in (for example from `recall_queries`); a
+path outside `knowledge/` is refused. `expanded_sql` is included only with
+`include_sql=true`. An uncertified model adds a `warnings` entry.
+
+### `janus context diff`
+
+```bash
+janus context diff                    # compare models/ with the bound database
+janus context diff --schema public    # only one schema or BigQuery dataset
+janus context diff --json             # machine-readable report
+```
+
+Reports columns in YAML but not in the database and the reverse, type
+mismatches (after normalization), primary-key differences, missing tables, and
+database tables no model references. Calculated columns and `ref_sql` models are
+not compared. Exit code: `0` no drift, `1` drift, `2` the database could not be
+read or no profile is bound. Primary keys are not compared for connectors that
+cannot report keys (Trino, Athena, DataFusion, Spark).
+
+### `janus context draft`
+
+```bash
+janus context draft --from-db         # write drafts for unmodeled tables
+janus context draft                   # list pending drafts
+janus context draft apply orders      # promote one draft into models/
+```
+
+Drafts go to `draft/models/<name>/` and foreign keys become candidate
+relationships in `draft/relationships.yml`. Nothing in `models/` changes until
+`apply`. Each draft carries `properties.draft: "true"`; `apply` removes it,
+adds the relationships whose both ends now exist, and validates the project. A
+failed validation rolls the move back.
+
+### `janus context review`
+
+Agents propose changes with the MCP tool `propose_correction` (available only
+with `janus serve mcp --allow-write`). Proposals are stored under
+`knowledge/corrections/` as `pending`.
+
+```bash
+janus context review                  # list pending proposals
+janus context review --all            # include applied and rejected
+janus context review approve <id>     # merge into the model's metadata.yml
+janus context review reject <id> --reason "not a real problem"
+```
+
+Protected fields (`name`, `table_reference`, `ref_sql`) cannot be proposed. An
+approved change that fails validation is rolled back and stays pending.
+
 ## `janus serve` — MCP Server
 
 Serve the project's query, schema, and knowledge tools to MCP clients (Claude
@@ -477,6 +560,28 @@ exposed to the client.
 See the [MCP guide](../guides/mcp.md) for a walkthrough of wiring a client.
 
 ---
+
+### `janus serve api`
+
+```bash
+janus serve api                              # 127.0.0.1:8090
+janus serve api --port 9000 --token "$TOKEN" # bearer token required
+```
+
+JSON over HTTP, backed by the same engine as MCP and sharing its query
+implementation (row limits, provenance and warnings match `run_sql`).
+
+| Method | Path | Body | Returns |
+|---|---|---|---|
+| GET | `/health` | | `{"ok": true}` |
+| GET | `/models` | | models with `certified` |
+| GET | `/models/{name}` | | one model's columns and key |
+| POST | `/query` | `{"sql", "limit"?, "knowledge"?, "include_sql"?}` | rows and `provenance` |
+| POST | `/dry-plan` | `{"sql"}` | expanded SQL, no database |
+
+Binding a non-loopback address requires `--token` (or `JANUS_API_TOKEN`).
+Requests without a matching `Authorization: Bearer <token>` get `401`. Bad
+input gets `400`, and a query the engine rejects gets `422`.
 
 ## `janus skills` — Agent Workflow Guides
 

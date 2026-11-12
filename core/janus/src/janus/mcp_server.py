@@ -20,6 +20,8 @@ from loguru import logger
 from mcp.server.fastmcp import FastMCP
 from mcp.types import ToolAnnotations
 
+from janus.model.certification import is_certified
+
 DEFAULT_ROW_LIMIT = 1000
 MAX_ROW_LIMIT = 10000
 
@@ -75,7 +77,65 @@ def _table_to_result(table, *, truncated: bool) -> dict:
     }
 
 
-def _query_with_limit_probe(ctx: ServeContext, sql: str, limit: int | None) -> dict:
+def _knowledge_refs(ctx: ServeContext, refs: list[str] | None) -> list[str]:
+    """Validate knowledge file references and return them as project paths.
+
+    The agent passes back the ``knowledge/...`` paths it used (typically from
+    ``recall_queries``). Each must be an existing file inside ``knowledge/``.
+    """
+    if not refs:
+        return []
+    root = (ctx.project / "knowledge").resolve()
+    project_root = ctx.project.resolve()
+    resolved: list[str] = []
+    for ref in refs:
+        relative = ref if ref.startswith("knowledge/") else f"knowledge/{ref}"
+        candidate = (project_root / relative).resolve()
+        if not candidate.is_file() or not candidate.is_relative_to(root):
+            raise ValueError(
+                f"knowledge reference '{ref}' does not name a file under knowledge/."
+            )
+        resolved.append(candidate.relative_to(project_root).as_posix())
+    return resolved
+
+
+def _with_provenance(
+    table,
+    *,
+    models: dict[str, bool],
+    expanded_sql: str,
+    truncated: bool,
+    cubes: list[str],
+    knowledge: list[str],
+    include_sql: bool,
+) -> dict:
+    """Result rows plus ``provenance``, and ``warnings`` when a model is uncertified."""
+    result = _table_to_result(table, truncated=truncated)
+    provenance: dict = {
+        "models": sorted(models),
+        "cubes": cubes,
+        "knowledge": knowledge,
+        "certified": dict(sorted(models.items())),
+    }
+    if include_sql:
+        provenance["expanded_sql"] = expanded_sql
+    result["provenance"] = provenance
+    uncertified = [name for name in sorted(models) if not models[name]]
+    if uncertified:
+        result["warnings"] = [
+            f"model '{name}' is not certified" for name in uncertified
+        ]
+    return result
+
+
+def _query_with_limit_probe(
+    ctx: ServeContext,
+    sql: str,
+    limit: int | None,
+    *,
+    knowledge: list[str] | None = None,
+    include_sql: bool = False,
+) -> dict:
     """Run arbitrary SQL with a connector-applied N+1 truncation probe.
 
     The connector owns dialect-specific row limiting for opaque user SQL. The
@@ -83,17 +143,32 @@ def _query_with_limit_probe(ctx: ServeContext, sql: str, limit: int | None) -> d
     """
     if limit is not None and limit < 0:
         raise ValueError(f"run_sql limit must be non-negative, got {limit}.")
+    refs = _knowledge_refs(ctx, knowledge)
     effective_limit = DEFAULT_ROW_LIMIT if limit is None else limit
     effective_limit = min(effective_limit, MAX_ROW_LIMIT)
-    table = ctx.engine.query(sql, effective_limit + 1)
+    table, models, expanded = ctx.engine.query_with_provenance(sql, effective_limit + 1)
     truncated = table.num_rows > effective_limit
     if truncated:
         table = table.slice(0, effective_limit)
-    return _table_to_result(table, truncated=truncated)
+    return _with_provenance(
+        table,
+        models=models,
+        expanded_sql=expanded,
+        truncated=truncated,
+        cubes=[],
+        knowledge=refs,
+        include_sql=include_sql,
+    )
 
 
 def _query_cube_with_limit_probe(
-    ctx: ServeContext, build_sql: Callable[[int], str], limit: int | None
+    ctx: ServeContext,
+    build_sql: Callable[[int], str],
+    limit: int | None,
+    *,
+    cube: str,
+    knowledge: list[str] | None = None,
+    include_sql: bool = False,
 ) -> dict:
     """Run cube SQL with an embedded N+1 truncation probe.
 
@@ -102,14 +177,23 @@ def _query_cube_with_limit_probe(
     append-style connectors and bounds connectors that materialize results
     before Python slicing.
     """
+    refs = _knowledge_refs(ctx, knowledge)
     effective_limit = DEFAULT_ROW_LIMIT if limit is None else limit
     effective_limit = min(effective_limit, MAX_ROW_LIMIT)
     sql = build_sql(effective_limit + 1)
-    table = ctx.engine.query(sql, None)
+    table, models, expanded = ctx.engine.query_with_provenance(sql, None)
     truncated = table.num_rows > effective_limit
     if truncated:
         table = table.slice(0, effective_limit)
-    return _table_to_result(table, truncated=truncated)
+    return _with_provenance(
+        table,
+        models=models,
+        expanded_sql=expanded,
+        truncated=truncated,
+        cubes=[cube],
+        knowledge=refs,
+        include_sql=include_sql,
+    )
 
 
 def _register_query_tools(mcp: FastMCP, ctx: ServeContext) -> None:
@@ -118,15 +202,28 @@ def _register_query_tools(mcp: FastMCP, ctx: ServeContext) -> None:
         @mcp.tool(
             annotations=ToolAnnotations(title="Run SQL", readOnlyHint=True),
         )
-        def run_sql(sql: str, limit: int | None = None) -> dict:
+        def run_sql(
+            sql: str,
+            limit: int | None = None,
+            knowledge: list[str] | None = None,
+            include_sql: bool = False,
+        ) -> dict:
             """Execute a SQL query through the Janus semantic layer and return rows.
 
             SQL is written against MDL model names, not raw database tables.
             Applies a default cap of 1000 rows when ``limit`` is not given, and
             a hard maximum of 10000 rows regardless of the requested limit.
             Negative limits are rejected.
+
+            The result carries ``provenance``: the models the query used, their
+            certification (``certified``), and the ``knowledge`` files passed in
+            (paths under ``knowledge/``, e.g. from ``recall_queries``). Set
+            ``include_sql=True`` to also get the expanded SQL. Models that are
+            not certified add a ``warnings`` entry.
             """
-            return _query_with_limit_probe(ctx, sql, limit)
+            return _query_with_limit_probe(
+                ctx, sql, limit, knowledge=knowledge, include_sql=include_sql
+            )
 
         @mcp.tool(
             annotations=ToolAnnotations(title="Dry Run SQL", readOnlyHint=True),
@@ -153,6 +250,8 @@ def _register_query_tools(mcp: FastMCP, ctx: ServeContext) -> None:
             limit: int | None = None,
             offset: int | None = None,
             sql_only: bool = False,
+            knowledge: list[str] | None = None,
+            include_sql: bool = False,
         ) -> dict:
             """Run a structured cube (metric) query and return aggregated rows.
 
@@ -163,6 +262,7 @@ def _register_query_tools(mcp: FastMCP, ctx: ServeContext) -> None:
             or ``desc`` and the member must be selected by the query. Pair it
             with ``limit`` to get a genuine top-N rather than an arbitrary one.
             Set ``sql_only=True`` to see the generated SQL without executing it.
+            The result carries ``provenance`` as ``run_sql`` does.
             """
             from janus_core import cube_query_to_sql  # noqa: PLC0415
 
@@ -197,7 +297,14 @@ def _register_query_tools(mcp: FastMCP, ctx: ServeContext) -> None:
             if sql_only:
                 return {"sql": build_sql(limit)}
 
-            return _query_cube_with_limit_probe(ctx, build_sql, limit)
+            return _query_cube_with_limit_probe(
+                ctx,
+                build_sql,
+                limit,
+                cube=cube,
+                knowledge=knowledge,
+                include_sql=include_sql,
+            )
 
     @mcp.tool(
         annotations=ToolAnnotations(title="Dry Plan SQL", readOnlyHint=True),
@@ -246,6 +353,7 @@ def _register_model_tools(mcp: FastMCP, ctx: ServeContext) -> None:
                     "name": model.get("name"),
                     "description": description,
                     "column_count": len(model.get("columns", []) or []),
+                    "certified": is_certified(model.get("properties")),
                 }
             )
         return {"models": result}
@@ -284,6 +392,8 @@ def _register_model_tools(mcp: FastMCP, ctx: ServeContext) -> None:
             "primary_key": model.get("primary_key"),
             "ref_sql": model.get("ref_sql"),
             "relationships": relationships,
+            "certified": is_certified(model.get("properties")),
+            "properties": model.get("properties") or {},
         }
 
     @mcp.tool(
@@ -560,6 +670,30 @@ def _register_write_tools(mcp: FastMCP, ctx: ServeContext) -> None:
             logger.warning(f"LanceDB indexing failed for stored query (non-fatal): {e}")
 
         return {"path": str(md_path)}
+
+    @mcp.tool(
+        annotations=ToolAnnotations(title="Propose Correction", readOnlyHint=False),
+    )
+    def propose_correction(model: str, problem: str, proposed_change: str) -> dict:
+        """Queue a proposed change to a model for a person to review.
+
+        ``proposed_change`` is a YAML mapping of model fields to set, e.g.
+        ``"description: Net revenue after refunds"``. The change is written to
+        ``knowledge/corrections/`` as pending and does not modify ``models/``;
+        a person applies it with ``janus context review approve <id>``.
+        Protected fields (``name``, ``table_reference``, ``ref_sql``) are refused.
+        """
+        from janus.context_corrections import (  # noqa: PLC0415
+            propose_correction as queue_correction,
+        )
+
+        correction_id = queue_correction(
+            ctx.project,
+            model=model,
+            problem=problem,
+            proposed_change=proposed_change,
+        )
+        return {"id": correction_id, "status": "pending"}
 
 
 def _register_resources(mcp: FastMCP, ctx: ServeContext) -> None:

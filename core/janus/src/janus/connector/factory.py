@@ -27,6 +27,31 @@ _REGISTRY: dict[DataSource, str] = {
     DataSource.athena: "janus.connector.athena",
 }
 
+# Catalog flavor per data source (see janus.connector.introspection). Sources
+# marked "nokeys" can list tables and columns but cannot report keys.
+_INTROSPECTION_FLAVOR: dict[DataSource, str] = {
+    DataSource.postgres: "ansi",
+    DataSource.mssql: "ansi",
+    DataSource.redshift: "ansi_pk",
+    DataSource.canner: "ansi_pk",
+    DataSource.snowflake: "ansi_pk",
+    DataSource.databricks: "ansi_pk",
+    DataSource.mysql: "mysql",
+    DataSource.doris: "mysql",
+    DataSource.duckdb: "duckdb",
+    DataSource.local_file: "duckdb",
+    DataSource.s3_file: "duckdb",
+    DataSource.minio_file: "duckdb",
+    DataSource.gcs_file: "duckdb",
+    DataSource.clickhouse: "clickhouse",
+    DataSource.oracle: "oracle",
+    DataSource.bigquery: "bigquery",
+    DataSource.spark: "spark",
+    DataSource.trino: "nokeys",
+    DataSource.athena: "nokeys",
+    DataSource.datafusion: "nokeys",
+}
+
 # Map data sources to the correct pip extra when they share a connector module
 _INSTALL_EXTRA: dict[DataSource, str] = {
     DataSource.doris: "mysql",
@@ -72,4 +97,5 @@ def get_connector(data_source: DataSource, connection_info):
     # here -- so the strip helpers get the dialect from the factory rather than
     # hard-coding it per connector.
     connector.dialect = get_sqlglot_dialect(data_source)
+    connector.introspection_flavor = _INTROSPECTION_FLAVOR.get(data_source, "ansi")
     return connector

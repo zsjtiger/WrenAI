@@ -28,11 +28,13 @@ Uses `uv` (not Poetry). `pyproject.toml` uses `hatchling` as build backend.
 
 - `janus query` / `janus dry-plan` / `janus dry-run` — Core query operations. `dry-plan` expands SQL through the MDL with no DB; `dry-run` parses and validates against the data source. MDL validation is `janus context validate` — there is no top-level `janus validate`
 - `janus context init|import|validate|build|show|instructions|set-profile|upgrade` — YAML MDL project management
+- `janus context diff|draft|review` — Drift detection against the live database (`diff`, exit 1 on drift), draft models from the database into `draft/` (`draft --from-db`, `draft apply <model>`), and the correction queue (`review`, `review approve|reject <id>`). Corrections are proposed by the MCP tool `propose_correction`, which exists only with `--allow-write`
 - `janus profile add|list|import|rm|switch|debug` — Named connection profiles. `rm` removes a profile, `switch` activates one; there is no `show`, `remove`, or `activate`
 - `janus docs connection-info` — Generate connection field docs
 - `janus utils parse-type|parse-types|translate-type|translate-types` — SQL type normalization and dialect translation
 - `janus memory index|describe|fetch|store|recall|list|forget|dump|load|status|check|reset|watch|export` — Semantic memory. The group is always registered (`store` writes `knowledge/sql/*.md` without the `memory` extra); the lancedb-backed commands print an install hint when `janus[memory]` is missing
 - `janus serve mcp` — Serve query/schema/knowledge tools as an MCP server (in-process engine, when `janusai[mcp]` installed)
+- `janus serve api` — The same query and context endpoints over HTTP (JSON). Binding a non-loopback address requires `--token`
 - `janus cloud auth add|list|remove` — Store/remove the credential git authenticates to a Janus Cloud project with (touches no directory)
 - `janus cloud create|link|unlink` — Bind a local directory to a Janus Cloud project's git remote. The binding *is* the git remote; after binding, plain `git push`/`git pull` are the commands
 - `janus cube list|describe|query` — Structured measure/dimension queries over cubes
@@ -56,6 +58,8 @@ Uses `uv` (not Poetry). `pyproject.toml` uses `hatchling` as build backend.
 - **Validation boundaries — validate once, at the edge.** The MDL manifest's schema is enforced in exactly one place: `janus-core`'s serde deserialization, reached via `ManifestExtractor` and `SessionContext`. A manifest with a non-object entry in `models`/`views`, a missing `name`, or a non-string `name` is rejected there. **Downstream of a successful deserialization the schema holds**, so per-callsite `isinstance` guards over `manifest["models"]` / `["views"]` / `["columns"]` on those paths are dead code and are not accepted. **Upstream of it the opposite applies**: code that dereferences a structure before `janus-core` ever sees it is at a genuine input boundary and should validate and report rather than crash. `context.convert_mdl_to_project` is the clearest case — `janus context init --from-mdl` hands it a user-supplied JSON file verbatim. Hand-edited project YAML and external API responses are the same shape. Say which side of that line your change sits on.
 
 ## Connectors
+
+Structure introspection (`list_tables`, `list_columns`, `list_keys` on `ConnectorABC`) is implemented once in `connector/introspection.py`. The factory sets each connector's `introspection_flavor` from its `DataSource`; a flavor such as `ansi`, `mysql`, `duckdb`, `oracle` or `nokeys` selects the catalog SQL. A flavor that cannot report keys returns `primary_key_supported=False`, and callers must not read that as "no primary key".
 
 `connector/factory.py` dispatches on `DataSource` to return the right connector. Each connector wraps a native driver/client and returns Arrow tables, exposing `.query(sql, limit)` and `.dry_run(sql)`. Base class in `connector/base.py` (`ConnectorABC`, plus the shared `coerce_limit` helper). There is **no `connector/ibis.py`**, and no module under `connector/` imports `ibis` — `ibis-framework` is not a dependency of this package. Most data sources have their own module; the exceptions are `doris`, which shares `mysql.py` as `DorisConnector(MySqlConnector)` (MySQL-compatible protocol), and the file sources `local_file`, `s3_file`, `minio_file` and `gcs_file`, which share `duckdb.py`.
 

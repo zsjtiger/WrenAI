@@ -8,6 +8,9 @@ from sqlglot import Dialect
 from sqlglot.errors import TokenError
 from sqlglot.tokens import TokenType
 
+from janus.connector import introspection
+from janus.connector.introspection import ColumnInfo, KeyInfo, TableRef
+
 _TRAILING_SEMICOLONS_RE = re.compile(r"[;\s]+\Z")
 
 
@@ -93,6 +96,22 @@ class ConnectorABC(ABC):
     #: ``None`` for connectors built directly (tests, ad-hoc use), which makes
     #: ``_strip`` fall back to sqlglot's default dialect.
     dialect: str | None = None
+
+    #: Catalog flavor used by the introspection methods below, assigned by the
+    #: factory from the ``DataSource``. See ``janus.connector.introspection``.
+    introspection_flavor: str = "ansi"
+
+    def list_tables(self, schema: str | None = None) -> list[TableRef]:
+        """Tables in ``schema`` (all user schemas when ``None``)."""
+        return introspection.list_tables(self, schema)
+
+    def list_columns(self, table: TableRef) -> list[ColumnInfo]:
+        """Columns of ``table``. Empty when the table does not exist."""
+        return introspection.list_columns(self, table)
+
+    def list_keys(self, table: TableRef) -> KeyInfo:
+        """Primary and foreign keys of ``table``."""
+        return introspection.list_keys(self, table)
 
     def _strip(self, sql: str) -> str:
         """``strip_trailing_semicolon`` using this connector's dialect."""

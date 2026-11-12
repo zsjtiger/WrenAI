@@ -12,6 +12,8 @@ from typing import Any
 
 import yaml
 
+from janus.model.certification import certified_value_error
+
 _JANUS_HOME = Path(os.environ.get("JANUS_HOME", Path.home() / ".janus"))
 _DEFAULT_PROJECT = _JANUS_HOME / "project"
 PROJECT_FILE = "janus_project.yml"
@@ -1276,6 +1278,9 @@ def _check_model(
         errors,
         message="properties must be a mapping",
     )
+    cert_error = certified_value_error(model.get("properties"))
+    if cert_error is not None:
+        errors.append(ValidationError("error", f"{src_path} > {name}", cert_error))
     _check_column_properties(col_entries, src_path, name, errors)
 
 
