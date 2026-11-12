@@ -160,6 +160,15 @@ pip install 'janusai[memory,main]'
 
 默认阈值（30,000 字符）可以通过 `--threshold` 覆盖。
 
+### 向量化后端
+
+语义召回需要一个向量化（embedding）模型。通过 `JANUS_EMBEDDING_BACKEND` 选择：
+
+- `onnx` 或 `sentence-transformers` 使用本地模型（`memory-onnx` 或 `memory` 额外依赖），数据不离开本机。
+- `api` 调用 OpenAI 兼容的 `/embeddings` 端点。设置 `JANUS_EMBEDDING_API_BASE_URL` 和 `JANUS_EMBEDDING_API_MODEL`；`JANUS_EMBEDDING_API_KEY` 可选，以 bearer token 发送。对于需要 `passage` 与 `query` 输入类型的端点（NVIDIA 的就是），设置 `JANUS_EMBEDDING_API_ASYMMETRIC=1`。
+
+未设置 `JANUS_EMBEDDING_BACKEND` 时，已安装本地后端就用本地的，否则使用 API 后端。提问时端点失败，`recall_queries` 改用关键词检索，`get_context` 返回完整 schema，并附带说明。`janus memory index` 期间失败，命令会报错，并且不写入新内容。
+
 ### `janus memory index`
 
 构建语义索引：包括 Schema 条目（模型、列、关联关系、视图），以及来自 `knowledge/sql/*.md` 的 NL→SQL 对（重复运行会与 markdown 保持一致）。需要 `memory` 扩展。没有它时，grep 后端直接读取 `knowledge/sql/`，因此没有需要构建的内容，该命令是空操作。

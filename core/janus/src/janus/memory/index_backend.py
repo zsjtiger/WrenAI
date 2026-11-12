@@ -21,6 +21,8 @@ from abc import ABC, abstractmethod
 from importlib.util import find_spec
 from pathlib import Path
 
+from loguru import logger
+
 from janus.memory.markdown import load_query_pairs
 
 _TOKEN_RE = re.compile(r"[a-z0-9]+")
@@ -136,7 +138,19 @@ class LanceDBIndex(MemoryIndex):
     def search(
         self, query: str, *, limit: int = 3, datasource: str | None = None
     ) -> list[dict]:
-        return self._store.recall_queries(query, limit=limit, datasource=datasource)
+        from janus.memory.api_embeddings import EmbeddingApiError  # noqa: PLC0415
+
+        try:
+            return self._store.recall_queries(query, limit=limit, datasource=datasource)
+        except EmbeddingApiError as exc:
+            # The embedding endpoint is down: answer with keyword search over
+            # the same stored pairs rather than failing the question.
+            logger.warning(
+                "semantic recall unavailable ({}); using keyword search", exc
+            )
+            return GrepIndex(self._project).search(
+                query, limit=limit, datasource=datasource
+            )
 
 
 def _extra_available() -> bool:

@@ -193,5 +193,6 @@ def list_keys(self, table: TableInfo) -> KeyInfo: ...   # 主键和外键
 ### 已知限制
 
 - 结构读取已在真实数据库上验证：DuckDB，以及 PostgreSQL 16（`ansi` flavor，见 `tests/connectors/test_postgres_introspection.py`，CI 中由 postgres 容器运行）。MySQL、Oracle、ClickHouse、BigQuery、Spark 等连接器的 SQL 仍未在对应服务器上验证。redshift、canner、snowflake、databricks 的 flavor 分类是依据经验判断，未经查证。
+- 向量化 API 后端（`JANUS_EMBEDDING_BACKEND=api`）用本地 HTTP 服务测试，覆盖批处理、顺序、非对称 `input_type`、错误和降级，以及经过 LanceDB 的端到端召回。没有对真实的 NIM 或 OpenAI embedding 端点调用过。
 - `--suggest-terms` 的模型输出只在 mock 之外用真实 HTTP 服务测试过（`tests/unit/test_llm_suggestions.py`），没有对真实的 NIM 或 OpenAI 端点做过调用。
 - `memory` 额外依赖缺失时，`tests/unit/test_memory.py` 中 6 个用例失败（`huggingface_hub` 未安装），与本次改动无关。

@@ -554,6 +554,17 @@ def _register_recall_tools(mcp: FastMCP, ctx: ServeContext) -> None:
                     "embedding-based schema search on large schemas."
                 ),
             }
+        except Exception as exc:  # noqa: BLE001 - classified below
+            from janus.memory.api_embeddings import EmbeddingApiError  # noqa: PLC0415
+
+            if not isinstance(exc, EmbeddingApiError):
+                raise
+            # The embedding endpoint is unavailable: return the full description.
+            return {
+                "strategy": "full",
+                "schema": schema_indexer.describe_schema(manifest),
+                "note": f"Semantic search unavailable ({exc}); returned the full schema.",
+            }
 
     @mcp.tool(
         annotations=ToolAnnotations(title="Describe Schema", readOnlyHint=True),

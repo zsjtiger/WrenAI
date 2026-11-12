@@ -35,6 +35,7 @@ _ENCODE_BATCH_SIZE = 32
 
 ONNX_BACKEND = "onnx"
 SENTENCE_TRANSFORMERS_BACKEND = "sentence-transformers"
+API_BACKEND = "api"
 
 
 class OnnxBackendError(RuntimeError):
@@ -133,35 +134,61 @@ def _sentence_transformers_available() -> bool:
     return bool(find_spec("sentence_transformers"))
 
 
+def _api_configured() -> bool:
+    """True when the API backend has the endpoint and model it needs."""
+    from janus.memory.api_embeddings import load_api_embedding_config  # noqa: PLC0415
+
+    return load_api_embedding_config() is not None
+
+
 def embedding_backend_available() -> bool:
-    """True when at least one embedding backend is importable."""
-    return _onnx_available() or _sentence_transformers_available()
+    """True when at least one embedding backend can be used."""
+    return _onnx_available() or _sentence_transformers_available() or _api_configured()
 
 
 def resolve_embedding_backend(env: str | None = None) -> str:
     """Return the embedding backend that will actually be used.
 
-    Honors an explicit ``JANUS_EMBEDDING_BACKEND=onnx|sentence-transformers``
-    (or *env*), else auto-detects. A requested backend whose extra is missing
-    falls back to the other one rather than failing: both produce the same
-    vectors, so the fallback is invisible to an existing store.
+    Honors an explicit ``JANUS_EMBEDDING_BACKEND=onnx|sentence-transformers|api``
+    (or *env*), else auto-detects: a local backend when one is installed, else
+    the API backend when it is configured. A requested backend that cannot run
+    falls back to the auto choice rather than failing. The local backends
+    produce the same vectors, so that fallback is invisible to an existing
+    store; a different API model is not, and the store reports the mismatch.
     """
     choice = (
         (env if env is not None else os.environ.get("JANUS_EMBEDDING_BACKEND", ""))
         .strip()
         .lower()
     )
+    log = logging.getLogger(__name__)
+    if choice == API_BACKEND and _api_configured():
+        return API_BACKEND
     if choice == SENTENCE_TRANSFORMERS_BACKEND and _sentence_transformers_available():
         return SENTENCE_TRANSFORMERS_BACKEND
     if choice == ONNX_BACKEND and _onnx_available():
         return ONNX_BACKEND
 
-    resolved = ONNX_BACKEND if _onnx_available() else SENTENCE_TRANSFORMERS_BACKEND
-    if choice in (ONNX_BACKEND, SENTENCE_TRANSFORMERS_BACKEND):
+    if _onnx_available():
+        resolved = ONNX_BACKEND
+    elif _sentence_transformers_available():
+        resolved = SENTENCE_TRANSFORMERS_BACKEND
+    elif _api_configured():
+        resolved = API_BACKEND
+    else:
+        resolved = SENTENCE_TRANSFORMERS_BACKEND  # unavailable; the caller reports it
+
+    if choice == API_BACKEND:
+        log.warning(
+            "JANUS_EMBEDDING_BACKEND=api was requested but JANUS_EMBEDDING_API_BASE_URL "
+            "and JANUS_EMBEDDING_API_MODEL are not both set; using %s instead.",
+            resolved,
+        )
+    elif choice in (ONNX_BACKEND, SENTENCE_TRANSFORMERS_BACKEND):
         # Falling back keeps the process running, but someone who asked for
         # onnx specifically to avoid torch should not have to infer from a
         # slow cold start that they did not get it.
-        logging.getLogger(__name__).warning(
+        log.warning(
             "JANUS_EMBEDDING_BACKEND=%s was requested but its extra is not "
             "installed; using %s instead. Install janus[%s] to get it.",
             choice,
@@ -440,7 +467,15 @@ def get_embedding_function(model_name: str = _DEFAULT_MODEL):
 
     The adapter is instantiated directly, without mutating LanceDB's registry.
     """
-    if resolve_embedding_backend() == ONNX_BACKEND:
+    backend = resolve_embedding_backend()
+    if backend == API_BACKEND:
+        from janus.memory.api_embeddings import (  # noqa: PLC0415
+            ApiEmbeddings,
+            load_api_embedding_config,
+        )
+
+        return ApiEmbeddings(load_api_embedding_config())
+    if backend == ONNX_BACKEND:
         return OnnxEmbeddings.create(name=model_name)
 
     _disable_transformers_progress_bar()

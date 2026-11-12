@@ -168,6 +168,16 @@ The threshold is measured in characters (not tokens) because character length is
 
 The default threshold (30,000 chars) can be overridden with `--threshold`.
 
+### Embedding backends
+
+Semantic recall needs an embedding model. Choose one with
+`JANUS_EMBEDDING_BACKEND`:
+
+- `onnx` or `sentence-transformers` run a local model (`memory-onnx` or `memory` extra). Nothing leaves the machine.
+- `api` calls an OpenAI-compatible `/embeddings` endpoint. Set `JANUS_EMBEDDING_API_BASE_URL` and `JANUS_EMBEDDING_API_MODEL`; `JANUS_EMBEDDING_API_KEY` is optional and sent as a bearer token. Set `JANUS_EMBEDDING_API_ASYMMETRIC=1` for endpoints that need `passage` and `query` input types (NVIDIA's do).
+
+Without `JANUS_EMBEDDING_BACKEND`, a local backend is used when installed, and the API backend otherwise. When the endpoint fails at question time, `recall_queries` answers with keyword search and `get_context` returns the full schema, with a note. When it fails during `janus memory index`, the command reports the error and writes nothing new.
+
 ### `janus memory index`
 
 Build the semantic index: schema items (models, columns, relationships, views) plus the
