@@ -421,6 +421,18 @@ janus context draft --from-db --suggest-terms
 
 草稿写入 `draft/models/<name>/`，外键会变成 `draft/relationships.yml` 中的候选关系。在 `apply` 之前，`models/` 不会被修改。每个草稿带有 `properties.draft: "true"`；`apply` 会去掉该标记、添加两端都已存在的关系，并校验项目。校验失败时会回滚移动。
 
+### `janus context infer-fks`
+
+```bash
+janus context infer-fks                      # 规则；已配置 embedding 时启用
+janus context infer-fks --confirm-with-model # 另由 JANUS_LLM_* 指定的模型确认
+janus context infer-fks --json
+```
+
+推断项目中未声明的外键。列名 `<词干>_id` 匹配名为 `<词干>` 的模型（单数或复数），目标必须有同类型的单列主键。部分匹配（`custid` -> `customers`）得分较低。多个目标同分时，若已配置 embedding API 且它明显偏向其中一个，则由它决定；否则该列标记为 `ambiguous`，不生成关系。加上 `--confirm-with-model` 后，模型会把每条建议标记为 `confirmed` 或 `rejected`；模型不可达时保留规则结果。
+
+输出写入 `draft/`：`relationships.yml`（已接受的建议）、`fk_suggestions.yml`（每个候选的得分、来源、状态和理由），以及 `bridges.yml`。桥接表是指每一列都是指向不同表的外键的模型；`bridges.yml` 给出每一对目标的 join，以及它挂靠的模型。`models/` 不会被修改。用 `janus context draft apply` 提升模型时，它的关系会一并带上。
+
 ### `janus context review`
 
 智能体通过 MCP 工具 `propose_correction` 提出修改（仅在 `janus serve mcp --allow-write` 时可用）。提案以 `pending` 状态保存在 `knowledge/corrections/` 下。

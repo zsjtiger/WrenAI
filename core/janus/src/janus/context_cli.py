@@ -1437,6 +1437,87 @@ def draft_apply(
         typer.echo(f"  + relationship {name}")
 
 
+@context_app.command("infer-fks")
+def infer_fks(
+    path: ProjectPathOpt = None,
+    confirm_with_model: Annotated[
+        bool,
+        typer.Option(
+            "--confirm-with-model",
+            help=(
+                "Ask the model named by JANUS_LLM_BASE_URL and JANUS_LLM_MODEL to "
+                "confirm each suggestion. Without it, or when the model fails, the "
+                "rule result stands."
+            ),
+        ),
+    ] = False,
+    as_json: _JsonOpt = False,
+) -> None:
+    """Suggest foreign keys the project does not declare, and find bridge tables.
+
+    Writes to draft/ only: relationships.yml (accepted suggestions), fk_suggestions.yml
+    (every candidate with its score, source and status), and bridges.yml. Promote
+    a model with `janus context draft apply`; relationships are added with it.
+    """
+    from janus.context import load_models, load_project_config, load_relationships  # noqa: PLC0415
+    from janus.llm import load_llm_config  # noqa: PLC0415
+    from janus.memory.api_embeddings import ApiEmbeddings, load_api_embedding_config  # noqa: PLC0415
+    from janus.model.data_source import DataSource  # noqa: PLC0415
+    from janus.semantic_fk import infer_foreign_keys, write_inference  # noqa: PLC0415
+
+    project_path = resolve_project_path(path)
+    try:
+        data_source = DataSource(
+            str(load_project_config(project_path).get("data_source")).lower()
+        )
+    except ValueError as exc:
+        typer.echo(f"Error: unknown data_source in janus_project.yml: {exc}", err=True)
+        raise typer.Exit(2) from exc
+
+    embedder_cfg = load_api_embedding_config()
+    result = infer_foreign_keys(
+        load_models(project_path),
+        load_relationships(project_path),
+        data_source,
+        llm=load_llm_config() if confirm_with_model else None,
+        embedder=ApiEmbeddings(embedder_cfg) if embedder_cfg is not None else None,
+    )
+    summary = write_inference(project_path, result)
+
+    if as_json:
+        typer.echo(
+            json.dumps(
+                {
+                    "suggestions": [s.to_dict() for s in result.suggestions],
+                    "bridges": [b.to_dict() for b in result.bridges],
+                    "notes": result.notes,
+                    "summary": summary,
+                },
+                indent=2,
+                ensure_ascii=False,
+            )
+        )
+        return
+
+    if not result.suggestions and not result.bridges:
+        typer.echo("No undeclared foreign keys found.")
+    for s in result.suggestions:
+        typer.echo(
+            f"  {s.status:<10} {s.model}.{s.column} -> {s.target_model}.{s.target_column}"
+            f"  (score {s.score}, {s.source})"
+        )
+        if s.status == "ambiguous":
+            typer.echo(f"             candidates: {', '.join(s.alternatives)}")
+    for b in result.bridges:
+        typer.echo(f"  bridge     {b.bridge} links {b.models[0]} and {b.models[1]}")
+    for note in result.notes:
+        typer.echo(f"  note: {note}")
+    typer.echo(
+        f"Wrote {summary['relationships_written']} relationship(s) and "
+        f"{summary['bridges']} bridge(s) under draft/."
+    )
+
+
 review_app = typer.Typer(
     name="review",
     help="Review correction proposals queued by agents (knowledge/corrections/).",

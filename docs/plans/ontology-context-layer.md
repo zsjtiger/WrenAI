@@ -196,3 +196,18 @@ def list_keys(self, table: TableInfo) -> KeyInfo: ...   # 主键和外键
 - 向量化 API 后端（`JANUS_EMBEDDING_BACKEND=api`）用本地 HTTP 服务测试，覆盖批处理、顺序、非对称 `input_type`、错误和降级，以及经过 LanceDB 的端到端召回。没有对真实的 NIM 或 OpenAI embedding 端点调用过。
 - `--suggest-terms` 的模型输出只在 mock 之外用真实 HTTP 服务测试过（`tests/unit/test_llm_suggestions.py`），没有对真实的 NIM 或 OpenAI 端点做过调用。
 - `memory` 额外依赖缺失时，`tests/unit/test_memory.py` 中 6 个用例失败（`huggingface_hub` 未安装），与本次改动无关。
+
+## 10. 本体生成的第一批
+
+| 项 | 状态 | 实现位置 | 说明 |
+|---|---|---|---|
+| 语义外键推断 | 完成 | `semantic_fk.py`、`janus context infer-fks` | 规则：列名词干与模型名（单复数）匹配，类型族一致，目标为单列主键；同分时 embedding API 重排，仍无法区分则标记 `ambiguous`；`--confirm-with-model` 由模型确认，失败保留规则结果 |
+| 桥接表识别 | 完成 | `semantic_fk.py`（`bridges.yml`） | 每列都是指向不同表的外键（已声明或已接受）的模型；给出每一对目标的 join，并列出挂靠的模型 |
+| 术语抽取 | 未开始 | — | 需要人工判断的业务含义，计划放在后续 |
+| SQL 属性挖掘 | 未开始 | — | 依赖查询历史的使用次数；需要先约定计数来源 |
+
+### 与 Auto-Ontology 的差异
+
+- “术语”在本项目中对应模型，没有单独的术语对象。桥接表的 `attach_to` 指向两个目标模型。
+- 所有推断结果写入 `draft/`，经 `janus context draft apply` 或人工编辑后才进入 `models/`。
+- 向量只用于同分重排，不替代规则。

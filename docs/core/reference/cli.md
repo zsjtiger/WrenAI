@@ -476,6 +476,30 @@ relationships in `draft/relationships.yml`. Nothing in `models/` changes until
 adds the relationships whose both ends now exist, and validates the project. A
 failed validation rolls the move back.
 
+### `janus context infer-fks`
+
+```bash
+janus context infer-fks                      # rules, plus embeddings if configured
+janus context infer-fks --confirm-with-model # also ask the model named by JANUS_LLM_*
+janus context infer-fks --json
+```
+
+Suggests foreign keys the project does not declare. A column `<stem>_id` matches
+a model named `<stem>` (singular or plural), and the target must have a
+single-column primary key of the same type family. A partial match (`custid` ->
+`customers`) scores lower. When several targets tie, the embedding API breaks the
+tie if it is configured and clearly prefers one; otherwise the column is reported
+as `ambiguous` and gets no relationship. With `--confirm-with-model`, the model
+marks each suggestion `confirmed` or `rejected`; an unreachable model keeps the rule
+result.
+
+Output goes under `draft/`: `relationships.yml` (accepted suggestions),
+`fk_suggestions.yml` (every candidate with score, source, status and reasons), and
+`bridges.yml`. A bridge table is a model whose every column is a foreign key to a
+different table; `bridges.yml` gives the join for each pair of targets and the models
+it attaches to. `models/` is not changed. Promote a model with
+`janus context draft apply`, which carries its relationships along.
+
 ### `janus context review`
 
 Agents propose changes with the MCP tool `propose_correction` (available only
