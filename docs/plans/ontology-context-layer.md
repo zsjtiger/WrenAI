@@ -192,5 +192,5 @@ def list_keys(self, table: TableInfo) -> KeyInfo: ...   # 主键和外键
 
 ### 已知限制
 
-- 只有 DuckDB 做了真实数据库测试。Postgres、MySQL 等连接器的结构读取 SQL 需要对应服务器才能验证。
+- 结构读取已在真实数据库上验证：DuckDB，以及 PostgreSQL 16（`ansi` flavor，见 `tests/connectors/test_postgres_introspection.py`，CI 中由 postgres 容器运行）。MySQL、Oracle、ClickHouse、BigQuery、Spark 等连接器的 SQL 仍未在对应服务器上验证。redshift、canner、snowflake、databricks 的 flavor 分类是依据经验判断，未经查证。
 - `memory` 额外依赖缺失时，`tests/unit/test_memory.py` 中 6 个用例失败（`huggingface_hub` 未安装），与本次改动无关。
