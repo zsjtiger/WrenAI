@@ -194,13 +194,22 @@ SQL 规划器会把针对建模对象编写的 SQL 转换为目标数据库可�
 
 ## 上下文维护
 
-上下文以 YAML 的形式保存在 git 中。三条命令让它与数据库和智能体的提议保持一致：
+上下文以 YAML 的形式保存在 git 中。命令分为三类。
 
-- `janus context diff` 把每个模型与实际 Schema 比对，报告缺失或多出的列、类型变化、主键不一致，以及没有模型覆盖的表。有差异时退出码非零，因此可以放进 CI。
-- `janus context draft --from-db` 为未建模的表生成候选模型，写入 `draft/`。在人工运行 `janus context draft apply <模型>` 之前，`models/` 不会有任何改动。
-- 智能体不直接修改模型。`propose_correction` 把修改排入 `knowledge/corrections/`，`janus context review approve` 在校验通过后才合并。
+**保持准确。** `janus context diff` 把每个模型与实际 Schema 比对，报告缺失或多出的列、类型变化、主键不一致，以及没有模型覆盖的表。有差异时退出码非零，因此可以放进 CI。
 
-模型只用在需要判断的地方：字段描述（`--suggest-terms`）和语义召回（`JANUS_EMBEDDING_BACKEND`）可以通过 OpenAI 兼容的 API 调用模型。模型缺失或调用失败时，两者都会退回到确定性的做法。其他功能都不需要模型。
+**补全尚未声明的内容。** 这些命令只写入 `draft/`，只有人工执行提升时才会改动 `models/`：
+
+- `janus context draft --from-db` 为未建模的表生成候选模型。
+- `janus context infer-fks` 根据列名、类型和主键，推断未声明的外键。同分的目标交给 embedding API 决定，决定不了则标记为歧义；`--confirm-with-model` 让模型逐条确认。每列都是外键的桥接表会生成 join。
+- `janus context terms` 为每个模型建议业务术语，为每列建议展示名。
+- `janus context attributes` 从 `knowledge/sql/` 中已确认的查询里挖掘重复出现的聚合和过滤表达式。
+
+`janus context draft apply <模型>` 提升草稿。它会把关系、术语、别名和列展示名带入模型的 `properties`，并把未被否决的属性写入 `knowledge/attributes/<模型>.yml`。已设置的值不会被覆盖；校验失败则恢复草稿。
+
+**只通过审核修改。** 智能体不直接修改模型。`propose_correction` 把修改排入 `knowledge/corrections/`，`janus context review approve` 在校验通过后才应用。
+
+模型只用在需要判断的地方：字段描述（`--suggest-terms`）、术语与属性的精炼（`--refine-with-model`）、外键确认（`--confirm-with-model`），以及语义召回（`JANUS_EMBEDDING_BACKEND`）。模型缺失或调用失败时，每一项都会退回到确定性的结果。
 
 ## 数据流
 

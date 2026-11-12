@@ -4,7 +4,7 @@ Two optional model services, both OpenAI-compatible:
 
 | Use | Variables | Example |
 |---|---|---|
-| Embeddings (semantic recall, FK tie-break) | `JANUS_EMBEDDING_BACKEND=api`, `JANUS_EMBEDDING_API_BASE_URL`, `JANUS_EMBEDDING_API_MODEL`, optional `JANUS_EMBEDDING_API_KEY` | qwen3-embedding-4b at `http://8.130.170.41:8081/v1` |
+| Embeddings (semantic recall, FK tie-break) | Default: janus's local backend (install `janusai[memory-onnx]` or `janusai[memory]`). Optional API: `JANUS_EMBEDDING_BACKEND=api`, `JANUS_EMBEDDING_API_BASE_URL`, `JANUS_EMBEDDING_API_MODEL`, optional `JANUS_EMBEDDING_API_KEY` | local model, or an OpenAI-compatible `/embeddings` endpoint such as `http://<host>:8081/v1` with model `qwen3-embedding-4b` |
 | Chat (`--suggest-terms`, `--refine-with-model`, `--confirm-with-model`) | `JANUS_LLM_BASE_URL`, `JANUS_LLM_MODEL`, `JANUS_LLM_API_KEY` | DeepSeek at `https://api.deepseek.com`, model `deepseek-v4-pro` or `deepseek-flash` |
 
 ## Setup

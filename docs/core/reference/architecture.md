@@ -196,13 +196,22 @@ Memory turns usage into behavioral context. Each confirmed query can become a fu
 
 ## Context maintenance
 
-The context is maintained as YAML in git. Three commands keep it accurate against the database and against agent proposals:
+The context is maintained as YAML in git. Commands fall into three groups.
 
-- `janus context diff` compares each model with the live schema. It reports missing or extra columns, type changes, primary-key differences, and tables no model covers. It exits non-zero on drift, so CI can run it.
-- `janus context draft --from-db` writes candidate models for unmodeled tables under `draft/`. Nothing in `models/` changes until a person runs `janus context draft apply <model>`.
-- Agents do not edit models. `propose_correction` queues a change under `knowledge/corrections/`, and `janus context review approve` applies it after validation.
+**Keep it accurate.** `janus context diff` compares each model with the live schema and reports missing or extra columns, type changes, primary-key differences, and tables no model covers. It exits non-zero on drift, so CI can run it.
 
-Models are used only where judgement is needed. Column descriptions (`--suggest-terms`) and semantic recall (`JANUS_EMBEDDING_BACKEND`) can call a model over an OpenAI-compatible API. Each falls back to a deterministic path when the model is missing or fails. Everything else runs without one.
+**Fill in what is not declared yet.** These write only under `draft/`, and `models/` changes only when a person applies a draft:
+
+- `janus context draft --from-db` writes candidate models for unmodeled tables.
+- `janus context infer-fks` suggests foreign keys the project does not declare, from column names, types, and primary keys. Tied targets go to the embedding API or stay ambiguous, and `--confirm-with-model` lets the model confirm each one. Bridge tables (every column a foreign key) get a join.
+- `janus context terms` suggests a business term for each model and a display name for each column.
+- `janus context attributes` mines recurring aggregates and filters from the confirmed queries in `knowledge/sql/`.
+
+`janus context draft apply <model>` promotes a draft. It carries its relationships, term, aliases, and column display names into the model's `properties`, and writes the non-rejected attributes to `knowledge/attributes/<model>.yml`. Existing values are not overwritten, and a failed validation restores the draft.
+
+**Change it only through review.** Agents do not edit models. `propose_correction` queues a change under `knowledge/corrections/`, and `janus context review approve` applies it after validation.
+
+Models are used only where judgement is needed: field descriptions (`--suggest-terms`), term and attribute refinement (`--refine-with-model`), foreign-key confirmation (`--confirm-with-model`), and semantic recall (`JANUS_EMBEDDING_BACKEND`). Each one falls back to a deterministic result when the model is missing or fails.
 
 ## Data flows
 
