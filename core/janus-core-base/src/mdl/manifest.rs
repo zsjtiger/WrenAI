@@ -6,6 +6,7 @@ use std::sync::Arc;
 #[cfg(not(feature = "python-binding"))]
 mod manifest_impl {
     use crate::mdl::manifest::bool_from_int;
+    use crate::mdl::manifest::string_properties;
     use crate::mdl::manifest::table_reference;
     use crate::mdl::manifest::PrimaryKey;
     use manifest_macro::{
@@ -41,6 +42,7 @@ mod manifest_impl {
 #[cfg(feature = "python-binding")]
 mod manifest_impl {
     use crate::mdl::manifest::bool_from_int;
+    use crate::mdl::manifest::string_properties;
     use crate::mdl::manifest::table_reference;
     use crate::mdl::manifest::PrimaryKey;
     use manifest_macro::{
@@ -214,6 +216,38 @@ impl FromStr for DataSource {
                 s
             ))),
         }
+    }
+}
+
+/// Model `properties` as string key/value pairs.
+///
+/// Authors write YAML scalars, so `certified: true` arrives as a JSON boolean.
+/// Scalars are stored as their text (`"true"`, `"42"`); nested objects and
+/// arrays are dropped. Dropping them keeps manifests that predate this field
+/// loading unchanged, and it keeps the stored map `Hash`-able.
+mod string_properties {
+    use std::collections::BTreeMap;
+
+    use serde::{Deserialize, Deserializer};
+
+    pub fn deserialize<'de, D>(deserializer: D) -> Result<BTreeMap<String, String>, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let raw: Option<BTreeMap<String, serde_json::Value>> = Option::deserialize(deserializer)?;
+        Ok(raw
+            .unwrap_or_default()
+            .into_iter()
+            .filter_map(|(key, value)| {
+                let text = match value {
+                    serde_json::Value::String(s) => s,
+                    serde_json::Value::Bool(b) => b.to_string(),
+                    serde_json::Value::Number(n) => n.to_string(),
+                    _ => return None,
+                };
+                Some((key, text))
+            })
+            .collect())
     }
 }
 
@@ -506,6 +540,7 @@ impl SessionProperty {
 #[cfg(test)]
 mod tests {
     use crate::mdl::builder::ModelBuilder;
+    use crate::mdl::manifest::string_properties;
     use crate::mdl::manifest::table_reference;
     use crate::mdl::manifest::ModelSource;
     use serde_json::Serializer;

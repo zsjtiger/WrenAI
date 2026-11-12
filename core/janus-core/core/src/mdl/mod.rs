@@ -16,7 +16,9 @@ use crate::DataFusionError;
 use crate::{AccessControlProvider, JanusAccessControlProvider};
 use context::SessionPropertiesRef;
 use datafusion::arrow::datatypes::Field;
+use datafusion::common::tree_node::{TreeNode, TreeNodeRecursion};
 use datafusion::common::TableReference;
+use datafusion::logical_expr::LogicalPlan;
 use datafusion::common::{internal_datafusion_err, plan_err};
 use datafusion::datasource::TableProvider;
 use datafusion::error::Result;
@@ -524,6 +526,43 @@ pub fn transform_sql_with_access_control(
 }
 
 /// Transform the SQL based on the MDL with the SessionContext
+/// Session property that makes planning refuse any model not marked
+/// `certified: "true"` in its metadata.
+pub const REQUIRE_CERTIFIED_PROPERTY: &str = "require_certified";
+
+fn require_certified_enabled(properties: &SessionPropertiesRef) -> bool {
+    matches!(properties.get(REQUIRE_CERTIFIED_PROPERTY), Some(Some(value)) if value == "true")
+}
+
+/// Reject a planned query that reads a model which is not certified, when the
+/// session asks for certified-only planning. Runs after analysis, so models
+/// reached through views and relationships are checked too.
+fn enforce_certified_models(plan: &LogicalPlan, properties: &SessionPropertiesRef) -> Result<()> {
+    if !require_certified_enabled(properties) {
+        return Ok(());
+    }
+    plan.apply(|node| {
+        if let LogicalPlan::Extension(extension) = node {
+            if let Some(model_node) = extension
+                .node
+                .as_any()
+                .downcast_ref::<crate::logical_plan::analyze::plan::ModelPlanNode>()
+            {
+                let certified = model_node.model.properties.get("certified").map(String::as_str)
+                    == Some("true");
+                if !certified {
+                    return plan_err!(
+                        "model '{}' is not certified; this session only accepts certified models (set certified: \"true\" in its metadata)",
+                        model_node.model.name()
+                    );
+                }
+            }
+        }
+        Ok(TreeNodeRecursion::Continue)
+    })?;
+    Ok(())
+}
+
 pub async fn transform_sql_with_ctx(
     ctx: &SessionContext,
     analyzed_mdl: Arc<AnalyzedJanusMDL>,
@@ -594,6 +633,7 @@ pub async fn transform_sql_with_ctx_with_access_control(
     };
     debug!("janus-core original plan:\n {plan}");
     let analyzed = ctx.state().optimize(&plan)?;
+    enforce_certified_models(&analyzed, &properties)?;
     debug!("janus-core final planned:\n {analyzed}");
 
     let data_source = analyzed_mdl.janus_mdl().data_source().unwrap_or_default();
@@ -770,6 +810,116 @@ mod test {
 
     /// An aliased model scan should build its `ModelPlanNode` once, not once as a
     /// discarded wildcard build and once for real.
+    /// The shared test manifest, with `certified: true` (a JSON boolean, as a
+    /// YAML author would write it) on every model when `certify` is set.
+    fn certification_manifest(certify: bool) -> Result<Manifest> {
+        let test_data: PathBuf =
+            [env!("CARGO_MANIFEST_DIR"), "tests", "data", "mdl.json"]
+                .iter()
+                .collect();
+        let mut json: serde_json::Value = serde_json::from_str(&fs::read_to_string(test_data)?)?;
+        if certify {
+            for model in json["models"].as_array_mut().into_iter().flatten() {
+                model["properties"] = serde_json::json!({ "certified": true });
+            }
+        }
+        Ok(serde_json::from_value(json)?)
+    }
+
+    fn require_certified_session() -> SessionPropertiesRef {
+        Arc::new(HashMap::from([(
+            REQUIRE_CERTIFIED_PROPERTY.to_string(),
+            Some("true".to_string()),
+        )]))
+    }
+
+    #[tokio::test]
+    async fn test_require_certified_off_plans_uncertified_models() -> Result<()> {
+        let analyzed_mdl = Arc::new(AnalyzedJanusMDL::analyze(
+            certification_manifest(false)?,
+            Arc::new(HashMap::default()),
+            Mode::Unparse,
+        )?);
+        let ctx = create_janus_ctx(None, analyzed_mdl.janus_mdl().data_source().as_ref());
+        let planned = mdl::transform_sql_with_ctx(
+            &ctx,
+            Arc::clone(&analyzed_mdl),
+            &[],
+            Arc::new(HashMap::new()),
+            "select c_custkey from test.test.customer",
+        )
+        .await?;
+        assert!(planned.contains("customer"), "planned: {planned}");
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_require_certified_rejects_uncertified_model() -> Result<()> {
+        let analyzed_mdl = Arc::new(AnalyzedJanusMDL::analyze(
+            certification_manifest(false)?,
+            Arc::new(HashMap::default()),
+            Mode::Unparse,
+        )?);
+        let ctx = create_janus_ctx(None, analyzed_mdl.janus_mdl().data_source().as_ref());
+        let err = mdl::transform_sql_with_ctx(
+            &ctx,
+            Arc::clone(&analyzed_mdl),
+            &[],
+            require_certified_session(),
+            "select c_custkey from test.test.customer",
+        )
+        .await
+        .expect_err("an uncertified model must be refused when require_certified is set");
+        let message = err.to_string();
+        assert!(
+            message.contains("model 'customer' is not certified"),
+            "error should name the model: {message}"
+        );
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_require_certified_accepts_certified_models() -> Result<()> {
+        let analyzed_mdl = Arc::new(AnalyzedJanusMDL::analyze(
+            certification_manifest(true)?,
+            Arc::new(HashMap::default()),
+            Mode::Unparse,
+        )?);
+        let ctx = create_janus_ctx(None, analyzed_mdl.janus_mdl().data_source().as_ref());
+        let planned = mdl::transform_sql_with_ctx(
+            &ctx,
+            Arc::clone(&analyzed_mdl),
+            &[],
+            require_certified_session(),
+            "select c_custkey from test.test.customer",
+        )
+        .await?;
+        assert!(planned.contains("customer"), "planned: {planned}");
+        Ok(())
+    }
+
+    #[test]
+    fn test_model_properties_keep_scalars_and_drop_nested_values() -> Result<()> {
+        let mut json: serde_json::Value = serde_json::from_str(&fs::read_to_string(
+            [env!("CARGO_MANIFEST_DIR"), "tests", "data", "mdl.json"]
+                .iter()
+                .collect::<PathBuf>(),
+        )?)?;
+        json["models"][0]["properties"] = serde_json::json!({
+            "certified": true,
+            "owner": "finance-team",
+            "version": 3,
+            "nested": { "dropped": true }
+        });
+        let manifest: Manifest = serde_json::from_value(json)?;
+        let properties = &manifest.models[0].properties;
+        assert_eq!(properties.get("certified").map(String::as_str), Some("true"));
+        assert_eq!(properties.get("owner").map(String::as_str), Some("finance-team"));
+        assert_eq!(properties.get("version").map(String::as_str), Some("3"));
+        assert!(!properties.contains_key("nested"), "nested objects are dropped");
+        Ok(())
+    }
+
     #[tokio::test]
     async fn test_aliased_model_scan_builds_model_plan_node_once() -> Result<()> {
         let test_data: PathBuf =

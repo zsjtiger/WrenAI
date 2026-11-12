@@ -143,6 +143,8 @@ pub fn model(python_binding: proc_macro::TokenStream) -> proc_macro::TokenStream
             pub row_level_access_controls: Vec<Arc<RowLevelAccessControl>>,
             #[serde(default)]
             pub dialect: Option<DataSource>,
+            #[serde(default, deserialize_with = "string_properties::deserialize")]
+            pub properties: std::collections::BTreeMap<String, String>,
         }
     };
     proc_macro::TokenStream::from(expanded)

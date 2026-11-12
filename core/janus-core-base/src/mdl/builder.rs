@@ -100,6 +100,7 @@ impl ModelBuilder {
                 refresh_time: None,
                 row_level_access_controls: vec![],
                 dialect: None,
+                properties: Default::default(),
             },
         }
     }

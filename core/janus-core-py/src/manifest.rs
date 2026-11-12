@@ -77,6 +77,7 @@ mod tests {
                     refresh_time: None,
                     row_level_access_controls: vec![],
                     dialect: None,
+                    properties: Default::default(),
                 }),
                 Arc::from(Model {
                     name: "model_2".to_string(),
@@ -89,6 +90,7 @@ mod tests {
                     refresh_time: None,
                     row_level_access_controls: vec![],
                     dialect: None,
+                    properties: Default::default(),
                 }),
             ],
             relationships: vec![],
