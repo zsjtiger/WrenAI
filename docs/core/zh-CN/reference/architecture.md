@@ -13,11 +13,13 @@ Text-to-SQL 不会因为存在某个元数据字段或某条巧妙的提示词�
 
 | 支柱 | 含义 | 在 Janus AI 中的位置 |
 | --- | --- | --- |
-| **Schema 链接** | 知道哪些模型、列和关联关系与某个问题相关。 | MDL + 记忆检索（`janus memory fetch`） |
+| **Schema 链接** | 知道哪些模型、列和关联关系与某个问题相关。 | MDL + 记忆检索（`janus memory fetch`）；与数据库的漂移检查（`janus context diff`） |
 | **取值画像** | 知道数据中实际出现了哪些值，例如 `status = 4` 代表什么。 | 连接器行为、画像工作流、索引到记忆中的指令 |
 | **歧义检测** | 知道什么时候问题描述不完整，需要进一步澄清。 | 由智能体编排的 Skill |
-| **生成追踪** | 展示答案是如何构建的：模型、join、CTE 以及展开后的 SQL。 | `janus dry-plan` |
+| **认证定义** | 知道哪些定义经过人工确认，并在项目要求时拒绝未确认的定义。 | 模型的 `properties.certified`；`~/.janus/config.json` 中的 `require_certified` |
+| **生成追踪** | 展示答案是如何构建的：模型、join、CTE 以及展开后的 SQL。 | `janus dry-plan`；查询结果包含 `provenance`（用到的模型、认证状态、知识文件） |
 | **重试与修复** | 在生成的 SQL 执行失败或指向错误的建模对象时进行恢复。 | 结构化错误、`janus dry-run`、智能体重试工作流 |
+| **受治理的修改** | 把错误的答案变成经过审核的修正，而不是悄悄改动。 | `propose_correction`（MCP，需 `--allow-write`）、`janus context review` |
 | **评测** | 当 Schema、定义或提示词变化时，检测回归。 | 开发中的黄金 NL-SQL 评测工作流 |
 
 Janus AI 将这些能力作为原语提供。智能体自行决定何时检索、召回、dry-plan、执行、修复或请求澄清。追踪信息始终可见，位于智能体推理发生的地方。
@@ -37,8 +39,10 @@ Janus AI 将这些能力作为原语提供。智能体自行决定何时检索�
 flowchart TD
   user["User / Agent"] --> skills["Agent skills<br/>onboarding · generate MDL · usage"]
   skills --> cli["Janus CLI / Python SDK"]
+  skills --> api["MCP server / HTTP API"]
+  api --> cli
 
-  cli --> project["Project context<br/>MDL · instructions · queries"]
+  cli --> project["Project context<br/>MDL · certification · knowledge"]
   cli --> runtime["Runtime context<br/>profile · memory · history"]
 
   project --> orchestrator["Plan + execute pipeline"]
@@ -46,8 +50,13 @@ flowchart TD
 
   orchestrator --> planner["SQL planner<br/>sqlglot · CTE rewrite · policy"]
   planner --> core["janus-core<br/>Rust semantic engine"]
-  core --> connectors["Connectors<br/>22+ data sources"]
+  core --> connectors["Connectors<br/>20 data sources"]
   connectors --> data["Data source"]
+
+  cli -->|"context diff · draft --from-db"| data
+  agent["Agent"] -->|"propose_correction"| review["janus context review<br/>a person approves"]
+  review -->|"merge into models/"| project
+  runtime -.->|"optional: embedding API · --suggest-terms"| models["Model API<br/>OpenAI-compatible"]
 ```
 
 同一套架构也可以从查询路径的角度来理解：
@@ -63,13 +72,14 @@ sequenceDiagram
   participant D as Data source
 
   U->>S: Ask a business question
-  S->>M: Recall similar NL-SQL pairs
+  S->>M: Recall similar NL-SQL pairs (keyword search if embeddings are down)
   S->>M: Fetch relevant schema
   S->>W: Submit SQL against MDL
   W->>P: Load context, plan SQL
   P->>R: Expand MDL semantics
   P->>D: Execute via connector
-  D-->>U: Return result
+  D-->>W: Rows
+  W-->>U: Rows + provenance + warnings for uncertified models
   S->>M: Store confirmed pair
 ```
 
@@ -90,7 +100,10 @@ CLI 是智能体和开发者的主要交互界面。它负责发现项目、解�
 | `janus query` / `janus --sql` | 规划并执行 SQL，然后返回结果。 |
 | `janus dry-plan` | 规划 SQL 并展示展开后的 SQL，但不执行。 |
 | `janus dry-run` | 在真实数据库上校验 SQL，但不返回任何行。 |
-| `janus context` | 初始化、校验、构建和检查 Janus 项目。 |
+| `janus context` | 初始化、校验、构建并检查 Janus 项目。 |
+| `janus context diff` | 比较 YAML 模型与实际数据库，报告漂移。有差异时退出码为 1。 |
+| `janus context draft` | 为未建模的表生成草稿（`--from-db`，可选 `--suggest-terms`）；`apply` 把草稿提升为模型。 |
+| `janus context review` | 列出、批准或拒绝智能体提出的修正。 |
 | `janus profile` | 管理数据库连接配置文件。 |
 | `janus memory` | 为上下文建立索引、检索 Schema 条目、召回示例，并保存经过确认的查询。 |
 | `janus utils` | 运行类型规范化等辅助操作。 |
@@ -178,6 +191,16 @@ SQL 规划器会把针对建模对象编写的 SQL 转换为目标数据库可�
 | `query_history` | 经过确认的自然语言到 SQL 的问答对 | 召回以前有效的示例。 |
 
 记忆会把使用过程转化为行为上下文。每一条经过确认的查询都可以成为未来的示例。
+
+## 上下文维护
+
+上下文以 YAML 的形式保存在 git 中。三条命令让它与数据库和智能体的提议保持一致：
+
+- `janus context diff` 把每个模型与实际 Schema 比对，报告缺失或多出的列、类型变化、主键不一致，以及没有模型覆盖的表。有差异时退出码非零，因此可以放进 CI。
+- `janus context draft --from-db` 为未建模的表生成候选模型，写入 `draft/`。在人工运行 `janus context draft apply <模型>` 之前，`models/` 不会有任何改动。
+- 智能体不直接修改模型。`propose_correction` 把修改排入 `knowledge/corrections/`，`janus context review approve` 在校验通过后才合并。
+
+模型只用在需要判断的地方：字段描述（`--suggest-terms`）和语义召回（`JANUS_EMBEDDING_BACKEND`）可以通过 OpenAI 兼容的 API 调用模型。模型缺失或调用失败时，两者都会退回到确定性的做法。其他功能都不需要模型。
 
 ## 数据流
 

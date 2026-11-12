@@ -25,7 +25,7 @@ Output: `janus-ai-architecture.drawio` (native mxGraph cells), `janus-ai-archite
 | access modes | divider, label, five pills | done |
 | execution labels | two lines over the connectors | done (connectors pass behind the text, as in the reference) |
 | source curves + dots | twelve sources, DuckDB highlight | done |
-| axis + scale | "C · …", rule, "0 / 11 / 22+" | done |
+| axis + scale | "C · …", rule, "0 / 11 / 20" | done |
 | footer | "COME BUILD … STAR THE REPO" | done (Apache and repository URL removed) |
 | background | light page colour | needs-fix: reference has a dot grid; not drawn |
 

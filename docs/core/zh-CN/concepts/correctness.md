@@ -14,11 +14,14 @@ Janus AI 的架构旨在**在每一步都为智能体提供所需的上下文**�
 flowchart TD
   user["User / Agent"] --> skills["Skills<br/>workflow rules"]
   skills --> cli["Janus CLI"]
-  cli --> mdl["MDL<br/>the canonical surface"]
+  cli --> mdl["MDL<br/>the canonical surface<br/>certified definitions"]
   cli --> memory["Memory<br/>targeted context"]
   mdl --> planner["Plan + validate<br/>before any DB round-trip"]
   memory --> planner
   planner --> data["Data source"]
+  planner --> prov["Provenance<br/>models · certification · knowledge"]
+  diff["janus context diff<br/>YAML vs live schema"] --> mdl
+  review["Correction queue<br/>agent proposes, person approves"] --> mdl
 ```
 
 在智能体的问题与数据库之间有五层：
@@ -26,7 +29,7 @@ flowchart TD
 | 层 | 作用 | 如何防止幻觉 |
 |---|---|---|
 | **技能** | 编码智能体必须遵循的工作流 | 智能体无法跳过"检查记忆"或"执行前校验"等步骤 |
-| **MDL** | 声明智能体被允许使用的每一张表、每一列和每一种关系 | 智能体只能引用已建模的对象，因此未声明的列和遗留表对它不可见 |
+| **MDL** | 声明智能体被允许使用的每一张表、每一列和每一种关系。模型可以标记为已认证，未认证的模型可以被拒绝。 | 智能体只能引用已建模的对象，因此未声明的列和遗留表都不可见 |
 | **记忆** | 为 MDL + `knowledge/rules/` + `knowledge/sql/` 建立索引；按问题只检索相关部分 | 智能体读取的是相关切片，而不是通用的 Schema 转储 |
 | **规划与校验** | 在任何数据库往返之前，把建模 SQL 展开为将要实际运行的 SQL | 错误的引用会在规划阶段以清晰的错误失败，而不是在生产环境中悄无声息地出错 |
 | **连接器** | 将规划好的 SQL 在数据源上执行 | 类型、方言和权限检查在此进行 |
@@ -58,6 +61,23 @@ flowchart TD
 - 强制执行的列级访问控制
 
 如果列名写错了，dry-plan 会返回可用的列；如果缺少某个关系，它会明确指出。智能体会根据这些信息重试，而不是运行错误的 SQL 并报告一个错误的数字。
+
+### 溯源：说明答案依据什么
+
+每个查询结果都会说明它读取了哪些模型、每个模型是否经过认证，以及调用方依据哪些知识文件：
+
+```json
+{
+  "provenance": {
+    "models": ["orders"],
+    "certified": {"orders": false},
+    "knowledge": ["knowledge/sql/total-revenue.md"]
+  },
+  "warnings": ["model 'orders' is not certified"]
+}
+```
+
+在 `~/.janus/config.json` 中设置 `require_certified` 后，规划器会拒绝任何未标记 `certified: "true"` 的模型，未经确认的定义不会悄悄地回答问题。
 
 ### 技能：工作流不由智能体自行发明
 

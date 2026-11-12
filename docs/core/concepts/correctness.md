@@ -14,11 +14,14 @@ Janus AI's architecture is designed to **give the agent the context it needs at 
 flowchart TD
   user["User / Agent"] --> skills["Skills<br/>workflow rules"]
   skills --> cli["Janus CLI"]
-  cli --> mdl["MDL<br/>the canonical surface"]
+  cli --> mdl["MDL<br/>the canonical surface<br/>certified definitions"]
   cli --> memory["Memory<br/>targeted context"]
   mdl --> planner["Plan + validate<br/>before any DB round-trip"]
   memory --> planner
   planner --> data["Data source"]
+  planner --> prov["Provenance<br/>models · certification · knowledge"]
+  diff["janus context diff<br/>YAML vs live schema"] --> mdl
+  review["Correction queue<br/>agent proposes, person approves"] --> mdl
 ```
 
 Five layers sit between the agent's question and the database:
@@ -26,7 +29,7 @@ Five layers sit between the agent's question and the database:
 | Layer | What it does | How it prevents hallucination |
 |---|---|---|
 | **Skills** | Encode the workflow the agent must follow | The agent cannot skip "check memory" or "validate before execute" |
-| **MDL** | Declare every table, column, and relationship the agent is allowed to use | The agent can only name modeled objects, so undeclared columns and legacy tables are invisible |
+| **MDL** | Declare every table, column, and relationship the agent is allowed to use. Models can be marked certified, and uncertified ones can be refused. | The agent can only name modeled objects, so undeclared columns and legacy tables are invisible |
 | **Memory** | Index MDL + `knowledge/rules/` + `knowledge/sql/`; retrieve only what matters per question | The agent reads the relevant slice, not a generic schema dump |
 | **Plan + validate** | Expand modeled SQL into the exact SQL that will run, before any DB call | Bad references fail at plan time with a clear error, not silently in production |
 | **Connectors** | Execute the planned SQL against the source | Type, dialect, and permission checks happen here |
@@ -58,6 +61,23 @@ Memory does neither. It indexes MDL + `knowledge/rules/` + confirmed NL-SQL pair
 - Column-level access enforced
 
 If a column name is wrong, dry-plan returns the available columns. If a relationship is missing, it says so. The agent retries with the right info instead of running broken SQL and reporting a wrong number.
+
+### Provenance: say what the answer rests on
+
+Every query result states which models it read, whether each one is certified, and which knowledge files the caller relied on:
+
+```json
+{
+  "provenance": {
+    "models": ["orders"],
+    "certified": {"orders": false},
+    "knowledge": ["knowledge/sql/total-revenue.md"]
+  },
+  "warnings": ["model 'orders' is not certified"]
+}
+```
+
+With `require_certified` set in `~/.janus/config.json`, the planner refuses any model not marked `certified: "true"`, so an uncertified definition cannot silently answer a question.
 
 ### Skills: the workflow is not the agent's to invent
 

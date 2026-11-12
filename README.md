@@ -8,7 +8,7 @@
 
 ### CReport for AI agents
 
-**Your agents generate governed SQL, deploy dashboards, and keep business definitions in Git, across 22+ data sources.**
+**Your agents generate governed SQL, deploy dashboards, and keep business definitions in Git, across 20 data sources.**
 
 <br/>
 

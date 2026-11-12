@@ -83,9 +83,9 @@ add(f"rounded=0;fillColor={PANELB};strokeColor=none;", 136, 387, 1008, 1, "")
 cols = [147, 400, 652, 904]
 pillars = [
     ("01", "MDL", "WHAT YOUR DATA MEANS", ["models · relationships", "views · cubes & metrics"]),
-    ("02", "Knowledge", "WHAT SCHEMAS DON'T SAY", ["instructions.md · enums", "queries.yml · approved joins"]),
+    ("02", "Knowledge", "WHAT SCHEMAS DON'T SAY", ["knowledge/rules · enums", "knowledge/sql · joins"]),
     ("03", "Memory", "WHAT WORKED BEFORE", ["LanceDB hybrid index", "recall of proven NL→SQL"]),
-    ("04", "Governed execution", "WHAT AGENTS MAY RUN", ["dry-plan · row limits", "structured errors, hints"]),
+    ("04", "Governed execution", "WHAT AGENTS MAY RUN", ["certified models · provenance", "dry-plan · row limits"]),
 ]
 for k, (num, title, sub, body) in enumerate(pillars):
     x = cols[k]
@@ -144,11 +144,11 @@ for k, (sx, dx, name) in enumerate(zip(src_top, dot_x, srcs)):
     text(dx - 70, 840, 140, name, size=17, align="center")
 
 mono_text(100, 880, 600, "C · YOUR DATA, WHERE IT ALREADY LIVES", size=12)
-mono_text(780, 880, 400, "12 OF 22+ SOURCES SHOWN", size=12, align="right")
+mono_text(780, 880, 400, "12 OF 20 SOURCES SHOWN", size=12, align="right")
 add(f"rounded=0;fillColor={LINE};strokeColor=none;", 100, 906, 1080, 1, "")
 mono_text(100, 920, 200, "0 SOURCES", size=12)
 mono_text(540, 920, 200, "11", size=12, align="center")
-mono_text(980, 920, 200, "22+ CONNECTORS", size=12, align="right")
+mono_text(980, 920, 200, "20 CONNECTORS", size=12, align="right")
 mono_text(680, 956, 500, "COME BUILD CREPORT WITH US  ·  ★ STAR THE REPO", size=12, align="right")
 
 xml = ('<mxfile host="Claude" modified="2026-10-13" agent="drawio-reconstruction" version="24.0.0">'

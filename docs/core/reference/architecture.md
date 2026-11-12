@@ -13,11 +13,13 @@ Text-to-SQL does not become reliable because one metadata field is present or on
 
 | Pillar | What it means | Where it lives in Janus AI |
 | --- | --- | --- |
-| **Schema linking** | Knowing which models, columns, and relationships matter for a question. | MDL + memory retrieval (`janus memory fetch`) |
+| **Schema linking** | Knowing which models, columns, and relationships matter for a question. | MDL + memory retrieval (`janus memory fetch`); drift check against the database (`janus context diff`) |
 | **Value profiling** | Knowing what values actually appear in the data, such as what `status = 4` means. | Connector behavior, profiling workflows, instructions indexed into memory |
 | **Ambiguity detection** | Knowing when the question is underspecified and needs clarification. | Skill orchestration by the agent |
-| **Generation trace** | Showing how an answer was constructed: models, joins, CTEs, and expanded SQL. | `janus dry-plan` |
+| **Certified definitions** | Knowing which definitions a person has signed off on, and refusing the rest when the project requires it. | `properties.certified` on models; `require_certified` in `~/.janus/config.json` |
+| **Generation trace** | Showing how an answer was constructed: models, joins, CTEs, and expanded SQL. | `janus dry-plan`; query results include `provenance` (models used, their certification, knowledge files) |
 | **Retry and repair** | Recovering when generated SQL fails or points at the wrong modeled object. | Structured errors, `janus dry-run`, agent retry workflows |
+| **Governed change** | Turning a wrong answer into a reviewed fix instead of a silent edit. | `propose_correction` (MCP, with `--allow-write`), `janus context review` |
 | **Eval** | Detecting regressions when schemas, definitions, or prompts change. | Golden NL-SQL eval workflows in development |
 
 Janus AI exposes these as primitives. The agent chooses when to fetch, recall, dry-plan, execute, repair, or ask a clarification. The trace stays visible where the agent's reasoning happens.
@@ -37,8 +39,10 @@ At a high level, Janus AI has four layers:
 flowchart TD
   user["User / Agent"] --> skills["Agent skills<br/>onboarding · generate MDL · usage"]
   skills --> cli["Janus CLI / Python SDK"]
+  skills --> api["MCP server / HTTP API"]
+  api --> cli
 
-  cli --> project["Project context<br/>MDL · instructions · queries"]
+  cli --> project["Project context<br/>MDL · certification · knowledge"]
   cli --> runtime["Runtime context<br/>profile · memory · history"]
 
   project --> orchestrator["Plan + execute pipeline"]
@@ -46,8 +50,13 @@ flowchart TD
 
   orchestrator --> planner["SQL planner<br/>sqlglot · CTE rewrite · policy"]
   planner --> core["janus-core<br/>Rust semantic engine"]
-  core --> connectors["Connectors<br/>22+ data sources"]
+  core --> connectors["Connectors<br/>20 data sources"]
   connectors --> data["Data source"]
+
+  cli -->|"context diff · draft --from-db"| data
+  agent["Agent"] -->|"propose_correction"| review["janus context review<br/>a person approves"]
+  review -->|"merge into models/"| project
+  runtime -.->|"optional: embedding API · --suggest-terms"| models["Model API<br/>OpenAI-compatible"]
 ```
 
 The same architecture can also be read as a query path:
@@ -63,13 +72,14 @@ sequenceDiagram
   participant D as Data source
 
   U->>S: Ask a business question
-  S->>M: Recall similar NL-SQL pairs
+  S->>M: Recall similar NL-SQL pairs (keyword search if embeddings are down)
   S->>M: Fetch relevant schema
   S->>W: Submit SQL against MDL
   W->>P: Load context, plan SQL
   P->>R: Expand MDL semantics
   P->>D: Execute via connector
-  D-->>U: Return result
+  D-->>W: Rows
+  W-->>U: Rows + provenance + warnings for uncertified models
   S->>M: Store confirmed pair
 ```
 
@@ -91,6 +101,9 @@ The CLI is the main interface for agents and developers. It discovers the projec
 | `janus dry-plan` | Plan SQL and show the expanded SQL without executing it. |
 | `janus dry-run` | Validate SQL against the live database without returning rows. |
 | `janus context` | Initialize, validate, build, and inspect a Janus project. |
+| `janus context diff` | Compare the YAML models with the live database and report drift. Exits 1 on drift. |
+| `janus context draft` | Draft models for unmodeled tables (`--from-db`, optional `--suggest-terms`); promote one with `apply`. |
+| `janus context review` | List, approve, or reject correction proposals made by agents. |
 | `janus profile` | Manage database connection profiles. |
 | `janus memory` | Index context, fetch schema items, recall examples, and store confirmed queries. |
 | `janus utils` | Run helper operations such as type normalization. |
@@ -105,6 +118,8 @@ It includes:
 - **`knowledge/`** - business rules (`rules/`) and confirmed NL→SQL pairs (`sql/`), the source of truth for memory.
 - **`target/mdl.json`** - compiled MDL manifest used by the engine.
 - **`.janus/memory/`** - derived, optional LanceDB index rebuilt from `knowledge/` for semantic retrieval.
+- **`knowledge/corrections/`** - correction proposals and their status. Applied and rejected records are kept for audit.
+- **`draft/`** - candidate models generated from the database. Not part of the project until applied.
 
 Connection profiles live separately in `~/.janus/profiles.yml` so credentials stay environment-specific.
 
@@ -178,6 +193,16 @@ The [memory system](/oss/concepts/memory_system) is a LanceDB-backed retrieval l
 | `query_history` | Confirmed natural-language-to-SQL pairs | Recall examples that worked before. |
 
 Memory turns usage into behavioral context. Each confirmed query can become a future example.
+
+## Context maintenance
+
+The context is maintained as YAML in git. Three commands keep it accurate against the database and against agent proposals:
+
+- `janus context diff` compares each model with the live schema. It reports missing or extra columns, type changes, primary-key differences, and tables no model covers. It exits non-zero on drift, so CI can run it.
+- `janus context draft --from-db` writes candidate models for unmodeled tables under `draft/`. Nothing in `models/` changes until a person runs `janus context draft apply <model>`.
+- Agents do not edit models. `propose_correction` queues a change under `knowledge/corrections/`, and `janus context review approve` applies it after validation.
+
+Models are used only where judgement is needed. Column descriptions (`--suggest-terms`) and semantic recall (`JANUS_EMBEDDING_BACKEND`) can call a model over an OpenAI-compatible API. Each falls back to a deterministic path when the model is missing or fails. Everything else runs without one.
 
 ## Data flows
 
