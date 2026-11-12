@@ -13,6 +13,7 @@ validation fails the move is rolled back.
 
 from __future__ import annotations
 
+import json
 import re
 import shutil
 from dataclasses import dataclass, field
@@ -21,6 +22,7 @@ from typing import Any
 
 import yaml
 
+from janus.llm import LlmConfig, LlmError, complete_json
 from janus.mdl.cte_rewriter import get_sqlglot_dialect
 from janus.model.data_source import DataSource
 from janus.type_mapping import parse_type
@@ -63,8 +65,17 @@ def generate_drafts(
     data_source: DataSource,
     *,
     schema: str | None = None,
+    suggest_terms: bool = False,
+    llm: LlmConfig | None = None,
 ) -> DraftResult:
-    """Write draft models and relationships for unmodeled tables."""
+    """Write draft models and relationships for unmodeled tables.
+
+    With ``suggest_terms`` every column gets a ``description``. The model in
+    ``llm`` writes them when it is available; otherwise, or for any column it
+    leaves out, ``deterministic_description`` is used. Each column records which
+    one it got in ``properties.description_source``. Only column names and types
+    are sent to the model, never row values.
+    """
     from janus.context import load_models  # noqa: PLC0415
 
     dialect = get_sqlglot_dialect(data_source)
@@ -96,6 +107,9 @@ def generate_drafts(
         columns = connector.list_columns(table)
         keys = connector.list_keys(table)
         pk = keys.primary_key
+        descriptions = _describe_columns(
+            table, columns, suggest_terms=suggest_terms, llm=llm, result=result
+        )
         if len(pk) > 1:
             result.notes.append(
                 f"{name}: composite primary key {list(pk)} left out (MDL keys "
@@ -115,7 +129,8 @@ def generate_drafts(
                     "is_calculated": False,
                     "not_null": not col.nullable,
                     "is_primary_key": len(pk) == 1 and col.name in pk,
-                    "properties": {},
+                    **_column_description(descriptions, col.name),
+                    "properties": _column_properties(descriptions, col.name),
                 }
                 for col in columns
             ],
@@ -183,6 +198,102 @@ def generate_drafts(
         )
         result.relationships = [r["name"] for r in relationships]
     return result
+
+
+DESCRIPTION_SOURCE = "description_source"
+
+_DESCRIPTION_SYSTEM = (
+    "You document the columns of one database table for a semantic layer. "
+    "For each column, write one short sentence saying what it represents in "
+    "business terms. Use only the names and types you are given; if a name is "
+    "not self-explanatory, say what it probably holds and that it is uncertain. "
+    'Reply with a JSON object of the form {"descriptions": {"<column>": '
+    '"<sentence>"}} and nothing else.'
+)
+
+
+def deterministic_description(column_name: str, data_type: str) -> str:
+    """The fallback description: the column name in words, with its type."""
+    words = re.sub(r"[_\s]+", " ", column_name).strip()
+    if not words:
+        words = column_name
+    return f"{words[:1].upper()}{words[1:]} ({data_type})"
+
+
+def _describe_columns(
+    table: Any,
+    columns: list[Any],
+    *,
+    suggest_terms: bool,
+    llm: LlmConfig | None,
+    result: DraftResult,
+) -> dict[str, dict[str, str]]:
+    """Per-column ``{"description", DESCRIPTION_SOURCE}`` for one table.
+
+    Returns an empty mapping when ``suggest_terms`` is off, so drafts keep their
+    original shape. Failures are recorded in ``result.notes``; they never raise.
+    """
+    if not suggest_terms or not columns:
+        return {}
+
+    suggested: dict[str, str] = {}
+    if llm is None:
+        result.notes.append(
+            f"{table.name}: no model configured (set JANUS_LLM_BASE_URL and "
+            "JANUS_LLM_MODEL); used deterministic descriptions"
+        )
+    else:
+        try:
+            suggested = _ask_model(table, columns, llm)
+        except LlmError as exc:
+            result.notes.append(
+                f"{table.name}: model unavailable ({exc}); used deterministic "
+                "descriptions"
+            )
+
+    described: dict[str, dict[str, str]] = {}
+    for col in columns:
+        text = suggested.get(col.name)
+        if text:
+            source = "llm"
+        else:
+            text = deterministic_description(col.name, col.data_type)
+            source = "deterministic"
+        described[col.name] = {"description": text, DESCRIPTION_SOURCE: source}
+    return described
+
+
+def _ask_model(table: Any, columns: list[Any], llm: LlmConfig) -> dict[str, str]:
+    """Ask the model for descriptions. Returns only usable, known column names."""
+    listing = [{"name": c.name, "type": c.data_type} for c in columns]
+    user = (
+        f"Table: {table.name}\n"
+        f"Columns (JSON): {json.dumps(listing, ensure_ascii=False)}"
+    )
+    payload = complete_json(llm, _DESCRIPTION_SYSTEM, user)
+    raw = payload.get("descriptions")
+    if not isinstance(raw, dict):
+        raise LlmError('model reply has no "descriptions" object')
+    known = {c.name for c in columns}
+    return {
+        name: text.strip()
+        for name, text in raw.items()
+        if name in known and isinstance(text, str) and text.strip()
+    }
+
+
+def _column_description(descriptions: dict[str, dict[str, str]], name: str) -> dict:
+    """The column's top-level ``description`` (absent when descriptions are off)."""
+    entry = descriptions.get(name)
+    return {"description": entry["description"]} if entry else {}
+
+
+def _column_properties(descriptions: dict[str, dict[str, str]], name: str) -> dict:
+    """Column ``properties``: the description source, when descriptions are on."""
+    entry = descriptions.get(name)
+    if not entry:
+        return {}
+    return {DESCRIPTION_SOURCE: entry[DESCRIPTION_SOURCE]}
 
 
 def _mdl_type(data_type: str, dialect: str) -> str:

@@ -401,6 +401,15 @@ janus context draft                   # 列出待处理的草稿
 janus context draft apply orders      # 把一个草稿提升到 models/
 ```
 
+`--suggest-terms` 会为草稿中的每一列写入 `description`。配置了模型时由模型生成，否则使用确定性描述（把列名拆成词，并附上类型）。每列在 `properties.description_source` 中记录来源（`llm` 或 `deterministic`）。模型不可达、拒绝请求或返回不可用的内容时，该表回退到确定性描述，命令会打印一条说明。发送给模型的只有列名和类型，不包括行数据。
+
+```bash
+export JANUS_LLM_BASE_URL=https://integrate.api.nvidia.com/v1   # 任何 OpenAI 兼容的端点
+export JANUS_LLM_MODEL=<模型 id>
+export JANUS_LLM_API_KEY=...                                    # 可选；以 bearer token 发送
+janus context draft --from-db --suggest-terms
+```
+
 草稿写入 `draft/models/<name>/`，外键会变成 `draft/relationships.yml` 中的候选关系。在 `apply` 之前，`models/` 不会被修改。每个草稿带有 `properties.draft: "true"`；`apply` 会去掉该标记、添加两端都已存在的关系，并校验项目。校验失败时会回滚移动。
 
 ### `janus context review`

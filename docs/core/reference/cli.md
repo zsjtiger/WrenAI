@@ -445,6 +445,21 @@ janus context draft                   # list pending drafts
 janus context draft apply orders      # promote one draft into models/
 ```
 
+`--suggest-terms` writes a `description` for every drafted column. It uses a
+model when one is configured, and otherwise the deterministic description (the
+column name in words, with its type). Each column records its source in
+`properties.description_source` (`llm` or `deterministic`). A model that is
+unreachable, refuses, or returns unusable output makes that table fall back to
+deterministic descriptions, and the command prints a note. Only column names and
+types are sent to the model, never row values.
+
+```bash
+export JANUS_LLM_BASE_URL=https://integrate.api.nvidia.com/v1   # any OpenAI-compatible endpoint
+export JANUS_LLM_MODEL=<model id>
+export JANUS_LLM_API_KEY=...                                    # optional; sent as a bearer token
+janus context draft --from-db --suggest-terms
+```
+
 Drafts go to `draft/models/<name>/` and foreign keys become candidate
 relationships in `draft/relationships.yml`. Nothing in `models/` changes until
 `apply`. Each draft carries `properties.draft: "true"`; `apply` removes it,

@@ -186,11 +186,12 @@ def list_keys(self, table: TableInfo) -> KeyInfo: ...   # 主键和外键
 | P1 溯源 | 完成 | `engine.query_with_provenance`、`mcp_server._with_provenance` | `models` 取自展开后 SQL 中的 CTE 名称，只包含实际被读取的模型 |
 | P2 连接器结构读取 | 完成（20 个 `DataSource`） | `connector/introspection.py`、`connector/factory.py` | 实际 `DataSource` 有 20 个（不是 22 个）。只有 DuckDB 做了真实数据库测试；其余方言的 SQL 未经过对应服务器验证。Trino、Athena、DataFusion、Spark 不能读取主键 |
 | P2 `context diff` | 完成 | `context_diff.py`、`context_cli.py` | 退出码：0 无差异，1 有差异，2 无法读取数据库 |
-| P3 `context draft --from-db` | 完成 | `context_draft.py` | 未实现 `--suggest-terms`（LLM 推断），按方案默认关闭 |
+| P3 `context draft --from-db` | 完成 | `context_draft.py` | `--suggest-terms` 默认关闭；配置 `JANUS_LLM_*` 后由模型写字段描述，失败或未配置时回退到确定性描述（`llm.py`） |
 | P4 修正队列 | 完成 | `context_corrections.py`、`mcp_server.py`（`propose_correction`）、`context_cli.py`（`review`） | 受保护字段：`name`、`table_reference`、`ref_sql` |
 | P5 HTTP API | 完成 | `api_server.py`、`serve_cli.py`（`serve api`） | 只提供查询和模型接口，不含写入。非回环地址必须提供 token |
 
 ### 已知限制
 
 - 结构读取已在真实数据库上验证：DuckDB，以及 PostgreSQL 16（`ansi` flavor，见 `tests/connectors/test_postgres_introspection.py`，CI 中由 postgres 容器运行）。MySQL、Oracle、ClickHouse、BigQuery、Spark 等连接器的 SQL 仍未在对应服务器上验证。redshift、canner、snowflake、databricks 的 flavor 分类是依据经验判断，未经查证。
+- `--suggest-terms` 的模型输出只在 mock 之外用真实 HTTP 服务测试过（`tests/unit/test_llm_suggestions.py`），没有对真实的 NIM 或 OpenAI 端点做过调用。
 - `memory` 额外依赖缺失时，`tests/unit/test_memory.py` 中 6 个用例失败（`huggingface_hub` 未安装），与本次改动无关。

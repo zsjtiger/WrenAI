@@ -1350,6 +1350,17 @@ def draft_main(
         typer.Option("--from-db", help="Generate drafts from the bound database."),
     ] = False,
     schema: _SchemaOpt = None,
+    suggest_terms: Annotated[
+        bool,
+        typer.Option(
+            "--suggest-terms",
+            help=(
+                "Write a description for each column. Uses the model named by "
+                "JANUS_LLM_BASE_URL and JANUS_LLM_MODEL when set, and otherwise "
+                "a deterministic description."
+            ),
+        ),
+    ] = False,
 ) -> None:
     """Without options, list pending drafts. With --from-db, generate them."""
     if ctx.invoked_subcommand is not None:
@@ -1359,6 +1370,7 @@ def draft_main(
         resolve_project_datasource,
     )
     from janus.context_draft import generate_drafts, list_drafts  # noqa: PLC0415
+    from janus.llm import load_llm_config  # noqa: PLC0415
 
     project_path = resolve_project_path(path)
     if not from_db:
@@ -1376,7 +1388,14 @@ def draft_main(
         raise typer.Exit(2) from exc
     connector = _connect_or_exit(project_path)
     try:
-        result = generate_drafts(project_path, connector, data_source, schema=schema)
+        result = generate_drafts(
+            project_path,
+            connector,
+            data_source,
+            schema=schema,
+            suggest_terms=suggest_terms,
+            llm=load_llm_config() if suggest_terms else None,
+        )
     except Exception as exc:  # noqa: BLE001
         typer.echo(f"Error: could not read the database: {exc}", err=True)
         raise typer.Exit(2) from exc
