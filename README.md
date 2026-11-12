@@ -31,6 +31,31 @@ Schemas tell an agent where data lives. Janus tells it what the data *means*: ap
   <img src="./assets/janus-ai-architecture.png" width="100%" alt="Janus AI generative BI architecture — semantic layer and AI context layer for AI agents">
 </picture>
 
+## The ontology layer
+
+Janus keeps an **ontology** of your data as YAML in git. It is the part of the context layer that says what each table and column *means*, how the tables relate, and which definitions a person has approved. Agents query against it instead of against raw tables.
+
+It has five parts:
+
+| Part | What it records | Where it lives |
+|---|---|---|
+| **Models** (entities) | Each table or view the agent may use, and its columns and keys. | `models/<name>/metadata.yml` |
+| **Relationships** | How models join, for example `orders.cust_id = customers.id`. | `relationships.yml` |
+| **Terms** | Business names for models and columns, with aliases, such as "Order Item" for `dim_order_items`. | `properties.term`, `properties.aliases`, column `display_name` |
+| **Certification** | Which definitions have been approved, and whether uncertified ones may be used. | `properties.certified` |
+| **Attributes and rules** | Reusable measures and filters mined from confirmed queries, and business rules. | `knowledge/attributes/`, `knowledge/rules/` |
+
+Because it is plain files, the ontology is reviewed like code: changes go through commits and diffs, and `janus context diff` checks it against the live database.
+
+**How it gets built.** You do not write all of it by hand. Janus drafts the parts it can infer from the database and from your history, and you decide what to keep:
+
+- `janus context draft --from-db` proposes models for tables that have none.
+- `janus context infer-fks` proposes foreign keys the database does not declare.
+- `janus context terms` and `janus context attributes` propose terms, display names, and recurring measures and filters.
+- `janus context draft apply` promotes an approved draft into `models/`.
+
+These steps use rules by default. A language model is optional and only refines names and confirms suggestions, as described in the [feature guide](#feature-guide). Nothing reaches `models/` without your approval.
+
 ## Quickstart
 
 Three commands, then your agent does the rest. Works with Claude Code, Cursor, Cline, Codex, and [50+ other agents](https://docs.crossnow.cn/oss/get_started/quickstart).

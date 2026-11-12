@@ -31,6 +31,31 @@ Schema 只能告诉智能体数据存放在哪里。Janus 则告诉它数据**�
   <img src="./assets/janus-ai-architecture.zh-CN.png" width="100%" alt="Janus AI 生成式 BI 架构：面向 AI 智能体的语义层与 AI 上下文层">
 </picture>
 
+## 本体层
+
+Janus 把你的数据**本体**以 YAML 的形式保存在 git 中。它是上下文层的一部分，说明每张表和每一列的**业务含义**、表之间如何关联，以及哪些定义已经经过人工确认。智能体基于它来查询，而不是直接面对原始表。
+
+它由五部分组成：
+
+| 组成部分 | 记录的内容 | 存放位置 |
+|---|---|---|
+| **模型**（实体） | 智能体可以使用的每张表或视图，及其列和主键。 | `models/<name>/metadata.yml` |
+| **关系** | 模型之间如何关联，例如 `orders.cust_id = customers.id`。 | `relationships.yml` |
+| **术语** | 模型和列的业务名称，附带别名，例如把 `dim_order_items` 称为"Order Item"。 | `properties.term`、`properties.aliases`、列的 `display_name` |
+| **认证** | 哪些定义已通过审核，以及未认证的定义能否被使用。 | `properties.certified` |
+| **属性与规则** | 从已确认查询中挖掘出的可复用度量和过滤条件，以及业务规则。 | `knowledge/attributes/`、`knowledge/rules/` |
+
+因为它就是普通文件，本体的修改和代码一样审核：通过提交和差异查看变化，`janus context diff` 还能把它和实际数据库对照。
+
+**它怎么生成。** 你不需要全部手写。Janus 会根据数据库和你的查询历史，先提出能推断出的部分，由你决定保留哪些：
+
+- `janus context draft --from-db` 为还没有模型的表提出模型。
+- `janus context infer-fks` 提出数据库中未声明的外键。
+- `janus context terms` 和 `janus context attributes` 提出术语、展示名，以及反复出现的度量和过滤条件。
+- `janus context draft apply` 把通过审核的草稿提升到 `models/`。
+
+这些步骤默认使用规则完成。大模型是可选的，只用来精炼名称和确认建议，详见[功能使用指南](#功能使用指南)。未经你批准，任何内容都不会进入 `models/`。
+
 ## 快速开始
 
 三条命令，剩下的交给你的智能体。支持 Claude Code、Cursor、Cline、Codex，以及 [50+ 其他智能体](https://docs.crossnow.cn/oss/get_started/quickstart)。
