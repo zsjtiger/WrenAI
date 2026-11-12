@@ -16,7 +16,7 @@ from pathlib import Path
 
 W, H = 960, 630
 INK = "#1a1a1a"
-MUTED = "#595959"
+MUTED = "#4a4a4a"
 SKY = "#56B4E9"
 BLUE = "#0072B2"
 ORANGE = "#E69F00"
@@ -100,8 +100,9 @@ for cx, (t, s) in zip(agent_cols, [
 # 3. open context layer (orange: the proposed layer)
 for cx in agent_cols:
     line(cx, 162, cx, 200)
-add(f'  <rect x="50" y="200" width="860" height="160" rx="4" ry="4" fill="none" '
-    f'stroke="{ORANGE}" stroke-width="1.25" stroke-dasharray="2,2"/>')
+add(f'  <rect x="50" y="200" width="860" height="160" rx="4" ry="4" '
+    f'fill="{ORANGE}" fill-opacity="0.04" stroke="{ORANGE}" stroke-width="1" '
+    f'stroke-dasharray="6,4"/>')
 label(66, 216, "Open context layer", size=9)
 pillars = [
     (68, "Ontology (MDL)", "models · relationships", "terms · inferred keys", False),
@@ -133,11 +134,13 @@ box(68, 500, 490, 44, "Planning engine: janus-core (Rust)",
 # 6. connectors (blue) and data sources (green)
 line(300, 544, 300, 574)
 box(68, 574, 490, 40, "Connectors", "20 data sources · dialect-specific SQL", color=BLUE)
-for dx, dy in [(12, 8), (8, 4)]:
+for dx, dy in [(10, 7), (5, 3)]:
     add(f'  <rect x="{648 + dx}" y="{574 + dy}" width="232" height="40" rx="4" '
-        f'ry="4" fill="{GREEN}" fill-opacity="0.12" stroke="{GREEN}" stroke-width="1.5"/>')
+        f'ry="4" fill="{GREEN}" fill-opacity="0.10"/>')
 add(f'  <rect x="648" y="574" width="232" height="40" rx="4" ry="4" '
-    f'fill="{GREEN}" fill-opacity="0.12" stroke="{GREEN}" stroke-width="1.5"/>')
+    f'fill="#ffffff" stroke="{GREEN}" stroke-width="1.5"/>')
+add(f'  <rect x="648" y="574" width="232" height="40" rx="4" ry="4" '
+    f'fill="{GREEN}" fill-opacity="0.12"/>')
 add(f'  <text x="764" y="598" text-anchor="middle" font-size="11" font-weight="600" '
     f'fill="{INK}">Data warehouses and databases</text>')
 line(558, 594, 648, 594)
