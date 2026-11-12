@@ -16,9 +16,7 @@ use crate::DataFusionError;
 use crate::{AccessControlProvider, JanusAccessControlProvider};
 use context::SessionPropertiesRef;
 use datafusion::arrow::datatypes::Field;
-use datafusion::common::tree_node::{TreeNode, TreeNodeRecursion};
 use datafusion::common::TableReference;
-use datafusion::logical_expr::LogicalPlan;
 use datafusion::common::{internal_datafusion_err, plan_err};
 use datafusion::datasource::TableProvider;
 use datafusion::error::Result;
@@ -534,33 +532,20 @@ fn require_certified_enabled(properties: &SessionPropertiesRef) -> bool {
     matches!(properties.get(REQUIRE_CERTIFIED_PROPERTY), Some(Some(value)) if value == "true")
 }
 
-/// Reject a planned query that reads a model which is not certified, when the
-/// session asks for certified-only planning. Runs after analysis, so models
-/// reached through views and relationships are checked too.
-fn enforce_certified_models(plan: &LogicalPlan, properties: &SessionPropertiesRef) -> Result<()> {
+/// Refuse a model that is not certified (`certified: "true"`) when the session
+/// asks for certified-only planning. Called wherever a model is turned into a
+/// plan node, so views and relationship chains are covered as well.
+pub(crate) fn ensure_model_certified(model: &Model, properties: &SessionPropertiesRef) -> Result<()> {
     if !require_certified_enabled(properties) {
         return Ok(());
     }
-    plan.apply(|node| {
-        if let LogicalPlan::Extension(extension) = node {
-            if let Some(model_node) = extension
-                .node
-                .as_any()
-                .downcast_ref::<crate::logical_plan::analyze::plan::ModelPlanNode>()
-            {
-                let certified = model_node.model.properties.get("certified").map(String::as_str)
-                    == Some("true");
-                if !certified {
-                    return plan_err!(
-                        "model '{}' is not certified; this session only accepts certified models (set certified: \"true\" in its metadata)",
-                        model_node.model.name()
-                    );
-                }
-            }
-        }
-        Ok(TreeNodeRecursion::Continue)
-    })?;
-    Ok(())
+    if model.properties.get("certified").map(String::as_str) == Some("true") {
+        return Ok(());
+    }
+    plan_err!(
+        "model '{}' is not certified; this session only accepts certified models (set certified: \"true\" in its metadata)",
+        model.name()
+    )
 }
 
 pub async fn transform_sql_with_ctx(
@@ -633,7 +618,6 @@ pub async fn transform_sql_with_ctx_with_access_control(
     };
     debug!("janus-core original plan:\n {plan}");
     let analyzed = ctx.state().optimize(&plan)?;
-    enforce_certified_models(&analyzed, &properties)?;
     debug!("janus-core final planned:\n {analyzed}");
 
     let data_source = analyzed_mdl.janus_mdl().data_source().unwrap_or_default();
@@ -812,23 +796,28 @@ mod test {
     /// discarded wildcard build and once for real.
     /// The shared test manifest, with `certified: true` (a JSON boolean, as a
     /// YAML author would write it) on every model when `certify` is set.
+    fn json_err(e: serde_json::Error) -> datafusion::error::DataFusionError {
+        datafusion::error::DataFusionError::External(Box::new(e))
+    }
+
     fn certification_manifest(certify: bool) -> Result<Manifest> {
         let test_data: PathBuf =
             [env!("CARGO_MANIFEST_DIR"), "tests", "data", "mdl.json"]
                 .iter()
                 .collect();
-        let mut json: serde_json::Value = serde_json::from_str(&fs::read_to_string(test_data)?)?;
+        let mut json: serde_json::Value =
+            serde_json::from_str(&fs::read_to_string(test_data)?).map_err(json_err)?;
         if certify {
             for model in json["models"].as_array_mut().into_iter().flatten() {
                 model["properties"] = serde_json::json!({ "certified": true });
             }
         }
-        Ok(serde_json::from_value(json)?)
+        serde_json::from_value(json).map_err(json_err)
     }
 
     fn require_certified_session() -> SessionPropertiesRef {
         Arc::new(HashMap::from([(
-            REQUIRE_CERTIFIED_PROPERTY.to_string(),
+            crate::mdl::REQUIRE_CERTIFIED_PROPERTY.to_string(),
             Some("true".to_string()),
         )]))
     }
@@ -904,14 +893,15 @@ mod test {
             [env!("CARGO_MANIFEST_DIR"), "tests", "data", "mdl.json"]
                 .iter()
                 .collect::<PathBuf>(),
-        )?)?;
+        )?)
+        .map_err(json_err)?;
         json["models"][0]["properties"] = serde_json::json!({
             "certified": true,
             "owner": "finance-team",
             "version": 3,
             "nested": { "dropped": true }
         });
-        let manifest: Manifest = serde_json::from_value(json)?;
+        let manifest: Manifest = serde_json::from_value(json).map_err(json_err)?;
         let properties = &manifest.models[0].properties;
         assert_eq!(properties.get("certified").map(String::as_str), Some("true"));
         assert_eq!(properties.get("owner").map(String::as_str), Some("finance-team"));

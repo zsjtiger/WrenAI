@@ -86,6 +86,7 @@ impl ModelPlanNode {
         access_control: Arc<dyn AccessControlProvider>,
         access_scope: AccessScope,
     ) -> Result<Self> {
+        crate::mdl::ensure_model_certified(&model, &properties)?;
         ModelPlanNodeBuilder::new(
             analyzed_janus_mdl,
             session_state,
