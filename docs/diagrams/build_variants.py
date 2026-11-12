@@ -31,6 +31,7 @@ ZH = {
     "B · FREE FOREVER": "B · 永久免费",
     "RUNS WITHOUT US": "无需我们也能运行",
     "YOUR CONTEXT STAYS IN YOUR GIT": "上下文留在你的 Git 中",
+    "Ontology (MDL)": "本体（MDL）",
     "WHAT YOUR DATA MEANS": "数据的业务含义",
     "models · relationships": "模型 · 关系",
     "terms · inferred keys": "术语 · 推断的外键",
