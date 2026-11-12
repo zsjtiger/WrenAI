@@ -35,7 +35,7 @@ ZH = {
     "models · relationships": "模型 · 关系",
     "terms · inferred keys": "术语 · 推断的外键",
     "Knowledge": "知识",
-    "WHAT SCHEMAS DON'T SAY": "Schema 没有说明的内容",
+    "WHAT SCHEMA OMITS": "Schema 没有说明的内容",
     "knowledge/rules · enums": "knowledge/rules · 枚举",
     "mined SQL attributes": "挖掘出的 SQL 属性",
     "Memory": "记忆",

@@ -68,8 +68,6 @@ for k, (x, name) in enumerate(zip(agent_x, agents)):
     dot(x, 176, WHITE, MUTE, 4.5)
     curve(x, 176, end_x[k], 280, PURP if k == 0 else LINE, 2.2 if k == 0 else 1.2, arrow=True)
 
-mono_text(440, 200, 400, "QUERIES ↓", size=13, color=MUTE, align="center")
-mono_text(440, 222, 400, "NL · SQL · MCP TOOLS", size=12, color=MUTE, align="center")
 
 # central panel
 rect(112, 280, 1056, 384, PANEL, PANELB, r=14)
@@ -83,14 +81,14 @@ add(f"rounded=0;fillColor={PANELB};strokeColor=none;", 136, 387, 1008, 1, "")
 cols = [147, 400, 652, 904]
 pillars = [
     ("01", "MDL", "WHAT YOUR DATA MEANS", ["models · relationships", "terms · inferred keys"]),
-    ("02", "Knowledge", "WHAT SCHEMAS DON'T SAY", ["knowledge/rules · enums", "mined SQL attributes"]),
+    ("02", "Knowledge", "WHAT SCHEMA OMITS", ["knowledge/rules · enums", "mined SQL attributes"]),
     ("03", "Memory", "WHAT WORKED BEFORE", ["LanceDB hybrid index", "recall of proven NL→SQL"]),
     ("04", "Governed execution", "WHAT AGENTS MAY RUN", ["certified models · provenance", "dry-plan · row limits"]),
 ]
 for k, (num, title, sub, body) in enumerate(pillars):
     x = cols[k]
     mono_text(x, 402, 60, num, size=13)
-    text(x + 84, 432, 240, title, size=22)
+    text(x + 84, 432, 240, title, size=22 if len(title) <= 12 else 18)
     mono_text(x + 84, 468, 240, sub, size=11)
     mono_text(x, 500, 240, body[0], size=13, color=INK)
     mono_text(x, 520, 240, body[1], size=13, color=INK)
@@ -131,8 +129,6 @@ for x0, x1, label in pills:
 
 # bottom: execution labels, sources, axis
 add(f"rounded=0;fillColor=#f5f7fb;strokeColor=none;", 330, 712, 620, 44, "")
-mono_text(440, 718, 400, "EXECUTES AS DIALECT-SPECIFIC SQL ↓", size=12, align="center")
-mono_text(340, 738, 600, "PUSHED DOWN TO YOUR WAREHOUSE · NOTHING TO MIGRATE", size=12, align="center")
 srcs = ["PostgreSQL", "BigQuery", "Snowflake", "DuckDB", "ClickHouse", "Trino",
         "Databricks", "Redshift", "Spark", "S3", "MySQL", "Athena"]
 dot_x = [100, 198, 296, 394, 492, 590, 689, 787, 885, 983, 1082, 1180]
@@ -150,6 +146,15 @@ mono_text(100, 920, 200, "0 SOURCES", size=12)
 mono_text(540, 920, 200, "11", size=12, align="center")
 mono_text(980, 920, 200, "20 CONNECTORS", size=12, align="right")
 mono_text(680, 956, 500, "COME BUILD CREPORT WITH US  ·  ★ STAR THE REPO", size=12, align="right")
+
+# labels drawn last, on a page-colored plate, so curves pass behind them
+add("rounded=0;fillColor=#f5f7fb;strokeColor=none;", 555, 197, 170, 46, "")
+mono_text(440, 200, 400, "QUERIES ↓", size=13, color=MUTE, align="center")
+mono_text(440, 222, 400, "NL · SQL · MCP TOOLS", size=12, color=MUTE, align="center")
+add("rounded=0;fillColor=#f5f7fb;strokeColor=none;", 508, 712, 264, 22, "")
+add("rounded=0;fillColor=#f5f7fb;strokeColor=none;", 472, 734, 336, 22, "")
+mono_text(440, 718, 400, "EXECUTES AS DIALECT-SPECIFIC SQL ↓", size=12, align="center")
+mono_text(340, 738, 600, "PUSHED DOWN TO YOUR WAREHOUSE · NOTHING TO MIGRATE", size=12, align="center")
 
 xml = ('<mxfile host="Claude" modified="2026-10-13" agent="drawio-reconstruction" version="24.0.0">'
        '<diagram name="JanusAI architecture" id="arch">'
