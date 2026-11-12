@@ -175,9 +175,14 @@ class JanusEngine:
     # ------------------------------------------------------------------
 
     def _plan(self, sql: str, properties: dict | None) -> str:
-        processed = None
-        if properties:
-            processed = frozenset(properties.items())
+        session_properties = dict(properties or {})
+        if self._config.require_certified:
+            # Same name as the engine's REQUIRE_CERTIFIED_PROPERTY; the engine
+            # refuses any model without certified: "true" when it is set.
+            session_properties["require_certified"] = "true"
+        processed = (
+            frozenset(session_properties.items()) if session_properties else None
+        )
 
         # Hoisted out of the try below so it is still in scope for the planned-SQL
         # check at the end, which runs whether or not manifest scoping succeeded.

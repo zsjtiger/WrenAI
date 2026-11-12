@@ -27,11 +27,15 @@ class JanusConfig:
         ``generate_series``). Empty by default — generators are blocked unless
         listed here. Data/file readers (``read_csv``, ``dblink``, ...) can
         NEVER be allowed via this list; they are always blocked in strict mode.
+    require_certified:
+        When ``True``, planning fails for any model whose metadata does not
+        carry ``certified: true``. Enforced by the engine, not by this layer.
     """
 
     strict_mode: bool = False
     denied_functions: frozenset[str] = field(default_factory=frozenset)
     allowed_source_functions: frozenset[str] = field(default_factory=frozenset)
+    require_certified: bool = False
 
 
 def load_config(janus_home: Path) -> JanusConfig:
@@ -91,8 +95,16 @@ def load_config(janus_home: Path) -> JanusConfig:
         )
     allowed_source_functions = frozenset(f.lower() for f in allowed_src_raw)
 
+    require_certified_raw = raw.get("require_certified", False)
+    if not isinstance(require_certified_raw, bool):
+        raise JanusError(
+            ErrorCode.GENERIC_USER_ERROR,
+            f"{config_path}: 'require_certified' must be a JSON boolean.",
+        )
+
     return JanusConfig(
         strict_mode=strict_mode_raw,
         denied_functions=denied_functions,
         allowed_source_functions=allowed_source_functions,
+        require_certified=require_certified_raw,
     )
