@@ -23,6 +23,8 @@ points at `crm.accounts`. No foreign key is declared anywhere.
 
 ![Flowchart of the twelve steps](fig_complex_demo_flow.png)
 
+A color version, in the same colorblind-safe palette as the architecture figure: [fig_complex_demo_flow_color.png](fig_complex_demo_flow_color.png).
+
 ## The steps
 
 | Step | What it shows |
