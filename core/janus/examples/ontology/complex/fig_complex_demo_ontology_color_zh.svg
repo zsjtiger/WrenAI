@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 690" width="960" height="690">
+  <style>text { font-family: 'WenQuanYi Zen Hei', 'PingFang SC', 'Microsoft YaHei', sans-serif; }</style>
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#1a1a1a"/>
+    </marker>
+  </defs>
+  <rect width="960" height="690" fill="#ffffff"/>
+  <rect x="30" y="70" width="530" height="555" rx="6" ry="6" fill="#f7f7f7" stroke="#dddddd"/>
+  <rect x="600" y="70" width="335" height="420" rx="6" ry="6" fill="#f7f7f7" stroke="#dddddd"/>
+  <text x="46" y="92" text-anchor="start" font-size="10" font-weight="600" fill="#4a4a4a">sales 销售</text>
+  <text x="616" y="92" text-anchor="start" font-size="10" font-weight="600" fill="#4a4a4a">crm 客户关系</text>
+  <path d="M300,262 L300,200 L100,200 L100,158" fill="none" stroke="#1a1a1a" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="200" y="192" text-anchor="middle" font-size="8" font-weight="400" fill="#4a4a4a">date_key</text>
+  <path d="M225,290 L175,290" fill="none" stroke="#1a1a1a" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="200" y="280" text-anchor="middle" font-size="8" font-weight="400" fill="#4a4a4a">store_key</text>
+  <path d="M375,290 L425,290" fill="none" stroke="#1a1a1a" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="400" y="280" text-anchor="middle" font-size="8" font-weight="400" fill="#4a4a4a">customer_key</text>
+  <path d="M575,290 L645,290" fill="none" stroke="#1a1a1a" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="610" y="280" text-anchor="middle" font-size="8" font-weight="400" fill="#4a4a4a">account_id</text>
+  <path d="M720,262 L720,158" fill="none" stroke="#1a1a1a" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="748" y="214" text-anchor="middle" font-size="8" font-weight="400" fill="#4a4a4a">company_id</text>
+  <path d="M300,318 L300,380 L100,380 L100,422" fill="none" stroke="#1a1a1a" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="200" y="372" text-anchor="middle" font-size="8" font-weight="400" fill="#4a4a4a">product_key</text>
+  <path d="M425,450 L175,450" fill="none" stroke="#1a1a1a" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="300" y="442" text-anchor="middle" font-size="8" font-weight="400" fill="#4a4a4a">product_key</text>
+  <path d="M500,478 L500,552" fill="none" stroke="#1a1a1a" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="530" y="520" text-anchor="middle" font-size="8" font-weight="400" fill="#4a4a4a">promo_id</text>
+  <path d="M720,318 L720,422" fill="none" stroke="#CC79A7" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+  <text x="748" y="372" text-anchor="middle" font-size="8" font-weight="400" fill="#4a4a4a">歧义，未写入</text>
+  <rect x="25.0" y="102.0" width="150" height="56" rx="4" ry="4" fill="#009E73" fill-opacity="0.14" stroke="#009E73" stroke-width="1.5"/>
+  <text x="100" y="124.0" text-anchor="middle" font-size="11" font-weight="600" fill="#1a1a1a">dim_date</text>
+  <text x="100" y="142.0" text-anchor="middle" font-size="9" font-weight="400" fill="#4a4a4a">2 行 · 未认证</text>
+  <rect x="25.0" y="262.0" width="150" height="56" rx="4" ry="4" fill="#009E73" fill-opacity="0.14" stroke="#009E73" stroke-width="1.5"/>
+  <text x="100" y="284.0" text-anchor="middle" font-size="11" font-weight="600" fill="#1a1a1a">dim_store</text>
+  <text x="100" y="302.0" text-anchor="middle" font-size="9" font-weight="400" fill="#4a4a4a">3 行 · 已认证</text>
+  <rect x="25.0" y="422.0" width="150" height="56" rx="4" ry="4" fill="#009E73" fill-opacity="0.14" stroke="#009E73" stroke-width="1.5"/>
+  <text x="100" y="444.0" text-anchor="middle" font-size="11" font-weight="600" fill="#1a1a1a">dim_product</text>
+  <text x="100" y="462.0" text-anchor="middle" font-size="9" font-weight="400" fill="#4a4a4a">4 行 · 已认证</text>
+  <rect x="225.0" y="262.0" width="150" height="56" rx="4" ry="4" fill="#009E73" fill-opacity="0.14" stroke="#009E73" stroke-width="1.5"/>
+  <text x="300" y="284.0" text-anchor="middle" font-size="11" font-weight="600" fill="#1a1a1a">fact_sales</text>
+  <text x="300" y="302.0" text-anchor="middle" font-size="9" font-weight="400" fill="#4a4a4a">5 行 · 已认证</text>
+  <rect x="425.0" y="262.0" width="150" height="56" rx="4" ry="4" fill="#ffffff" stroke="#757575" stroke-width="1.5"/>
+  <text x="500" y="284.0" text-anchor="middle" font-size="11" font-weight="600" fill="#1a1a1a">dim_customer</text>
+  <text x="500" y="302.0" text-anchor="middle" font-size="9" font-weight="400" fill="#4a4a4a">3 行 · 未认证</text>
+  <rect x="425.0" y="422.0" width="150" height="56" rx="4" ry="4" fill="#0072B2" fill-opacity="0.12" stroke="#0072B2" stroke-width="1.5"/>
+  <rect x="429.0" y="426.0" width="142" height="48" rx="3" ry="3" fill="none" stroke="#0072B2" stroke-width="1"/>
+  <text x="500" y="444.0" text-anchor="middle" font-size="11" font-weight="600" fill="#1a1a1a">bridge_promo_product</text>
+  <text x="500" y="462.0" text-anchor="middle" font-size="9" font-weight="400" fill="#4a4a4a">4 行 · 桥接表</text>
+  <rect x="425.0" y="552.0" width="150" height="56" rx="4" ry="4" fill="#ffffff" stroke="#757575" stroke-width="1.5"/>
+  <text x="500" y="574.0" text-anchor="middle" font-size="11" font-weight="600" fill="#1a1a1a">dim_promo</text>
+  <text x="500" y="592.0" text-anchor="middle" font-size="9" font-weight="400" fill="#4a4a4a">2 行 · 未认证</text>
+  <rect x="645.0" y="262.0" width="150" height="56" rx="4" ry="4" fill="#ffffff" stroke="#757575" stroke-width="1.5"/>
+  <text x="720" y="284.0" text-anchor="middle" font-size="11" font-weight="600" fill="#1a1a1a">accounts</text>
+  <text x="720" y="302.0" text-anchor="middle" font-size="9" font-weight="400" fill="#4a4a4a">3 行 · 未认证</text>
+  <rect x="645.0" y="102.0" width="150" height="56" rx="4" ry="4" fill="#ffffff" stroke="#757575" stroke-width="1.5"/>
+  <text x="720" y="124.0" text-anchor="middle" font-size="11" font-weight="600" fill="#1a1a1a">companies</text>
+  <text x="720" y="142.0" text-anchor="middle" font-size="9" font-weight="400" fill="#4a4a4a">2 行 · 未认证</text>
+  <rect x="645.0" y="422.0" width="150" height="56" rx="4" ry="4" fill="#757575" fill-opacity="0.08" stroke="#757575" stroke-width="1.5"/>
+  <text x="720" y="444.0" text-anchor="middle" font-size="11" font-weight="600" fill="#1a1a1a">company</text>
+  <text x="720" y="462.0" text-anchor="middle" font-size="9" font-weight="400" fill="#4a4a4a">2 行 · 遗留副本，未关联</text>
+  <rect x="40" y="644" width="18" height="14" rx="3" ry="3" fill="#009E73" fill-opacity="0.14" stroke="#009E73" stroke-width="1.25"/>
+  <text x="64" y="655" text-anchor="start" font-size="9" font-weight="400" fill="#4a4a4a">已认证</text>
+  <rect x="122" y="644" width="18" height="14" rx="3" ry="3" fill="#757575" fill-opacity="0" stroke="#757575" stroke-width="1.25"/>
+  <text x="146" y="655" text-anchor="start" font-size="9" font-weight="400" fill="#4a4a4a">未认证</text>
+  <rect x="204" y="644" width="18" height="14" rx="3" ry="3" fill="#0072B2" fill-opacity="0.12" stroke="#0072B2" stroke-width="1.25"/>
+  <text x="228" y="655" text-anchor="start" font-size="9" font-weight="400" fill="#4a4a4a">桥接表</text>
+  <rect x="286" y="644" width="18" height="14" rx="3" ry="3" fill="#757575" fill-opacity="0.08" stroke="#757575" stroke-width="1.25"/>
+  <text x="310" y="655" text-anchor="start" font-size="9" font-weight="400" fill="#4a4a4a">遗留副本</text>
+  <line x1="382" y1="652" x2="410" y2="652" stroke="#CC79A7" stroke-width="1.5" stroke-dasharray="4,3"/>
+  <text x="416" y="655" text-anchor="start" font-size="9" font-weight="400" fill="#4a4a4a">歧义，未写入</text>
+  <line x1="512" y1="652" x2="540" y2="652" stroke="#1a1a1a" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="546" y="655" text-anchor="start" font-size="9" font-weight="400" fill="#4a4a4a">已推断的关系（多对一）</text>
+  <text x="920" y="678" text-anchor="end" font-size="9" font-weight="400" fill="#757575">来源：WALKTHROUGH.md，第 4、7、10 步</text>
+</svg>

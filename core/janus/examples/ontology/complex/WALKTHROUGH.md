@@ -282,6 +282,10 @@ models/ unchanged: no dim_store_candidate
 
 ## 最后：结果汇总
 
+结果本体的全貌如下图：两个 schema，10 个模型，8 条关系，歧义的虚线未写入。
+
+![演示结束时的本体](fig_complex_demo_ontology_color_zh.png)
+
 | 项目 | 结果 |
 |---|---|
 | 候选模型（草稿） | 10 |
