@@ -28,6 +28,7 @@ Uses `uv` (not Poetry). `pyproject.toml` uses `hatchling` as build backend.
 
 - `janus query` / `janus dry-plan` / `janus dry-run` — Core query operations. `dry-plan` expands SQL through the MDL with no DB; `dry-run` parses and validates against the data source. MDL validation is `janus context validate` — there is no top-level `janus validate`
 - `janus context init|import|validate|build|show|instructions|set-profile|upgrade` — YAML MDL project management
+- MCP `list_attributes` (read-only) returns mined SQL attributes from `knowledge/attributes/`; `describe_model` returns `term` and column `display_name`
 - `janus context terms` — Suggest business terms for models and display names for columns from names (optional model refinement). Writes `draft/terms.yml`
 - `janus context attributes` — Mine recurring aggregates and filters from `knowledge/sql/` queries (`--min-occurrences`, `--top-n`, optional model judgement). Writes `draft/attributes.yml`
 - `janus context infer-fks` — Suggest undeclared foreign keys from column names, types, and the primary keys of models (optional embedding tie-break and model confirmation), and detect bridge tables. Writes only to `draft/`

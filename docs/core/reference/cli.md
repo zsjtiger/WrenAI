@@ -624,6 +624,11 @@ optional dependency at all; `list_stored_queries` enumerates every NL→SQL
 pair (not just a semantic top-k) from `knowledge/sql/*.md`; `list_knowledge`
 lists every file readable via the `janus://knowledge/{path}` resource below.
 
+`list_attributes` (read-only, always available) returns the SQL attributes mined and applied
+for models: `{"attributes": [{"model", "name", "expression", "kind", "occurrences", "status"}]}`.
+Pass `model` to list one model. `describe_model` also returns the model's `term`, its
+`aliases`, and each column's `display_name`; `list_models` returns `term`.
+
 ### Resources & prompt
 
 - `janus://mdl` — compiled MDL JSON

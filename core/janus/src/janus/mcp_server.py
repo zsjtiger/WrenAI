@@ -10,12 +10,14 @@ from __future__ import annotations
 
 import json
 import math
+import re
 from dataclasses import dataclass
 from datetime import date, datetime, time
 from decimal import Decimal
 from pathlib import Path
 from typing import Any, Callable
 
+import yaml
 from loguru import logger
 from mcp.server.fastmcp import FastMCP
 from mcp.types import ToolAnnotations
@@ -317,6 +319,38 @@ def _register_query_tools(mcp: FastMCP, ctx: ServeContext) -> None:
         return ctx.engine.dry_plan(sql)
 
 
+_SAFE_MODEL_NAME = re.compile(r"[A-Za-z0-9_]+")
+
+
+def read_attributes(project: Path, model: str | None = None) -> list[dict]:
+    """Attributes from ``knowledge/attributes/``, optionally for one model.
+
+    The model name becomes a file name, so it must be a plain identifier.
+    """
+    directory = project / "knowledge" / "attributes"
+    if model is not None and not _SAFE_MODEL_NAME.fullmatch(model):
+        raise ValueError(f"invalid model name {model!r}")
+    if not directory.is_dir():
+        return []
+    paths = (
+        [directory / f"{model}.yml"]
+        if model is not None
+        else sorted(directory.glob("*.yml"))
+    )
+    out: list[dict] = []
+    for path in paths:
+        if not path.is_file():
+            continue
+        data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+        if not isinstance(data, dict):
+            continue
+        owner = data.get("model") or path.stem
+        for attr in data.get("attributes") or []:
+            if isinstance(attr, dict):
+                out.append({"model": owner, **attr})
+    return out
+
+
 def _register_context_tools(mcp: FastMCP, ctx: ServeContext) -> None:
     _register_model_tools(mcp, ctx)
     _register_cube_tools(mcp, ctx)
@@ -354,6 +388,7 @@ def _register_model_tools(mcp: FastMCP, ctx: ServeContext) -> None:
                     "description": description,
                     "column_count": len(model.get("columns", []) or []),
                     "certified": is_certified(model.get("properties")),
+                    "term": (model.get("properties") or {}).get("term"),
                 }
             )
         return {"models": result}
@@ -376,9 +411,11 @@ def _register_model_tools(mcp: FastMCP, ctx: ServeContext) -> None:
                 "type": col.get("type"),
                 "description": col.get("description")
                 or (col.get("properties") or {}).get("description"),
+                "display_name": (col.get("properties") or {}).get("display_name"),
             }
             for col in model.get("columns", []) or []
         ]
+        model_props = model.get("properties") or {}
 
         relationships = [
             rel
@@ -388,6 +425,12 @@ def _register_model_tools(mcp: FastMCP, ctx: ServeContext) -> None:
 
         return {
             "name": model.get("name"),
+            "term": model_props.get("term"),
+            "aliases": [
+                a.strip()
+                for a in str(model_props.get("aliases") or "").split(",")
+                if a.strip()
+            ],
             "columns": columns,
             "primary_key": model.get("primary_key"),
             "ref_sql": model.get("ref_sql"),
@@ -395,6 +438,19 @@ def _register_model_tools(mcp: FastMCP, ctx: ServeContext) -> None:
             "certified": is_certified(model.get("properties")),
             "properties": model.get("properties") or {},
         }
+
+    @mcp.tool(
+        annotations=ToolAnnotations(title="List Attributes", readOnlyHint=True),
+    )
+    def list_attributes(model: str | None = None) -> dict:
+        """List reusable SQL attributes confirmed for models (knowledge/attributes/).
+
+        Each attribute has a ``name``, the ``expression`` it stands for, its
+        ``kind`` (``aggregate`` or ``filter``), and how many confirmed queries
+        used it. Pass ``model`` to list one model's attributes. Returns
+        ``{"attributes": [...]}``, with each entry carrying its ``model``.
+        """
+        return {"attributes": read_attributes(ctx.project, model)}
 
     @mcp.tool(
         annotations=ToolAnnotations(title="Get Data Source", readOnlyHint=True),

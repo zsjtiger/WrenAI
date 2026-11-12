@@ -521,6 +521,8 @@ janus serve mcp --transport http --port 8080     # 本地 Streamable HTTP，供�
 
 没有 `memory` 扩展时，知识工具会优雅降级：`get_context`（语义 Schema 检索，是 `recall_queries` 在 Schema 维度上的对应工具）会回退到完整的纯文本 Schema 描述；`describe_schema`（`get_mdl` 的人类可读版本）完全不需要可选依赖；`list_stored_queries` 会从 `knowledge/sql/*.md` 列出每一对 NL→SQL（而不仅是语义 top-k）；`list_knowledge` 会列出可通过下方 `janus://knowledge/{path}` 资源读取的所有文件。
 
+`list_attributes`（只读，始终可用）返回为模型挖掘并应用的 SQL 属性：`{"attributes": [{"model", "name", "expression", "kind", "occurrences", "status"}]}`。传入 `model` 只列出该模型的属性。`describe_model` 还会返回模型的 `term`、`aliases`，以及每列的 `display_name`；`list_models` 返回 `term`。
+
 ### 资源与提示词
 
 - `janus://mdl`：编译后的 MDL JSON
