@@ -1568,6 +1568,110 @@ def terms_cmd(
     typer.echo(f"Wrote {len(terms)} model term(s) to {out.relative_to(project_path)}.")
 
 
+@context_app.command("attributes")
+def attributes_cmd(
+    path: ProjectPathOpt = None,
+    min_occurrences: Annotated[
+        int,
+        typer.Option(
+            "--min-occurrences",
+            min=1,
+            help="Keep expressions that appear in at least this many distinct queries.",
+        ),
+    ] = 2,
+    top_n: Annotated[
+        int,
+        typer.Option("--top-n", min=1, help="Keep at most this many per model."),
+    ] = 10,
+    dialect_source: Annotated[
+        Optional[str],
+        typer.Option(
+            "--dialect",
+            help="SQL dialect of the stored queries. Defaults to the project's data_source.",
+        ),
+    ] = None,
+    refine_with_model: Annotated[
+        bool,
+        typer.Option(
+            "--refine-with-model",
+            help=(
+                "Ask the model named by JANUS_LLM_BASE_URL and JANUS_LLM_MODEL to keep, "
+                "reject, or rename each attribute. Without it, or when the model "
+                "fails, the rule result stands."
+            ),
+        ),
+    ] = False,
+    as_json: _JsonOpt = False,
+) -> None:
+    """Mine reusable SQL attributes from the confirmed query history.
+
+    Reads knowledge/sql/*.md and writes draft/attributes.yml. Models are not changed.
+    """
+    from janus.context import load_models, load_project_config  # noqa: PLC0415
+    from janus.llm import load_llm_config  # noqa: PLC0415
+    from janus.mdl.cte_rewriter import get_sqlglot_dialect  # noqa: PLC0415
+    from janus.model.data_source import DataSource  # noqa: PLC0415
+    from janus.semantic_attributes import (  # noqa: PLC0415
+        judge_with_model,
+        load_pairs,
+        mine_attributes,
+        write_attributes,
+    )
+
+    project_path = resolve_project_path(path)
+    if dialect_source:
+        dialect = dialect_source
+    else:
+        try:
+            ds = DataSource(
+                str(load_project_config(project_path).get("data_source")).lower()
+            )
+        except ValueError as exc:
+            typer.echo(
+                f"Error: unknown data_source in janus_project.yml: {exc}", err=True
+            )
+            raise typer.Exit(2) from exc
+        dialect = get_sqlglot_dialect(ds)
+
+    result = mine_attributes(
+        load_pairs(project_path),
+        load_models(project_path),
+        dialect,
+        min_occurrences=min_occurrences,
+        top_n=top_n,
+    )
+    llm = load_llm_config() if refine_with_model else None
+    if llm is not None:
+        judge_with_model(result, llm)
+    out = write_attributes(project_path, result)
+
+    if as_json:
+        typer.echo(
+            json.dumps(
+                {
+                    "attributes": [a.to_dict() for a in result.attributes],
+                    "queries_scanned": result.queries_scanned,
+                    "notes": result.notes,
+                },
+                indent=2,
+                ensure_ascii=False,
+            )
+        )
+        return
+    typer.echo(f"Scanned {result.queries_scanned} confirmed quer(y/ies).")
+    for a in result.attributes:
+        owner = a.model or "query-level"
+        typer.echo(
+            f"  {a.status:<10} {owner}.{a.name}  {a.expression}  "
+            f"({a.occurrences} quer{'y' if a.occurrences == 1 else 'ies'})"
+        )
+    for note in result.notes:
+        typer.echo(f"  note: {note}")
+    typer.echo(
+        f"Wrote {len(result.attributes)} attribute(s) to {out.relative_to(project_path)}."
+    )
+
+
 review_app = typer.Typer(
     name="review",
     help="Review correction proposals queued by agents (knowledge/corrections/).",

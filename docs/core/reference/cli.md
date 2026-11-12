@@ -500,6 +500,40 @@ different table; `bridges.yml` gives the join for each pair of targets and the m
 it attaches to. `models/` is not changed. Promote a model with
 `janus context draft apply`, which carries its relationships along.
 
+### `janus context terms`
+
+```bash
+janus context terms                    # rule terms and display names
+janus context terms --refine-with-model
+janus context terms --json
+```
+
+Suggests a business term for each model and a display name for each column, from
+names alone. A model's term drops warehouse prefixes (`dim_`, `fact_`, `tbl_`,
+`stg_`, `raw_`), is split into words, singularized, and title-cased: `dim_order_items`
+becomes `Order Item`. Column names expand common abbreviations (`cust` -> Customer,
+`qty` -> Quantity), and `id` is written `ID`. The raw model name is kept as an alias
+when it differs. With `--refine-with-model`, the configured model may replace terms
+and display names; a failed call keeps the rule terms. Output goes to
+`draft/terms.yml`; `models/` is not changed.
+
+### `janus context attributes`
+
+```bash
+janus context attributes                          # top 10 per model, at least 2 queries
+janus context attributes --min-occurrences 3 --top-n 5
+janus context attributes --refine-with-model
+```
+
+Mines reusable SQL expressions from the confirmed queries in `knowledge/sql/`: aggregates
+(`SUM`, `AVG`, `MIN`, `MAX`, `COUNT`) and WHERE filters that compare a column with a
+literal or use `IN` or `BETWEEN`. Each expression is scored by the number of distinct
+queries it appears in, and expressions below `--min-occurrences` are dropped. An
+expression belongs to a model when its column exists in exactly one model the query
+reads; otherwise it is query-level. Names come from rules, for example `sum(amount)`
+becomes `total_amount`. With `--refine-with-model`, the model may keep, reject, or rename
+each one. Output goes to `draft/attributes.yml`.
+
 ### `janus context review`
 
 Agents propose changes with the MCP tool `propose_correction` (available only

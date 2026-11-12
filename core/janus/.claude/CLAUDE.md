@@ -28,6 +28,8 @@ Uses `uv` (not Poetry). `pyproject.toml` uses `hatchling` as build backend.
 
 - `janus query` / `janus dry-plan` / `janus dry-run` — Core query operations. `dry-plan` expands SQL through the MDL with no DB; `dry-run` parses and validates against the data source. MDL validation is `janus context validate` — there is no top-level `janus validate`
 - `janus context init|import|validate|build|show|instructions|set-profile|upgrade` — YAML MDL project management
+- `janus context terms` — Suggest business terms for models and display names for columns from names (optional model refinement). Writes `draft/terms.yml`
+- `janus context attributes` — Mine recurring aggregates and filters from `knowledge/sql/` queries (`--min-occurrences`, `--top-n`, optional model judgement). Writes `draft/attributes.yml`
 - `janus context infer-fks` — Suggest undeclared foreign keys from column names, types, and the primary keys of models (optional embedding tie-break and model confirmation), and detect bridge tables. Writes only to `draft/`
 - `janus context diff|draft|review` — Drift detection against the live database (`diff`, exit 1 on drift), draft models from the database into `draft/` (`draft --from-db`, `draft apply <model>`), and the correction queue (`review`, `review approve|reject <id>`). Corrections are proposed by the MCP tool `propose_correction`, which exists only with `--allow-write`
 - `janus profile add|list|import|rm|switch|debug` — Named connection profiles. `rm` removes a profile, `switch` activates one; there is no `show`, `remove`, or `activate`

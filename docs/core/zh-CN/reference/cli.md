@@ -433,6 +433,26 @@ janus context infer-fks --json
 
 输出写入 `draft/`：`relationships.yml`（已接受的建议）、`fk_suggestions.yml`（每个候选的得分、来源、状态和理由），以及 `bridges.yml`。桥接表是指每一列都是指向不同表的外键的模型；`bridges.yml` 给出每一对目标的 join，以及它挂靠的模型。`models/` 不会被修改。用 `janus context draft apply` 提升模型时，它的关系会一并带上。
 
+### `janus context terms`
+
+```bash
+janus context terms                    # 规则生成的术语与展示名
+janus context terms --refine-with-model
+janus context terms --json
+```
+
+仅根据名称，为每个模型建议业务术语，为每列建议展示名。模型的术语会去掉仓库前缀（`dim_`、`fact_`、`tbl_`、`stg_`、`raw_`），拆词、单数化并首字母大写：`dim_order_items` 变为 `Order Item`。列名会展开常见缩写（`cust` -> Customer、`qty` -> Quantity），`id` 写作 `ID`。与原始模型名不同时，原始名保留为别名。加上 `--refine-with-model` 后，配置的模型可以替换术语和展示名；调用失败时保留规则结果。输出写入 `draft/terms.yml`，`models/` 不会被修改。
+
+### `janus context attributes`
+
+```bash
+janus context attributes                          # 每个模型前 10 个，至少出现在 2 条查询中
+janus context attributes --min-occurrences 3 --top-n 5
+janus context attributes --refine-with-model
+```
+
+从 `knowledge/sql/` 中已确认的查询里挖掘可复用的 SQL 表达式：聚合（`SUM`、`AVG`、`MIN`、`MAX`、`COUNT`），以及 WHERE 中把列与常量比较、或使用 `IN`、`BETWEEN` 的过滤条件。每个表达式按出现它的不同查询数计分，低于 `--min-occurrences` 的丢弃。表达式归属于查询所读取的、恰好有该列的那个模型；否则归为查询级别。名字由规则生成，例如 `sum(amount)` 变为 `total_amount`。加上 `--refine-with-model` 后，模型可以保留、否决或改名。输出写入 `draft/attributes.yml`。
+
 ### `janus context review`
 
 智能体通过 MCP 工具 `propose_correction` 提出修改（仅在 `janus serve mcp --allow-write` 时可用）。提案以 `pending` 状态保存在 `knowledge/corrections/` 下。

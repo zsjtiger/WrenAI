@@ -203,11 +203,12 @@ def list_keys(self, table: TableInfo) -> KeyInfo: ...   # 主键和外键
 |---|---|---|---|
 | 语义外键推断 | 完成 | `semantic_fk.py`、`janus context infer-fks` | 规则：列名词干与模型名（单复数）匹配，类型族一致，目标为单列主键；同分时 embedding API 重排，仍无法区分则标记 `ambiguous`；`--confirm-with-model` 由模型确认，失败保留规则结果 |
 | 桥接表识别 | 完成 | `semantic_fk.py`（`bridges.yml`） | 每列都是指向不同表的外键（已声明或已接受）的模型；给出每一对目标的 join，并列出挂靠的模型 |
-| 术语抽取 | 未开始 | — | 需要人工判断的业务含义，计划放在后续 |
-| SQL 属性挖掘 | 未开始 | — | 依赖查询历史的使用次数；需要先约定计数来源 |
+| 术语抽取 | 完成 | `semantic_terms.py`、`janus context terms` | 规则：去前缀、拆词、单数化、缩写展开；可选模型精炼术语与展示名，失败保留规则结果 |
+| SQL 属性挖掘 | 完成 | `semantic_attributes.py`、`janus context attributes` | 来源是 `knowledge/sql/` 中已确认的查询；计分为出现的不同查询数（不是执行次数）；`--min-occurrences` 与 `--top-n` 控制保留；可选模型保留、否决或改名 |
 
 ### 与 Auto-Ontology 的差异
 
 - “术语”在本项目中对应模型，没有单独的术语对象。桥接表的 `attach_to` 指向两个目标模型。
 - 所有推断结果写入 `draft/`，经 `janus context draft apply` 或人工编辑后才进入 `models/`。
 - 向量只用于同分重排，不替代规则。
+- SQL 属性的计分是“出现在多少条已确认查询中”，不是数据库里的执行次数。执行次数需要查询日志，目前项目里没有。
