@@ -1518,6 +1518,56 @@ def infer_fks(
     )
 
 
+@context_app.command("terms")
+def terms_cmd(
+    path: ProjectPathOpt = None,
+    refine_with_model: Annotated[
+        bool,
+        typer.Option(
+            "--refine-with-model",
+            help=(
+                "Ask the model named by JANUS_LLM_BASE_URL and JANUS_LLM_MODEL to "
+                "refine terms and display names. Without it, or when the model "
+                "fails, the rule terms stand."
+            ),
+        ),
+    ] = False,
+    as_json: _JsonOpt = False,
+) -> None:
+    """Suggest business terms for models and display names for their columns.
+
+    Writes draft/terms.yml. Models are not changed.
+    """
+    from janus.context import load_models  # noqa: PLC0415
+    from janus.llm import load_llm_config  # noqa: PLC0415
+    from janus.semantic_terms import build_terms, write_terms  # noqa: PLC0415
+
+    project_path = resolve_project_path(path)
+    terms, notes = build_terms(
+        load_models(project_path),
+        llm=load_llm_config() if refine_with_model else None,
+    )
+    out = write_terms(project_path, terms, notes)
+
+    if as_json:
+        typer.echo(
+            json.dumps(
+                {"terms": [t.to_dict() for t in terms], "notes": notes},
+                indent=2,
+                ensure_ascii=False,
+            )
+        )
+        return
+    for t in terms:
+        aliases = f"  (also: {', '.join(t.aliases)})" if t.aliases else ""
+        typer.echo(f"  {t.model}  ->  {t.term}  [{t.source}]{aliases}")
+        for c in t.columns:
+            typer.echo(f"      {c.name}  ->  {c.display_name}")
+    for note in notes:
+        typer.echo(f"  note: {note}")
+    typer.echo(f"Wrote {len(terms)} model term(s) to {out.relative_to(project_path)}.")
+
+
 review_app = typer.Typer(
     name="review",
     help="Review correction proposals queued by agents (knowledge/corrections/).",
