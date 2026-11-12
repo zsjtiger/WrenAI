@@ -56,6 +56,8 @@ flowchart TD
   cli -->|"context diff · draft --from-db"| data
   agent["Agent"] -->|"propose_correction"| review["janus context review<br/>a person approves"]
   review -->|"merge into models/"| project
+  cli -->|"draft · infer-fks · terms · attributes"| draft["draft/<br/>candidates, not yet live"]
+  draft -->|"draft apply<br/>relationships · terms · attributes"| project
   runtime -.->|"optional: embedding API · --suggest-terms"| models["Model API<br/>OpenAI-compatible"]
 ```
 

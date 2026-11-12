@@ -82,8 +82,8 @@ add(f"rounded=0;fillColor={PANELB};strokeColor=none;", 136, 387, 1008, 1, "")
 
 cols = [147, 400, 652, 904]
 pillars = [
-    ("01", "MDL", "WHAT YOUR DATA MEANS", ["models · relationships", "views · cubes & metrics"]),
-    ("02", "Knowledge", "WHAT SCHEMAS DON'T SAY", ["knowledge/rules · enums", "knowledge/sql · joins"]),
+    ("01", "MDL", "WHAT YOUR DATA MEANS", ["models · relationships", "terms · inferred keys"]),
+    ("02", "Knowledge", "WHAT SCHEMAS DON'T SAY", ["knowledge/rules · enums", "mined SQL attributes"]),
     ("03", "Memory", "WHAT WORKED BEFORE", ["LanceDB hybrid index", "recall of proven NL→SQL"]),
     ("04", "Governed execution", "WHAT AGENTS MAY RUN", ["certified models · provenance", "dry-plan · row limits"]),
 ]
