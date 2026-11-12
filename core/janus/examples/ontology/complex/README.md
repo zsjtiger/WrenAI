@@ -21,6 +21,8 @@ No network, server, or model key is needed. Output goes to `work/` (git-ignored)
 Cross-schema references are inferred too: `sales.dim_customer.account_id`
 points at `crm.accounts`. No foreign key is declared anywhere.
 
+![Flowchart of the twelve steps](fig_complex_demo_flow.png)
+
 ## The steps
 
 | Step | What it shows |

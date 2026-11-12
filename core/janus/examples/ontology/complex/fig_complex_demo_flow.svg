@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 690" width="960" height="690">
+  <style>text { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }</style>
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#1a1a1a"/>
+    </marker>
+  </defs>
+  <rect width="960" height="690" fill="#ffffff"/>
+  <text x="258" y="90" text-anchor="start" font-size="10" font-weight="600" fill="#4a4a4a">1 · Build the candidate ontology</text>
+  <text x="258" y="284" text-anchor="start" font-size="10" font-weight="600" fill="#4a4a4a">2 · Decide and publish</text>
+  <text x="258" y="478" text-anchor="start" font-size="10" font-weight="600" fill="#4a4a4a">3 · Query, govern, and recover</text>
+  <rect x="28" y="104" width="200" height="112" rx="4" ry="4" fill="#ffffff" stroke="#1a1a1a" stroke-width="1.25"/>
+  <text x="128.0" y="128" text-anchor="middle" font-size="11" font-weight="600" fill="#1a1a1a">1 · Warehouse</text>
+  <text x="128.0" y="154" text-anchor="middle" font-size="9" font-weight="400" fill="#4a4a4a">make_retail_warehouse.py</text>
+  <text x="128.0" y="182" text-anchor="middle" font-size="9" font-weight="400" fill="#1a1a1a">two schemas, no declared keys</text>
+  <rect x="258" y="104" width="200" height="112" rx="4" ry="4" fill="#ffffff" stroke="#1a1a1a" stroke-width="1.25"/>
+  <text x="358.0" y="128" text-anchor="middle" font-size="11" font-weight="600" fill="#1a1a1a">2 · Profile and project</text>
+  <text x="358.0" y="154" text-anchor="middle" font-size="9" font-weight="400" fill="#4a4a4a">context init · duckdb profile</text>
+  <text x="358.0" y="182" text-anchor="middle" font-size="9" font-weight="400" fill="#1a1a1a">project bound to the warehouse</text>
+  <rect x="488" y="104" width="200" height="112" rx="4" ry="4" fill="#ffffff" stroke="#1a1a1a" stroke-width="1.25"/>
+  <text x="588.0" y="128" text-anchor="middle" font-size="11" font-weight="600" fill="#1a1a1a">3 · Draft per schema</text>
+  <text x="588.0" y="154" text-anchor="middle" font-size="9" font-weight="400" fill="#4a4a4a">context draft --from-db</text>
+  <text x="588.0" y="182" text-anchor="middle" font-size="9" font-weight="400" fill="#1a1a1a">10 drafts; composite keys noted</text>
+  <rect x="718" y="104" width="200" height="112" rx="4" ry="4" fill="#ffffff" stroke="#1a1a1a" stroke-width="1.25"/>
+  <text x="818.0" y="128" text-anchor="middle" font-size="11" font-weight="600" fill="#1a1a1a">4 · Infer foreign keys</text>
+  <text x="818.0" y="154" text-anchor="middle" font-size="9" font-weight="400" fill="#4a4a4a">context infer-fks</text>
+  <text x="818.0" y="182" text-anchor="middle" font-size="9" font-weight="400" fill="#1a1a1a">tie on accounts.company_id: ambiguous</text>
+  <rect x="28" y="298" width="200" height="112" rx="4" ry="4" fill="#ffffff" stroke="#1a1a1a" stroke-width="1.25"/>
+  <text x="128.0" y="322" text-anchor="middle" font-size="11" font-weight="600" fill="#1a1a1a">5 · Terms and attributes</text>
+  <text x="128.0" y="348" text-anchor="middle" font-size="9" font-weight="400" fill="#4a4a4a">terms · attributes</text>
+  <text x="128.0" y="376" text-anchor="middle" font-size="9" font-weight="400" fill="#1a1a1a">8 confirmed queries, 2 measures kept</text>
+  <rect x="258" y="298" width="200" height="112" rx="4" ry="4" fill="#ffffff" stroke="#1a1a1a" stroke-width="1.25" stroke-dasharray="4,3"/>
+  <text x="358.0" y="322" text-anchor="middle" font-size="11" font-weight="600" fill="#1a1a1a">6 · Person decides the tie</text>
+  <text x="358.0" y="348" text-anchor="middle" font-size="9" font-weight="400" fill="#4a4a4a">companies, not company</text>
+  <text x="358.0" y="376" text-anchor="middle" font-size="9" font-weight="400" fill="#1a1a1a">recorded in draft/relationships.yml</text>
+  <text x="358.0" y="398" text-anchor="middle" font-size="8" font-weight="400" fill="#757575">a person acts</text>
+  <rect x="488" y="298" width="200" height="112" rx="4" ry="4" fill="#ffffff" stroke="#1a1a1a" stroke-width="1.25"/>
+  <text x="588.0" y="322" text-anchor="middle" font-size="11" font-weight="600" fill="#1a1a1a">7 · Promote the drafts</text>
+  <text x="588.0" y="348" text-anchor="middle" font-size="9" font-weight="400" fill="#4a4a4a">context draft apply</text>
+  <text x="588.0" y="376" text-anchor="middle" font-size="9" font-weight="400" fill="#1a1a1a">any order; relationships wait for both ends</text>
+  <rect x="718" y="298" width="200" height="112" rx="4" ry="4" fill="#ffffff" stroke="#1a1a1a" stroke-width="1.25"/>
+  <text x="818.0" y="322" text-anchor="middle" font-size="11" font-weight="600" fill="#1a1a1a">8 · Build and diff</text>
+  <text x="818.0" y="348" text-anchor="middle" font-size="9" font-weight="400" fill="#4a4a4a">context build · diff --schema</text>
+  <text x="818.0" y="376" text-anchor="middle" font-size="9" font-weight="400" fill="#1a1a1a">no drift in either schema</text>
+  <rect x="28" y="492" width="200" height="112" rx="4" ry="4" fill="#ffffff" stroke="#1a1a1a" stroke-width="1.25"/>
+  <text x="128.0" y="516" text-anchor="middle" font-size="11" font-weight="600" fill="#1a1a1a">9 · Query the semantic layer</text>
+  <text x="128.0" y="542" text-anchor="middle" font-size="9" font-weight="400" fill="#4a4a4a">janus --sql over MDL names</text>
+  <text x="128.0" y="570" text-anchor="middle" font-size="9" font-weight="400" fill="#1a1a1a">bridge and star joins return rows</text>
+  <rect x="258" y="492" width="200" height="112" rx="4" ry="4" fill="#ffffff" stroke="#1a1a1a" stroke-width="1.25"/>
+  <text x="358.0" y="516" text-anchor="middle" font-size="11" font-weight="600" fill="#1a1a1a">10 · Certify and check provenance</text>
+  <text x="358.0" y="542" text-anchor="middle" font-size="9" font-weight="400" fill="#4a4a4a">certify · require_certified</text>
+  <text x="358.0" y="570" text-anchor="middle" font-size="9" font-weight="400" fill="#1a1a1a">uncertified models refused at planning</text>
+  <rect x="488" y="492" width="200" height="112" rx="4" ry="4" fill="#ffffff" stroke="#1a1a1a" stroke-width="1.25"/>
+  <text x="588.0" y="516" text-anchor="middle" font-size="11" font-weight="600" fill="#1a1a1a">11 · Review agent corrections</text>
+  <text x="588.0" y="542" text-anchor="middle" font-size="9" font-weight="400" fill="#4a4a4a">propose · review approve|reject</text>
+  <text x="588.0" y="570" text-anchor="middle" font-size="9" font-weight="400" fill="#1a1a1a">one applied, one rejected, one refused</text>
+  <rect x="718" y="492" width="200" height="112" rx="4" ry="4" fill="#ffffff" stroke="#1a1a1a" stroke-width="1.25"/>
+  <text x="818.0" y="516" text-anchor="middle" font-size="11" font-weight="600" fill="#1a1a1a">12 · Failed apply</text>
+  <text x="818.0" y="542" text-anchor="middle" font-size="9" font-weight="400" fill="#4a4a4a">draft apply (invalid draft)</text>
+  <text x="818.0" y="570" text-anchor="middle" font-size="9" font-weight="400" fill="#1a1a1a">validation fails; models/ unchanged</text>
+  <path d="M228,160.0 L258,160.0" fill="none" stroke="#1a1a1a" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <path d="M458,160.0 L488,160.0" fill="none" stroke="#1a1a1a" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <path d="M688,160.0 L718,160.0" fill="none" stroke="#1a1a1a" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <path d="M228,354.0 L258,354.0" fill="none" stroke="#1a1a1a" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <path d="M458,354.0 L488,354.0" fill="none" stroke="#1a1a1a" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <path d="M688,354.0 L718,354.0" fill="none" stroke="#1a1a1a" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <path d="M228,548.0 L258,548.0" fill="none" stroke="#1a1a1a" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <path d="M458,548.0 L488,548.0" fill="none" stroke="#1a1a1a" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <path d="M688,548.0 L718,548.0" fill="none" stroke="#1a1a1a" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <path d="M818.0,216 L818.0,257.0 L128.0,257.0 L128.0,298" fill="none" stroke="#1a1a1a" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <path d="M818.0,410 L818.0,451.0 L128.0,451.0 L128.0,492" fill="none" stroke="#1a1a1a" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="40" y1="648" x2="72" y2="648" stroke="#1a1a1a" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="80" y="652" text-anchor="start" font-size="9" font-weight="400" fill="#4a4a4a">order of steps</text>
+  <rect x="240" y="641" width="28" height="14" rx="3" ry="3" fill="#ffffff" stroke="#1a1a1a" stroke-width="1.25" stroke-dasharray="4,3"/>
+  <text x="278" y="652" text-anchor="start" font-size="9" font-weight="400" fill="#4a4a4a">a person&#x27;s decision, not automated</text>
+  <text x="920" y="652" text-anchor="end" font-size="9" font-weight="400" fill="#757575">source: run_complex_demo.sh</text>
+</svg>
