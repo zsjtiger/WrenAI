@@ -44,10 +44,7 @@ def check_embeddings() -> bool:
 
     cfg = load_api_embedding_config()
     if cfg is None:
-        print(
-            "embeddings: not configured (set JANUS_EMBEDDING_API_BASE_URL and _MODEL)"
-        )
-        return False
+        return _check_default_embeddings()
     print(f"embeddings: {cfg.base_url}  model={cfg.model}")
     try:
         vectors = ApiEmbeddings(cfg).compute_source_embeddings(
@@ -58,6 +55,23 @@ def check_embeddings() -> bool:
         return False
     print(f"  got {len(vectors)} vectors, dimension {len(vectors[0])}")
     print(f"  cosine(你好，世界, hello world) = {_cosine(vectors[0], vectors[1]):.3f}")
+    return True
+
+
+def _check_default_embeddings() -> bool:
+    from janus.memory.embeddings import (  # noqa: PLC0415
+        embedding_backend_available,
+        resolve_embedding_backend,
+    )
+
+    backend = resolve_embedding_backend()
+    if not embedding_backend_available():
+        print(
+            f"embeddings: default backend ({backend}) is not installed. "
+            "Install one: pip install 'janusai[memory-onnx]' or 'janusai[memory]'"
+        )
+        return False
+    print(f"embeddings: default local backend ({backend}); no API configured")
     return True
 
 
@@ -73,7 +87,7 @@ def check_chat() -> bool:
     try:
         reply = complete_json(
             cfg,
-            'Reply with a JSON object {"ok": true, "model_said": "<your model name>"} and nothing else.',
+            'Reply with a JSON object {"ok": true} and nothing else.',
             "ping",
         )
     except LlmError as exc:
