@@ -214,6 +214,67 @@ janus memory recall --query "revenue"
 
 `store` 会把该对写入 `knowledge/sql/<slug>.md`，这是事实来源。grep 后端无需额外安装。安装 `janusai[memory]` 后可以使用语义搜索和派生索引，并用 `janus memory watch` 让索引保持最新。
 
+### 对照数据库检查上下文
+
+`janus context diff` 把每个模型与实际 Schema 比对，报告已经漂移的地方：缺失或多出的列、类型变化、主键不一致，以及没有模型覆盖的表。
+
+```bash
+janus context diff                 # 所有模型与绑定的数据库比对
+janus context diff --schema public # 只比较一个 schema 或 BigQuery dataset
+janus context diff --json          # 机器可读的报告
+```
+
+无差异时退出码为 `0`，有漂移为 `1`，数据库无法读取为 `2`，因此可以放进 CI。数据库中的复合主键只记录说明、不做比较，因为 MDL 的主键是单列。
+
+### 草拟模型，补全未声明的内容
+
+为还没有模型的表生成候选模型。草稿写入 `draft/`，在你提升之前，`models/` 不会有任何改动。
+
+```bash
+janus context draft --from-db          # 为未建模的表生成草稿
+janus context infer-fks                # 推断未声明的外键
+janus context terms                    # 业务术语与列展示名
+janus context attributes               # 反复出现的 SQL 聚合与过滤条件
+janus context draft apply orders       # 把草稿提升到 models/
+```
+
+- **外键**根据列名（`cust_id` → `customers`）、类型和主键推断。多个目标同分时，若已配置 embedding API 则由它决定，否则标记为歧义。所有列都是外键的表会在 `draft/bridges.yml` 中生成 join。
+- **术语**去掉仓库前缀（`dim_order_items` → Order Item），并展开常见缩写（`qty` → Quantity）。
+- **属性**从 `knowledge/sql/` 中已确认的查询里挖掘。同一表达式在一条查询中只计一次，罕见的会被丢弃（`--min-occurrences`）。
+- **提升**时把关系、术语和展示名带入模型的 `properties`，不覆盖你已设置的值，属性写入 `knowledge/attributes/<模型>.yml`。校验失败则恢复草稿。
+
+### 认证定义，并审核代理提出的修正
+
+在模型的 `metadata.yml` 中标记认证：
+
+```yaml
+properties:
+  certified: "true"
+  owner: finance-team
+```
+
+在 `~/.janus/config.json` 中把 `require_certified` 设为 `true`，即可拒绝读取未认证模型的查询。每个 `run_sql` 和 `query_cube` 的结果都带有 `provenance`：用到的模型、它们的认证状态，以及你传入的知识文件。使用未认证模型时还会附加警告。
+
+智能体不直接修改模型。它们把修正排入队列，由你审核：
+
+```bash
+janus serve mcp --allow-write          # 启用 propose_correction 工具
+janus context review                   # 列出待处理的修正
+janus context review approve <id>      # 校验通过后合并到模型
+janus context review reject <id> --reason "不是真正的问题"
+```
+
+### 可选模型：embedding 与大模型
+
+以上功能都不需要模型。两个功能可以使用模型，缺失或调用失败时都会退回到确定性的结果。
+
+| 用途 | 变量 |
+|---|---|
+| Embedding：语义召回、外键同分裁决 | `JANUS_EMBEDDING_BACKEND=api`、`JANUS_EMBEDDING_API_BASE_URL`、`JANUS_EMBEDDING_API_MODEL`，可选 `JANUS_EMBEDDING_API_KEY`，需要 passage 与 query 输入类型的端点设置 `JANUS_EMBEDDING_API_ASYMMETRIC=1` |
+| 大模型：`--suggest-terms`、`--refine-with-model`、`--confirm-with-model` | `JANUS_LLM_BASE_URL`、`JANUS_LLM_MODEL`，可选 `JANUS_LLM_API_KEY` |
+
+没有设置 `JANUS_EMBEDDING_BACKEND` 时，若已安装本地 embedding 模型（`pip install "janusai[memory-onnx]"`），janus 使用它。发送给模型的只有列名和类型，不包括行数据。`examples/model-endpoints/check_endpoints.py` 可以检查两个端点是否可用。
+
 ### 通过 MCP 提供 Janus 工具
 
 ```bash
@@ -240,13 +301,14 @@ janus serve mcp --transport http --port 8080      # HTTP，绑定 127.0.0.1
 | 查询 | `dry_run` | 在数据源上校验 SQL，不返回数据。 |
 | 查询 | `dry_plan` | 通过 MDL 展开 SQL，不连接数据库。 |
 | 查询 | `query_cube` | 执行结构化 Cube 查询；设置 `sql_only` 时只返回 SQL。 |
-| 模型 | `get_mdl`、`list_models`、`describe_model` | 读取编译后的 MDL，列出并描述模型。 |
+| 模型 | `get_mdl`、`list_models`、`describe_model` | 读取编译后的 MDL，列出并描述模型。`describe_model` 还返回术语、别名和列展示名。 |
 | 模型 | `get_data_source`、`describe_schema`、`list_functions` | 数据源信息、完整 Schema 和可用函数。 |
 | Cube | `list_cubes`、`describe_cube` | 列出 Cube 及其度量和维度。 |
 | 知识 | `get_instructions`、`get_context` | 供智能体使用的业务规则和项目上下文。 |
 | 知识 | `list_knowledge`、`list_stored_queries` | 浏览知识文件和已保存的 NL→SQL 对。 |
 | 召回 | `recall_queries` | 按自然语言搜索历史 NL→SQL 对。 |
 | 写入 | `store_query` | 把确认过的 NL→SQL 对保存到 `knowledge/sql/`，需要 `--allow-write`。 |
+| 写入 | `propose_correction` | 把对模型的修改提议排入 `knowledge/corrections/` 等待审核，需要 `--allow-write`。 |
 
 **资源**
 
@@ -259,6 +321,24 @@ janus serve mcp --transport http --port 8080      # HTTP，绑定 127.0.0.1
 **提示词**
 
 - `janus_workflow`：引导智能体用 Janus 回答数据问题的工作流程。
+
+### 通过 HTTP 提供 Janus 服务
+
+`janus serve api` 以 JSON 形式提供与 MCP 相同的查询和上下文接口：
+
+```bash
+janus serve api                             # 127.0.0.1:8090
+janus serve api --port 9000 --token "$TOKEN"
+```
+
+| 方法 | 路径 | 返回 |
+|---|---|---|
+| GET | `/health` | 存活检查 |
+| GET | `/models`、`/models/{name}` | 模型列表，含认证状态 |
+| POST | `/query` | 行数据与 `provenance`；请求体 `{"sql", "limit"?, "knowledge"?, "include_sql"?}` |
+| POST | `/dry-plan` | 展开后的 SQL，不访问数据库 |
+
+绑定非回环地址时必须提供 `--token`（或 `JANUS_API_TOKEN`）。没有匹配的 `Authorization: Bearer <token>` 的请求返回 `401`。
 
 ### 构建并部署 CReport 应用
 

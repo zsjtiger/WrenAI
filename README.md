@@ -214,6 +214,67 @@ janus memory recall --query "revenue"
 
 `store` writes the pair to `knowledge/sql/<slug>.md`, which is the source of truth. The grep backend works with no extra install. Install `janusai[memory]` for semantic search with a derived index, and use `janus memory watch` to keep that index fresh.
 
+### Check the context against your database
+
+`janus context diff` compares every model with the live schema and reports what has drifted: missing or extra columns, type changes, primary-key differences, and tables no model covers.
+
+```bash
+janus context diff                 # all models against the bound database
+janus context diff --schema public # one schema or BigQuery dataset
+janus context diff --json          # machine-readable report
+```
+
+It exits `0` when nothing differs, `1` on drift, and `2` when the database cannot be read, so CI can run it. A composite primary key in the database is noted, not compared, because MDL keys are single columns.
+
+### Draft models and fill in what is not declared
+
+Generate candidate models for tables that have no model yet. Drafts go under `draft/`, and nothing in `models/` changes until you apply one.
+
+```bash
+janus context draft --from-db          # drafts for unmodeled tables
+janus context infer-fks                # suggest undeclared foreign keys
+janus context terms                    # business terms and column display names
+janus context attributes               # recurring SQL aggregates and filters
+janus context draft apply orders       # promote a draft into models/
+```
+
+- **Foreign keys** come from column names (`cust_id` → `customers`), types, and primary keys. Ties go to the embedding API when one is configured, and otherwise stay ambiguous. Tables whose columns are all keys get a join in `draft/bridges.yml`.
+- **Terms** drop warehouse prefixes (`dim_order_items` → Order Item) and expand common abbreviations (`qty` → Quantity).
+- **Attributes** are mined from the confirmed queries in `knowledge/sql/`. An expression counts once per query, and rare ones are dropped (`--min-occurrences`).
+- **Apply** carries the relationships, terms, and display names into the model's `properties`, never overwriting a value you have set, and writes the attributes to `knowledge/attributes/<model>.yml`. If validation fails, the draft is restored.
+
+### Certify definitions, and review agent corrections
+
+Mark a model as certified in its `metadata.yml`:
+
+```yaml
+properties:
+  certified: "true"
+  owner: finance-team
+```
+
+Set `require_certified` to `true` in `~/.janus/config.json` to refuse queries that read an uncertified model. Every `run_sql` and `query_cube` result carries `provenance`: the models it used, their certification, and the knowledge files you passed in. An uncertified model also adds a warning.
+
+Agents do not edit models. They queue a correction, and you review it:
+
+```bash
+janus serve mcp --allow-write          # enables the propose_correction tool
+janus context review                   # list pending corrections
+janus context review approve <id>      # merge it into the model, after validation
+janus context review reject <id> --reason "not a real problem"
+```
+
+### Optional models: embeddings and an LLM
+
+Nothing above needs a model. Two features can use one, and each falls back to a deterministic result when it is missing or fails.
+
+| Used by | Variables |
+|---|---|
+| Embeddings: semantic recall, foreign-key tie-breaks | `JANUS_EMBEDDING_BACKEND=api`, `JANUS_EMBEDDING_API_BASE_URL`, `JANUS_EMBEDDING_API_MODEL`, optional `JANUS_EMBEDDING_API_KEY`, `JANUS_EMBEDDING_API_ASYMMETRIC=1` for endpoints that need passage and query types |
+| LLM: `--suggest-terms`, `--refine-with-model`, `--confirm-with-model` | `JANUS_LLM_BASE_URL`, `JANUS_LLM_MODEL`, optional `JANUS_LLM_API_KEY` |
+
+Without `JANUS_EMBEDDING_BACKEND`, janus uses a local embedding model when one is installed (`pip install "janusai[memory-onnx]"`). Only column names and types are sent to the model, never row values. `examples/model-endpoints/check_endpoints.py` checks both endpoints.
+
 ### Serve Janus tools over MCP
 
 ```bash
@@ -240,13 +301,15 @@ Flags:
 | Query | `dry_run` | Check SQL against the data source without returning rows. |
 | Query | `dry_plan` | Expand SQL through the MDL without connecting to a database. |
 | Query | `query_cube` | Run a structured cube query, or return its SQL with `sql_only`. |
-| Models | `get_mdl`, `list_models`, `describe_model` | Read the compiled MDL, or list and describe models. |
+| Models | `get_mdl`, `list_models`, `describe_model` | Read the compiled MDL, or list and describe models. `describe_model` also returns the term, aliases, and column display names. |
 | Models | `get_data_source`, `describe_schema`, `list_functions` | Data source details, the full schema, and supported functions. |
 | Cubes | `list_cubes`, `describe_cube` | List cubes and their measures and dimensions. |
 | Knowledge | `get_instructions`, `get_context` | Business rules and project context for the agent. |
 | Knowledge | `list_knowledge`, `list_stored_queries` | Browse knowledge files and stored NL→SQL pairs. |
+| Knowledge | `list_attributes` | Mined SQL attributes for a model, from `knowledge/attributes/`. |
 | Recall | `recall_queries` | Search past NL→SQL pairs by natural language. |
 | Write | `store_query` | Save a confirmed NL→SQL pair to `knowledge/sql/`. Requires `--allow-write`. |
+| Write | `propose_correction` | Queue a proposed change to a model for review in `knowledge/corrections/`. Requires `--allow-write`. |
 
 **Resources**
 
@@ -259,6 +322,24 @@ Flags:
 **Prompt**
 
 - `janus_workflow`: a guided workflow for answering a data question with Janus.
+
+### Serve Janus over HTTP
+
+`janus serve api` exposes the same query and context endpoints as MCP, as JSON:
+
+```bash
+janus serve api                             # 127.0.0.1:8090
+janus serve api --port 9000 --token "$TOKEN"
+```
+
+| Method | Path | Returns |
+|---|---|---|
+| GET | `/health` | liveness |
+| GET | `/models`, `/models/{name}` | models, with certification |
+| POST | `/query` | rows and `provenance`; body `{"sql", "limit"?, "knowledge"?, "include_sql"?}` |
+| POST | `/dry-plan` | expanded SQL, without touching the database |
+
+Binding a non-loopback address requires `--token` (or `JANUS_API_TOKEN`). Requests without `Authorization: Bearer <token>` get `401`.
 
 ### Build and deploy a CReport app
 
