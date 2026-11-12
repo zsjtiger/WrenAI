@@ -419,6 +419,8 @@ export JANUS_LLM_API_KEY=...                                    # 可选；以 b
 janus context draft --from-db --suggest-terms
 ```
 
+`janus context terms` 和 `janus context attributes` 也会处理草稿，因此草稿被提升时建议已经就绪。`apply` 随后把 `term`、`aliases` 以及列的 `display_name` 填入模型的 `properties`（不覆盖已设置的值），并把未被否决的属性写入 `knowledge/attributes/<模型>.yml`。校验失败时，草稿和属性文件都会恢复。
+
 草稿写入 `draft/models/<name>/`，外键会变成 `draft/relationships.yml` 中的候选关系。在 `apply` 之前，`models/` 不会被修改。每个草稿带有 `properties.draft: "true"`；`apply` 会去掉该标记、添加两端都已存在的关系，并校验项目。校验失败时会回滚移动。
 
 ### `janus context infer-fks`

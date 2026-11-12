@@ -1538,13 +1538,13 @@ def terms_cmd(
 
     Writes draft/terms.yml. Models are not changed.
     """
-    from janus.context import load_models  # noqa: PLC0415
+    from janus.context_draft import load_models_with_drafts  # noqa: PLC0415
     from janus.llm import load_llm_config  # noqa: PLC0415
     from janus.semantic_terms import build_terms, write_terms  # noqa: PLC0415
 
     project_path = resolve_project_path(path)
     terms, notes = build_terms(
-        load_models(project_path),
+        load_models_with_drafts(project_path),
         llm=load_llm_config() if refine_with_model else None,
     )
     out = write_terms(project_path, terms, notes)
@@ -1607,7 +1607,8 @@ def attributes_cmd(
 
     Reads knowledge/sql/*.md and writes draft/attributes.yml. Models are not changed.
     """
-    from janus.context import load_models, load_project_config  # noqa: PLC0415
+    from janus.context import load_project_config  # noqa: PLC0415
+    from janus.context_draft import load_models_with_drafts  # noqa: PLC0415
     from janus.llm import load_llm_config  # noqa: PLC0415
     from janus.mdl.cte_rewriter import get_sqlglot_dialect  # noqa: PLC0415
     from janus.model.data_source import DataSource  # noqa: PLC0415
@@ -1635,7 +1636,7 @@ def attributes_cmd(
 
     result = mine_attributes(
         load_pairs(project_path),
-        load_models(project_path),
+        load_models_with_drafts(project_path),
         dialect,
         min_occurrences=min_occurrences,
         top_n=top_n,

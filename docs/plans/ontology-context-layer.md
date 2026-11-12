@@ -212,3 +212,11 @@ def list_keys(self, table: TableInfo) -> KeyInfo: ...   # 主键和外键
 - 所有推断结果写入 `draft/`，经 `janus context draft apply` 或人工编辑后才进入 `models/`。
 - 向量只用于同分重排，不替代规则。
 - SQL 属性的计分是“出现在多少条已确认查询中”，不是数据库里的执行次数。执行次数需要查询日志，目前项目里没有。
+
+### 术语与属性的落地
+
+`janus context draft apply <模型>` 会把草稿中的术语和属性带入项目：
+- 术语、别名、列展示名写入模型的 `properties`（`term`、`aliases`，列的 `display_name`），不覆盖已设置的值。
+- 未被否决的属性写入 `knowledge/attributes/<模型>.yml`，不写入 MDL。MDL 没有存放 SQL 表达式的字段。
+- 校验失败时，草稿、属性文件都会恢复。
+- `janus context terms` 和 `attributes` 也处理草稿，所以建议在提升之前就已生成。

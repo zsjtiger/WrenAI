@@ -470,6 +470,8 @@ export JANUS_LLM_API_KEY=...                                    # optional; sent
 janus context draft --from-db --suggest-terms
 ```
 
+`janus context terms` and `janus context attributes` also cover drafts, so their suggestions are ready when a draft is applied. `apply` then fills in `term`, `aliases`, and column `display_name` in the model's `properties` (never overwriting a value already set), and writes the non-rejected attributes to `knowledge/attributes/<model>.yml`. If validation fails, the draft and any attribute file are restored.
+
 Drafts go to `draft/models/<name>/` and foreign keys become candidate
 relationships in `draft/relationships.yml`. Nothing in `models/` changes until
 `apply`. Each draft carries `properties.draft: "true"`; `apply` removes it,

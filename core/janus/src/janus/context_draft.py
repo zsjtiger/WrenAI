@@ -348,6 +348,7 @@ def apply_draft(project_path: Path, name: str) -> list[str]:
     )
     original_draft_rels = _draft_relationships(project_path)
 
+    original_draft_meta = (src / "metadata.yml").read_text(encoding="utf-8")
     dst.parent.mkdir(parents=True, exist_ok=True)
     shutil.move(str(src), str(dst))
     meta_path = dst / "metadata.yml"
@@ -355,7 +356,9 @@ def apply_draft(project_path: Path, name: str) -> list[str]:
     props = dict(model.get("properties") or {})
     props.pop(DRAFT_PROPERTY, None)
     model["properties"] = props
+    apply_draft_terms(project_path, name, model)
     meta_path.write_text(_dump(model), encoding="utf-8")
+    attributes_path, attributes_before = _write_draft_attributes(project_path, name)
 
     from janus.context import load_models  # noqa: PLC0415
 
@@ -383,6 +386,12 @@ def apply_draft(project_path: Path, name: str) -> list[str]:
     errors = [e for e in validate_project(project_path) if e.level == "error"]
     if errors:
         shutil.move(str(dst), str(src))
+        (src / "metadata.yml").write_text(original_draft_meta, encoding="utf-8")
+        if attributes_path is not None:
+            if attributes_before is None:
+                attributes_path.unlink(missing_ok=True)
+            else:
+                attributes_path.write_text(attributes_before, encoding="utf-8")
         _write_draft_relationships(project_path, original_draft_rels)
         if original_rel_text is None:
             if rel_file.exists():
@@ -394,3 +403,113 @@ def apply_draft(project_path: Path, name: str) -> list[str]:
             + "; ".join(str(e) for e in errors)
         )
     return [r["name"] for r in applied]
+
+
+# ── terms and attributes from the draft ──────────────────────────────────────
+
+ATTRIBUTES_DIR = Path("knowledge") / "attributes"
+
+
+def _read_draft_list(project_path: Path, filename: str, key: str) -> list[dict]:
+    path = project_path / DRAFT_DIR / filename
+    if not path.exists():
+        return []
+    data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    items = data.get(key) if isinstance(data, dict) else None
+    return [item for item in items or [] if isinstance(item, dict)]
+
+
+def apply_draft_terms(project_path: Path, name: str, model: dict) -> None:
+    """Merge the draft term and display names for ``name`` into the model dict.
+
+    Only fills what is missing: an existing ``term``, ``aliases``, or column
+    ``display_name`` is never overwritten. Nothing is written when the draft has
+    no terms for this model.
+    """
+    entry = next(
+        (
+            t
+            for t in _read_draft_list(project_path, "terms.yml", "terms")
+            if t.get("model") == name
+        ),
+        None,
+    )
+    if entry is None:
+        return
+    props = dict(model.get("properties") or {})
+    if entry.get("term") and "term" not in props:
+        props["term"] = str(entry["term"])
+    aliases = entry.get("aliases") or []
+    if aliases and "aliases" not in props:
+        props["aliases"] = ", ".join(str(a) for a in aliases)
+    model["properties"] = props
+
+    displays = {
+        str(c.get("name")): str(c.get("display_name"))
+        for c in entry.get("columns") or []
+        if isinstance(c, dict) and c.get("display_name")
+    }
+    for column in model.get("columns") or []:
+        display = displays.get(str(column.get("name")))
+        if display is None:
+            continue
+        col_props = dict(column.get("properties") or {})
+        col_props.setdefault("display_name", display)
+        column["properties"] = col_props
+
+
+def _write_draft_attributes(
+    project_path: Path, name: str
+) -> tuple[Path | None, str | None]:
+    """Write the non-rejected draft attributes for ``name`` to knowledge/attributes/.
+
+    Existing attribute names are kept; new ones are added. Returns the file path
+    and its previous text (``None`` when the file did not exist), so a rollback can
+    restore it. Returns ``(None, None)`` when nothing is written.
+    """
+    wanted = [
+        a
+        for a in _read_draft_list(project_path, "attributes.yml", "attributes")
+        if a.get("model") == name and a.get("status") != "rejected"
+    ]
+    if not wanted:
+        return None, None
+    path = project_path / ATTRIBUTES_DIR / f"{name}.yml"
+    before = path.read_text(encoding="utf-8") if path.exists() else None
+    existing = (yaml.safe_load(before) or {}) if before is not None else {}
+    known = {
+        a.get("name") for a in existing.get("attributes") or [] if isinstance(a, dict)
+    }
+    merged = list(existing.get("attributes") or [])
+    for attr in wanted:
+        if attr.get("name") in known:
+            continue
+        merged.append(
+            {
+                "name": attr.get("name"),
+                "expression": attr.get("expression"),
+                "kind": attr.get("kind"),
+                "occurrences": attr.get("occurrences"),
+                "status": attr.get("status"),
+            }
+        )
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(_dump({"model": name, "attributes": merged}), encoding="utf-8")
+    return path, before
+
+
+def load_models_with_drafts(project_path: Path) -> list[dict]:
+    """Models in ``models/`` plus draft models not yet promoted.
+
+    Terms and attributes are suggested for drafts too, so they are ready when
+    the draft is applied. A draft whose name is already in ``models/`` is skipped.
+    """
+    from janus.context import load_models  # noqa: PLC0415
+
+    models = load_models(project_path)
+    names = {m.get("name") for m in models}
+    for meta in sorted((project_path / DRAFT_DIR / "models").glob("*/metadata.yml")):
+        model = yaml.safe_load(meta.read_text(encoding="utf-8")) or {}
+        if isinstance(model, dict) and model.get("name") not in names:
+            models.append(model)
+    return models
