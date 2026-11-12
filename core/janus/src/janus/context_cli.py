@@ -1459,7 +1459,8 @@ def infer_fks(
     (every candidate with its score, source and status), and bridges.yml. Promote
     a model with `janus context draft apply`; relationships are added with it.
     """
-    from janus.context import load_models, load_project_config, load_relationships  # noqa: PLC0415
+    from janus.context import load_project_config, load_relationships  # noqa: PLC0415
+    from janus.context_draft import load_models_with_drafts  # noqa: PLC0415
     from janus.llm import load_llm_config  # noqa: PLC0415
     from janus.memory.api_embeddings import ApiEmbeddings, load_api_embedding_config  # noqa: PLC0415
     from janus.model.data_source import DataSource  # noqa: PLC0415
@@ -1476,7 +1477,7 @@ def infer_fks(
 
     embedder_cfg = load_api_embedding_config()
     result = infer_foreign_keys(
-        load_models(project_path),
+        load_models_with_drafts(project_path),
         load_relationships(project_path),
         data_source,
         llm=load_llm_config() if confirm_with_model else None,

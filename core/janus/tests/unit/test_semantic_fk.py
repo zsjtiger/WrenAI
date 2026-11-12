@@ -422,3 +422,22 @@ def test_cli_json_output_is_machine_readable(make_project):
     body = json.loads(result.output)
     assert body["suggestions"][0]["column"] == "cust_id"
     assert body["summary"]["by_status"] == {STATUS_SUGGESTED: 1}
+
+
+def test_cli_finds_foreign_keys_among_unpromoted_drafts(make_project):
+    """Drafts are part of the project's context: infer-fks must see them too."""
+    import yaml as _yaml  # noqa: PLC0415
+
+    project = make_project([])
+    for model in _shop_models():
+        meta = project / "draft" / "models" / model["name"]
+        meta.mkdir(parents=True)
+        (meta / "metadata.yml").write_text(_yaml.safe_dump(model), encoding="utf-8")
+    result = CliRunner().invoke(
+        context_app, ["infer-fks", "--path", str(project), "--json"]
+    )
+    assert result.exit_code == 0, result.output
+    body = json.loads(result.output)
+    assert any(
+        s["model"] == "orders" and s["column"] == "cust_id" for s in body["suggestions"]
+    )

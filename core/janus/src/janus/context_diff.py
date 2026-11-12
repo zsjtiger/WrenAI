@@ -169,7 +169,14 @@ def diff_models(
         if keys.primary_key_supported:
             yaml_pk = _pk_set(model.get("primary_key"))
             db_pk = _pk_set(keys.primary_key)
-            if yaml_pk != db_pk:
+            if not yaml_pk and len(db_pk) > 1:
+                # MDL keys are single columns, so a composite key cannot be
+                # written down; that is a limit of the format, not drift.
+                report.skipped.append(
+                    f"{name}: composite primary key {sorted(db_pk)} cannot be "
+                    "expressed in MDL; not compared"
+                )
+            elif yaml_pk != db_pk:
                 report.items.append(
                     DriftItem(
                         "primary_key",

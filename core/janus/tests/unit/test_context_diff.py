@@ -120,3 +120,40 @@ def test_schema_filter_limits_the_checked_models(connector):
         _in_sync_models(), connector, DataSource.duckdb, schema="other"
     )
     assert report.checked == []
+
+
+def test_composite_primary_key_is_not_reported_as_drift(tmp_path):
+    """MDL keys are single columns, so an unkeyed model over a composite key is not drift."""
+    import duckdb  # noqa: PLC0415
+
+    db_dir = tmp_path / "wh"
+    db_dir.mkdir()
+    conn = duckdb.connect(str(db_dir / "lines.duckdb"))
+    conn.execute(
+        "CREATE TABLE order_items (order_id INTEGER, product_id INTEGER, "
+        "quantity INTEGER, PRIMARY KEY (order_id, product_id))"
+    )
+    conn.close()
+    info = DataSource.duckdb.get_connection_info(
+        {"url": str(db_dir), "format": "duckdb"}
+    )
+    connector = get_connector(DataSource.duckdb, info)
+    try:
+        models = [
+            model_dict(
+                "order_items",
+                "order_items",
+                [
+                    ("order_id", "INTEGER"),
+                    ("product_id", "INTEGER"),
+                    ("quantity", "INTEGER"),
+                ],
+                catalog="lines",
+            )
+        ]
+        report = diff_models(models, connector, DataSource.duckdb)
+    finally:
+        connector.close()
+    assert not any(item.kind == "primary_key" for item in report.items)
+    assert report.has_drift is False
+    assert any("composite primary key" in note for note in report.skipped)
