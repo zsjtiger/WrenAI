@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import base64
 import json
 from pathlib import Path
 from typing import Annotated, Optional
@@ -1741,3 +1742,81 @@ def review_reject(
         typer.echo(f"Error: {exc}", err=True)
         raise typer.Exit(1) from exc
     typer.echo(f"Rejected {correction_id}.")
+
+
+@context_app.command("check-access")
+def check_access(
+    path: ProjectPathOpt = None,
+    spec: Annotated[
+        Optional[str],
+        typer.Option(
+            "--spec",
+            help="Spec file. Defaults to access_checks.yml in the project.",
+        ),
+    ] = None,
+    as_json: _JsonOpt = False,
+) -> None:
+    """Plan each access case and check the SQL the row-level rules produce.
+
+    Needs no database: it plans the SQL from target/mdl.json. Each case gives
+    an identity (properties), a query, and what the plan must contain, must not
+    contain, or must fail with. Plans are also checked for unbound placeholders.
+    Exit code: 0 when every case passes, 1 when any fails, 2 when it cannot run.
+    """
+    from janus.access_check import (  # noqa: PLC0415
+        ACCESS_CHECKS_FILE,
+        AccessCheckSpecError,
+        load_cases,
+        render_text,
+        run_checks,
+        to_json,
+    )
+    from janus.context_db import (  # noqa: PLC0415
+        ProjectConnectionError,
+        resolve_project_datasource,
+    )
+    from janus.engine import JanusEngine  # noqa: PLC0415
+    from janus.mcp_server import ServeContext, merge_properties  # noqa: PLC0415
+
+    project_path = resolve_project_path(path)
+    spec_path = Path(spec) if spec else project_path / ACCESS_CHECKS_FILE
+    try:
+        cases = load_cases(spec_path)
+    except AccessCheckSpecError as exc:
+        typer.echo(f"Error: {exc}", err=True)
+        raise typer.Exit(2) from exc
+
+    mdl_path = project_path / "target" / "mdl.json"
+    if not mdl_path.exists():
+        typer.echo(
+            "Error: no target/mdl.json. Run `janus context build` first.", err=True
+        )
+        raise typer.Exit(2)
+    try:
+        data_source = resolve_project_datasource(project_path)
+    except ProjectConnectionError as exc:
+        typer.echo(f"Error: {exc}", err=True)
+        raise typer.Exit(2) from exc
+    # Planning needs the manifest and the dialect, not a connection.
+    manifest = base64.b64encode(mdl_path.read_bytes()).decode("ascii")
+    engine = JanusEngine(manifest, data_source, {})
+
+    # The owner runs these checks, so a case may set access-rule properties.
+    owner = ServeContext(
+        project=project_path,
+        engine=engine,
+        allow_write=False,
+        no_connect=True,
+        trust_client_properties=True,
+    )
+    results = run_checks(
+        cases,
+        plan=lambda sql, props: engine.dry_plan(sql, props),
+        merge=lambda props: merge_properties(owner, props),
+    )
+    if as_json:
+        typer.echo(json.dumps(to_json(results), ensure_ascii=False, indent=2))
+    else:
+        typer.echo(render_text(results))
+    if any(not r.passed for r in results):
+        raise typer.Exit(1)
