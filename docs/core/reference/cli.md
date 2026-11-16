@@ -611,12 +611,24 @@ Requires the `mcp` extra: `pip install 'janusai[mcp]'`.
 | `--allow-write` | off | Enable the `store_query` write tool |
 | `--no-connect` | off | Transpile-only mode: disable `run_sql`, `dry_run`, `query_cube` |
 | `--quiet` / `-q` | off | Suppress the client-registration help banner |
+| `--token` | none | Bearer token for HTTP requests (env `JANUS_MCP_TOKEN`). Required for a non-loopback `--host` |
 
 On startup the server prints (to stderr) ready-to-copy registration commands for
 the running invocation — a `claude mcp add` / `codex mcp add` command for
 `--transport http`, and those plus a JSON `mcpServers` config block for stdio
 (reflecting `--project`, `--profile`, `--allow-write`, and `JANUS_HOME`). Pass
 `--quiet` to suppress it.
+
+Over HTTP, every request must send `Authorization: Bearer <token>`, or it gets
+401. A request that presents the token is the trusted service that authenticated
+the end user, so its tool calls may pass access-rule properties in the
+`properties` argument (for example `{"session_customer": 7}`). Your backend holds
+the token and forwards each user's values; end users never see the token. Values
+fixed with `--property` cannot be overridden. Example:
+
+```bash
+janus serve mcp --transport http --host 0.0.0.0 --port 8080 --token "$TOKEN" --project ./shop
+```
 
 Requires `target/mdl.json` to exist (`janus context build` first) — errors with
 a hint otherwise. If project source files (`models/`, `views/`, `cubes/`,
