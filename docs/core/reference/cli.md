@@ -448,38 +448,6 @@ read or no profile is bound. A composite primary key in the database is noted,
 not compared, since MDL keys are single columns. Primary keys are not compared for
 connectors that cannot report keys (Trino, Athena, DataFusion, Spark).
 
-### `janus context check-access`
-
-```bash
-janus context check-access                  # run access_checks.yml in the project
-janus context check-access --spec rules.yml # another spec file
-janus context check-access --json           # machine-readable results
-```
-
-Checks row-level access rules without a database. Each case in
-`access_checks.yml` names an identity (`properties`), a query, and what the
-planned SQL must do: `contains` or `not_contains` text, or fail with an `error`
-message. Every plan is also checked for unbound `@name` or `$name` placeholders.
-Run `janus context build` first. The checks run as the project owner, so a case
-may set access-rule properties. Exit code: `0` all cases pass, `1` a case fails,
-`2` the spec or `target/mdl.json` cannot be read.
-
-```yaml
-cases:
-  - name: APAC filter is applied to customers
-    sql: SELECT customer_id, region FROM customers
-    properties: {session_region: APAC}
-    expect:
-      contains: ["= 'APAC'"]
-  - name: missing identity is refused
-    sql: SELECT customer_id FROM customers
-    expect:
-      error: "required"
-```
-
-Matching is plain text against the planned SQL, which is dialect-specific, so
-write `contains` text that stays the same for the dialect.
-
 ### `janus context draft`
 
 ```bash
