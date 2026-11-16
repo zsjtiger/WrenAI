@@ -40,8 +40,6 @@ class ServeContext:
     fixed_properties: dict[str, Any] = field(default_factory=dict)
     # Properties that row-level access rules require. Only the server may set them.
     protected_properties: frozenset[str] = frozenset()
-    # Local, single-user servers only: let clients pass access-rule properties.
-    trust_client_properties: bool = False
 
 
 _PROPERTY_NAME = re.compile(r"[A-Za-z_][A-Za-z0-9_]*")
@@ -91,9 +89,7 @@ def merge_properties(ctx: ServeContext, client: dict | None) -> dict[str, str] |
     for name, value in (client or {}).items():
         if not _PROPERTY_NAME.fullmatch(str(name)):
             raise ValueError(f"invalid property name: {name!r}")
-        if name in ctx.fixed_properties or (
-            name in ctx.protected_properties and not ctx.trust_client_properties
-        ):
+        if name in ctx.protected_properties or name in ctx.fixed_properties:
             raise ValueError(
                 f"property {name!r} is set by the server and cannot be passed by the client"
             )

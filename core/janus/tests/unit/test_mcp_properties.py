@@ -166,36 +166,3 @@ def test_leading_zero_and_text_values_stay_strings():
 def test_registration_command_carries_the_fixed_properties(tmp_path):
     args = _serve_args(tmp_path, None, False, False, ["session_region=APAC"])
     assert args[-2:] == ["--property", "session_region=APAC"]
-
-
-def test_trusted_client_may_pass_an_access_property(tmp_path):
-    engine = FakeEngine()
-    ctx = ServeContext(
-        project=tmp_path,
-        engine=engine,
-        allow_write=False,
-        no_connect=False,
-        protected_properties=frozenset({"session_customer"}),
-        trust_client_properties=True,
-    )
-    _tool(ctx, "run_sql")("SELECT 1", properties={"session_customer": 7})
-    assert engine.calls[-1][2] == {"session_customer": "7"}
-
-
-def test_trusted_client_still_cannot_override_a_server_fixed_value(tmp_path):
-    ctx = ServeContext(
-        project=tmp_path,
-        engine=FakeEngine(),
-        allow_write=False,
-        no_connect=False,
-        fixed_properties={"session_customer": 7},
-        protected_properties=frozenset({"session_customer"}),
-        trust_client_properties=True,
-    )
-    with pytest.raises(ValueError, match="set by the server"):
-        merge_properties(ctx, {"session_customer": 8})
-
-
-def test_registration_command_carries_the_trust_flag(tmp_path):
-    args = _serve_args(tmp_path, None, False, False, None, True)
-    assert args[-1] == "--trust-client-properties"
