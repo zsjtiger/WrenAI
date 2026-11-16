@@ -5,7 +5,6 @@ from __future__ import annotations
 import atexit
 import json
 import os
-import re
 import shlex
 import shutil
 import sys
@@ -65,29 +64,15 @@ def _serve_args(
     return args
 
 
-_NUMBER = re.compile(r"-?(0|[1-9][0-9]*)(\.[0-9]+)?")
-
-
-def _property_value(text: str) -> int | float | str:
-    """A ``--property`` value as a number when it is one, else as text.
-
-    ``7`` and ``2.5`` stay numbers so the engine compares them as numbers.
-    ``007`` and ``APAC`` stay text.
-    """
-    if _NUMBER.fullmatch(text):
-        return float(text) if "." in text else int(text)
-    return text
-
-
-def _parse_properties(items: list[str] | None) -> dict[str, int | float | str]:
+def _parse_properties(items: list[str] | None) -> dict[str, str]:
     """Turn repeated ``--property name=value`` options into a dict."""
-    out: dict[str, int | float | str] = {}
+    out: dict[str, str] = {}
     for item in items or []:
         name, sep, value = item.partition("=")
         name = name.strip()
         if not sep or not name:
             raise typer.BadParameter(f"expected name=value, got {item!r}")
-        out[name] = _property_value(value)
+        out[name] = value
     return out
 
 
