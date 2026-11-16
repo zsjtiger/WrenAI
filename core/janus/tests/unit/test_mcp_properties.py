@@ -145,8 +145,20 @@ def test_property_options_parse_to_name_value_pairs():
 
     assert _parse_properties(["session_region=APAC", "year=2026"]) == {
         "session_region": "APAC",
-        "year": "2026",
+        "year": 2026,
     }
+
+
+def test_numeric_property_values_stay_numbers():
+    parsed = _parse_properties(["customer=7", "rate=2.5", "neg=-3"])
+    assert parsed == {"customer": 7, "rate": 2.5, "neg": -3}
+    assert to_sql_literal(parsed["customer"]) == "7"
+    assert to_sql_literal(parsed["rate"]) == "2.5"
+
+
+def test_leading_zero_and_text_values_stay_strings():
+    parsed = _parse_properties(["zip=007", "name=O'Brien"])
+    assert parsed == {"zip": "007", "name": "O'Brien"}
     with pytest.raises(Exception, match="name=value"):
         _parse_properties(["no-equals-sign"])
 
