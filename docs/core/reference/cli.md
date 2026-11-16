@@ -560,6 +560,20 @@ Desktop/Code, Cursor, any MCP-capable IDE) as a local MCP server. The server
 embeds the engine in-process — no separate backend — so it
 runs from a bare project checkout as long as `janus context build` has run.
 
+### `janus access report`
+
+```bash
+janus access report --access-config janus_access.yml          # per-role rows and columns
+janus access report --access-config janus_access.yml --json   # machine-readable
+```
+
+Evaluates each role's SQL on the bound profile, cross-checks the roles with the
+model's access rules, and prints what each role can see. Exit code: `0` consistent,
+`1` errors (the server would refuse to start), `2` the config or project cannot
+be read. `serve mcp` and `serve api` take the same config through
+`--access-config` (or `JANUS_ACCESS_CONFIG`), with `--property name=value` for
+server-fixed values. See `examples/access-roles/`.
+
 ### `janus serve mcp`
 
 ```bash

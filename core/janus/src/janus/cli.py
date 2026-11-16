@@ -9,6 +9,7 @@ from typing import Annotated, Optional
 
 import typer
 
+from janus.access_cli import access_app
 from janus.context_cli import context_app
 
 app = typer.Typer(name="janus", help="Janus Engine CLI", no_args_is_help=False)
@@ -605,6 +606,7 @@ from janus.utils_cli import utils_app  # noqa: E402, PLC0415
 app.command(name="ask")(_ask_command)
 
 app.add_typer(context_app)
+app.add_typer(access_app)
 app.add_typer(cube_app)
 app.add_typer(utils_app)
 app.add_typer(skills_app)

@@ -8,10 +8,11 @@ has already verified the ``mcp`` extra is installed (see ``serve_cli.py``).
 
 from __future__ import annotations
 
+import hmac
 import json
 import math
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import date, datetime, time
 from decimal import Decimal
 from pathlib import Path
@@ -19,9 +20,16 @@ from typing import Any, Callable
 
 import yaml
 from loguru import logger
-from mcp.server.fastmcp import FastMCP
+from mcp.server.fastmcp import Context, FastMCP
 from mcp.types import ToolAnnotations
 
+from janus.access import (
+    AccessError,
+    find_token,
+    prepare_call,
+    write_audit,
+    write_refusal,
+)
 from janus.model.certification import is_certified
 
 DEFAULT_ROW_LIMIT = 1000
@@ -36,6 +44,63 @@ class ServeContext:
     engine: Any  # janus.engine.JanusEngine
     allow_write: bool
     no_connect: bool
+    # Role-based access (janus.access). None means no access config is in use.
+    access: Any = None
+    # Values the server sets for every call (``--property``); requests cannot override them.
+    fixed_properties: dict[str, Any] = field(default_factory=dict)
+    # The role used by stdio, which has no per-request token.
+    stdio_role: str | None = None
+    # Without an access config: whether a caller may pass session properties.
+    trust_client_properties: bool = False
+
+
+def _presented_token(context: Any) -> str | None:
+    """The bearer token of the current HTTP request, or None (stdio, or no header)."""
+    try:
+        request = context.request_context.request
+    except (AttributeError, ValueError):
+        return None
+    if request is None:
+        return None
+    auth = request.headers.get("authorization", "")
+    return auth[7:] if auth.startswith("Bearer ") else None
+
+
+def _prepare(
+    ctx: "ServeContext",
+    context: Any,
+    role: str | None,
+    properties: dict | None,
+    sql: str = "",
+):
+    """Resolve the role and property values for this call. Errors become tool errors."""
+    presented = _presented_token(context)
+    try:
+        return prepare_call(
+            runtime=ctx.access,
+            fixed=ctx.fixed_properties,
+            trusted=presented is not None or ctx.trust_client_properties,
+            presented=presented,
+            stdio_role=ctx.stdio_role if presented is None else None,
+            request_role=role,
+            request_props=properties,
+        )
+    except AccessError as exc:
+        if ctx.access is not None:
+            token = find_token(ctx.access.config, presented)
+            write_refusal(
+                ctx.access.config.audit, token.id if token else None, sql=sql, error=exc
+            )
+        raise ValueError(f"{exc.code}: {exc}") from exc
+
+
+def _audit(
+    ctx: "ServeContext", resolved: Any, sql: str, status: str, error: str | None = None
+) -> None:
+    if ctx.access is not None:
+        write_audit(
+            ctx.access.config.audit, resolved, sql=sql, status=status, error=error
+        )
 
 
 def _memory_path(ctx: ServeContext) -> str:
@@ -137,18 +202,22 @@ def _query_with_limit_probe(
     *,
     knowledge: list[str] | None = None,
     include_sql: bool = False,
+    properties: dict[str, str] | None = None,
 ) -> dict:
     """Run arbitrary SQL with a connector-applied N+1 truncation probe.
 
     The connector owns dialect-specific row limiting for opaque user SQL. The
     requested limit is capped at ``MAX_ROW_LIMIT`` before the probe is applied.
+    ``properties`` are SQL literals (see ``janus.access.sql_literal``).
     """
     if limit is not None and limit < 0:
         raise ValueError(f"run_sql limit must be non-negative, got {limit}.")
     refs = _knowledge_refs(ctx, knowledge)
     effective_limit = DEFAULT_ROW_LIMIT if limit is None else limit
     effective_limit = min(effective_limit, MAX_ROW_LIMIT)
-    table, models, expanded = ctx.engine.query_with_provenance(sql, effective_limit + 1)
+    table, models, expanded = ctx.engine.query_with_provenance(
+        sql, effective_limit + 1, properties
+    )
     truncated = table.num_rows > effective_limit
     if truncated:
         table = table.slice(0, effective_limit)
@@ -209,6 +278,9 @@ def _register_query_tools(mcp: FastMCP, ctx: ServeContext) -> None:
             limit: int | None = None,
             knowledge: list[str] | None = None,
             include_sql: bool = False,
+            role: str | None = None,
+            properties: dict[str, Any] | None = None,
+            context: Context | None = None,
         ) -> dict:
             """Execute a SQL query through the Janus semantic layer and return rows.
 
@@ -222,21 +294,47 @@ def _register_query_tools(mcp: FastMCP, ctx: ServeContext) -> None:
             (paths under ``knowledge/``, e.g. from ``recall_queries``). Set
             ``include_sql=True`` to also get the expanded SQL. Models that are
             not certified add a ``warnings`` entry.
+
+            With an access config, ``role`` and ``properties`` select the caller's
+            rows and columns, and ``provenance`` also reports the role and where each
+            property value came from. A token holder is the caller; stdio uses its
+            fixed role.
             """
-            return _query_with_limit_probe(
-                ctx, sql, limit, knowledge=knowledge, include_sql=include_sql
-            )
+            resolved = _prepare(ctx, context, role, properties, sql)
+            try:
+                result = _query_with_limit_probe(
+                    ctx,
+                    sql,
+                    limit,
+                    knowledge=knowledge,
+                    include_sql=include_sql,
+                    properties=resolved.literals,
+                )
+            except Exception as exc:
+                _audit(ctx, resolved, sql, "error", str(exc))
+                raise
+            _audit(ctx, resolved, sql, "ok")
+            if ctx.access is not None:
+                result.setdefault("provenance", {}).update(resolved.provenance())
+            return result
 
         @mcp.tool(
             annotations=ToolAnnotations(title="Dry Run SQL", readOnlyHint=True),
         )
-        def dry_run(sql: str) -> dict:
+        def dry_run(
+            sql: str,
+            role: str | None = None,
+            properties: dict[str, Any] | None = None,
+            context: Context | None = None,
+        ) -> dict:
             """Validate SQL against the connected data source without returning rows.
 
             Cheap way to check a query is valid before calling ``run_sql``.
-            Raises on failure with the engine's error message.
+            Raises on failure with the engine's error message. Takes the same
+            ``role`` and ``properties`` as ``run_sql``.
             """
-            ctx.engine.dry_run(sql)
+            resolved = _prepare(ctx, context, role, properties)
+            ctx.engine.dry_run(sql, resolved.literals)
             return {"ok": True}
 
         @mcp.tool(
@@ -311,12 +409,19 @@ def _register_query_tools(mcp: FastMCP, ctx: ServeContext) -> None:
     @mcp.tool(
         annotations=ToolAnnotations(title="Dry Plan SQL", readOnlyHint=True),
     )
-    def dry_plan(sql: str) -> str:
+    def dry_plan(
+        sql: str,
+        role: str | None = None,
+        properties: dict[str, Any] | None = None,
+        context: Context | None = None,
+    ) -> str:
         """Expand SQL through the MDL semantic layer and return the target-dialect SQL.
 
-        No database connection is used — this only shows what would run.
+        No database connection is used — this only shows what would run. Takes the
+        same ``role`` and ``properties`` as ``run_sql``.
         """
-        return ctx.engine.dry_plan(sql)
+        resolved = _prepare(ctx, context, role, properties)
+        return ctx.engine.dry_plan(sql, resolved.literals)
 
 
 _SAFE_MODEL_NAME = re.compile(r"[A-Za-z0-9_]+")
@@ -914,22 +1019,73 @@ def build_server(ctx: ServeContext) -> FastMCP:
     return mcp
 
 
+def token_guard(app: Any, is_valid: Callable[[str | None], bool]) -> Any:
+    """ASGI wrapper: an HTTP request must carry a bearer token that ``is_valid`` accepts.
+
+    Lifespan events pass through so the MCP session manager still starts. The
+    token is never logged.
+    """
+
+    async def guarded(scope: Any, receive: Any, send: Any) -> None:
+        if scope["type"] != "http":
+            await app(scope, receive, send)
+            return
+        auth = (
+            dict(scope.get("headers") or [])
+            .get(b"authorization", b"")
+            .decode("latin-1")
+        )
+        presented = auth[7:] if auth.startswith("Bearer ") else None
+        if not is_valid(presented):
+            body = b'{"error": "missing or invalid bearer token"}'
+            await send(
+                {
+                    "type": "http.response.start",
+                    "status": 401,
+                    "headers": [
+                        (b"content-type", b"application/json"),
+                        (b"content-length", str(len(body)).encode()),
+                    ],
+                }
+            )
+            await send({"type": "http.response.body", "body": body})
+            return
+        await app(scope, receive, send)
+
+    return guarded
+
+
 def run_server(
     ctx: ServeContext,
     *,
     transport: str = "stdio",
     host: str = "127.0.0.1",
     port: int = 8080,
+    token: str | None = None,
 ) -> None:
-    """Build the FastMCP server and run it on the given transport."""
+    """Build the FastMCP server and run it on the given transport.
+
+    Over HTTP, every request needs a bearer token: one of the access config's
+    tokens when ``ctx.access`` is set, otherwise the single ``token`` if given.
+    """
     mcp = build_server(ctx)
 
     if transport == "stdio":
         mcp.run(transport="stdio")
     elif transport == "http":
-        mcp.settings.host = host
-        mcp.settings.port = port
+        import uvicorn  # noqa: PLC0415
+
+        from janus.access import find_token  # noqa: PLC0415
+
+        app = mcp.streamable_http_app()
+        if ctx.access is not None:
+            config = ctx.access.config
+            app = token_guard(app, lambda p: find_token(config, p) is not None)
+        elif token is not None:
+            app = token_guard(
+                app, lambda p: p is not None and hmac.compare_digest(p, token)
+            )
         logger.info(f"Serving janus MCP over streamable-http at {host}:{port}")
-        mcp.run(transport="streamable-http")
+        uvicorn.run(app, host=host, port=port, log_level="info")
     else:
         raise ValueError(f"Unsupported transport '{transport}'.")

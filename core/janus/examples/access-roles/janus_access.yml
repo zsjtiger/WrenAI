@@ -1,0 +1,30 @@
+# Server-side role configuration for the access-roles demo.
+# Tokens are read from the environment; the file holds no secrets.
+version: 1
+
+roles:
+  analyst:
+    # One row. Column names are the session property names the model rules read.
+    sql: SELECT 1 AS session_level, 1 AS session_customer
+    allow_override: [session_customer]
+
+  manager:
+    sql: SELECT 3 AS session_level, 0 AS session_customer
+    allow_override: []
+
+tokens:
+  - id: svc_analyst_app
+    token_env: JANUS_TOKEN_ANALYST
+    default_role: analyst
+    may_request_role: false
+    may_override: true
+
+  - id: svc_bi_console
+    token_env: JANUS_TOKEN_MANAGER
+    default_role: manager
+    may_request_role: true
+    may_override: false
+
+audit:
+  path: work/access_audit.jsonl
+  record_sql: true

@@ -5,11 +5,12 @@ from __future__ import annotations
 import atexit
 import json
 import os
+import re
 import shlex
 import shutil
 import sys
 from pathlib import Path
-from typing import Annotated, Optional
+from typing import Annotated, Any, Optional
 
 import typer
 
@@ -42,6 +43,70 @@ def _mdl_is_stale(project: Path, mdl_path: Path) -> bool:
                 return True
 
     return False
+
+
+_NUMBER = re.compile(r"-?(0|[1-9][0-9]*)(\.[0-9]+)?")
+
+
+def _property_value(text: str) -> int | float | str:
+    """A ``--property`` value as a number when it is one, else text (``007`` stays text)."""
+    if _NUMBER.fullmatch(text):
+        return float(text) if "." in text else int(text)
+    return text
+
+
+def _parse_properties(items: list[str] | None) -> dict[str, int | float | str]:
+    """Repeated ``--property name=value`` options as a dict."""
+    out: dict[str, int | float | str] = {}
+    for item in items or []:
+        name, sep, value = item.partition("=")
+        name = name.strip()
+        if not sep or not name:
+            raise typer.BadParameter(f"expected name=value, got {item!r}")
+        out[name] = _property_value(value)
+    return out
+
+
+def _is_loopback(host: str) -> bool:
+    from janus.api_server import is_loopback  # noqa: PLC0415
+
+    return is_loopback(host)
+
+
+def _build_access(
+    access_config: str | None,
+    fixed: dict[str, Any],
+    mdl_path: Path,
+    engine: Any,
+) -> Any:
+    """Load the access config, evaluate its roles on the engine, and cross-check the model.
+
+    Returns None when no config is given. Exits with status 2 on an invalid config.
+    """
+    from janus.access import (  # noqa: PLC0415
+        AccessConfigError,
+        build_runtime,
+        load_access_config,
+        table_rows,
+    )
+
+    if not access_config:
+        return None
+    try:
+        config = load_access_config(Path(access_config))
+        mdl = json.loads(mdl_path.read_text(encoding="utf-8"))
+        runtime = build_runtime(
+            config,
+            mdl,
+            lambda sql: table_rows(engine.query_with_provenance(sql, 10, None)[0]),
+            fixed,
+        )
+    except AccessConfigError as exc:
+        typer.echo(f"Error: access config: {exc}", err=True)
+        raise typer.Exit(2) from exc
+    for warning in runtime.check.warnings:
+        typer.echo(f"warning: {warning}", err=True)
+    return runtime
 
 
 def _serve_args(
@@ -161,6 +226,36 @@ def serve_mcp(
             help="Suppress the client-registration help banner.",
         ),
     ] = False,
+    access_config: Annotated[
+        Optional[str],
+        typer.Option(
+            "--access-config",
+            envvar="JANUS_ACCESS_CONFIG",
+            help="Role-based access config (janus_access.yml). Enables roles and tokens.",
+        ),
+    ] = None,
+    property_: Annotated[
+        Optional[list[str]],
+        typer.Option(
+            "--property",
+            help="Session property the server sets for every call, name=value. Repeatable.",
+        ),
+    ] = None,
+    role: Annotated[
+        Optional[str],
+        typer.Option(
+            "--role",
+            help="Role for stdio (no per-request token). Needs --access-config.",
+        ),
+    ] = None,
+    trust_client_properties: Annotated[
+        bool,
+        typer.Option(
+            "--trust-client-properties",
+            help="Without an access config, let clients pass session properties. "
+            "Only for a local server one user owns.",
+        ),
+    ] = False,
 ) -> None:
     """Serve janus's query + context/knowledge tools as an MCP server.
 
@@ -190,11 +285,32 @@ def serve_mcp(
 
     from janus.mcp_server import ServeContext, run_server  # noqa: PLC0415
 
+    fixed = _parse_properties(property_)
+    runtime = _build_access(access_config, fixed, mdl_path, engine)
+    if role is not None and runtime is None:
+        typer.echo("Error: --role needs --access-config", err=True)
+        raise typer.Exit(2)
+    if role is not None and role not in runtime.config.roles:
+        typer.echo(
+            f"Error: --role {role!r} is not a role in the access config", err=True
+        )
+        raise typer.Exit(2)
+    if transport == "http" and runtime is None and not _is_loopback(host):
+        typer.echo(
+            "Error: refusing to bind a non-loopback address without --access-config",
+            err=True,
+        )
+        raise typer.Exit(2)
+
     ctx = ServeContext(
         project=project_path,
         engine=engine,
         allow_write=allow_write,
         no_connect=no_connect,
+        access=runtime,
+        fixed_properties=fixed,
+        stdio_role=role,
+        trust_client_properties=trust_client_properties,
     )
     if not quiet:
         _print_connection_help(
@@ -242,6 +358,29 @@ def serve_api(
             help="Transpile-only mode: /query is unavailable.",
         ),
     ] = False,
+    access_config: Annotated[
+        Optional[str],
+        typer.Option(
+            "--access-config",
+            envvar="JANUS_ACCESS_CONFIG",
+            help="Role-based access config (janus_access.yml). Enables roles and tokens.",
+        ),
+    ] = None,
+    property_: Annotated[
+        Optional[list[str]],
+        typer.Option(
+            "--property",
+            help="Session property the server sets for every call, name=value. Repeatable.",
+        ),
+    ] = None,
+    trust_client_properties: Annotated[
+        bool,
+        typer.Option(
+            "--trust-client-properties",
+            help="Without an access config, let token holders pass session properties "
+            "and let loopback callers do so too.",
+        ),
+    ] = False,
 ) -> None:
     """Serve the query and context endpoints over HTTP (same engine as MCP)."""
     _ensure_mcp_installed()
@@ -263,11 +402,16 @@ def serve_api(
     )
     atexit.register(lambda: engine.close() if hasattr(engine, "close") else None)
 
+    fixed = _parse_properties(property_)
+    runtime = _build_access(access_config, fixed, mdl_path, engine)
     ctx = ServeContext(
         project=project_path,
         engine=engine,
         allow_write=False,
         no_connect=no_connect,
+        access=runtime,
+        fixed_properties=fixed,
+        trust_client_properties=trust_client_properties,
     )
     try:
         run_api(ctx, host=host, port=port, token=token or None)
