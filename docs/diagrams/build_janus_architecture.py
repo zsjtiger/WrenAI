@@ -51,7 +51,9 @@ def curve(x1, y1, x2, y2, color, width=1.2, arrow=False):
         f'{pts}</mxGeometry></mxCell>')
 
 # ---- canvas ----
-add("rounded=0;fillColor=#f5f7fb;strokeColor=none;", 0, 0, 1280, 1000, "")
+OFF = 170  # extra height for the role band; everything below the panel moves down by OFF
+CANVAS_H = 1000 + OFF
+add("rounded=0;fillColor=#f5f7fb;strokeColor=none;", 0, 0, 1280, CANVAS_H, "")
 
 # header
 mono_text(100, 26, 600, "A · BRING THE AGENTS YOU ALREADY RUN")
@@ -70,7 +72,7 @@ for k, (x, name) in enumerate(zip(agent_x, agents)):
 
 
 # central panel
-rect(112, 280, 1056, 384, PANEL, PANELB, r=14)
+rect(112, 280, 1056, 384 + OFF, PANEL, PANELB, r=14)
 add(f"rounded=0;fillColor={PURP};gradientColor={CYAN};gradientDirection=east;strokeColor=none;", 112, 279, 1056, 2, "")
 text(198, 290, 700, "Open Context Layer", size=36)
 text(198, 344, 800, "Governed CReport for any agent, from context you can read, diff, and own.", size=16, color=MUTE)
@@ -83,7 +85,7 @@ pillars = [
     ("01", "Ontology (MDL)", "WHAT YOUR DATA MEANS", ["models · relationships", "terms · inferred keys"]),
     ("02", "Knowledge", "WHAT SCHEMA OMITS", ["knowledge/rules · enums", "mined SQL attributes"]),
     ("03", "Memory", "WHAT WORKED BEFORE", ["LanceDB hybrid index", "recall of proven NL→SQL"]),
-    ("04", "Governed execution", "WHAT AGENTS MAY RUN", ["certified models · provenance", "dry-plan · row limits"]),
+    ("04", "Governed execution", "WHAT AGENTS MAY RUN", ["certified models · provenance", "roles · row & column rules"]),
 ]
 for k, (num, title, sub, body) in enumerate(pillars):
     x = cols[k]
@@ -127,39 +129,63 @@ for x0, x1, label in pills:
     add(f"rounded=1;arcSize=50;fillColor={PILL};strokeColor={PILLB};", x0, 596, x1 - x0, 34, "")
     mono_text(x0, 596, x1 - x0, label, size=14, color=INK, align="center")
 
+# role-based access band (inside the panel, above the source connectors)
+add(f"rounded=0;fillColor={LINE};strokeColor=none;", 136, 648, 1008, 1, "")
+add(f"rounded=0;fillColor={PANEL};strokeColor=none;", 330, 640, 620, 18, "")
+mono_text(330, 640, 620, "ROLE-BASED ACCESS · TOKEN → ROLE → ROWS AND COLUMNS", size=12, align="center")
+role_boxes = [
+    ("Token", ["Authorization: Bearer", "bound to one default role"]),
+    ("Role", ["janus_access.yml", "one-row SQL → properties"]),
+    ("Overrides", ["allow list only", "fixed values cannot change"]),
+    ("Model rules", ["RLAC rows · CLAC columns", "required properties only"]),
+    ("Audit", ["every call, incl. refused", "JSONL, SQL optional"]),
+]
+box_x = [136, 342, 548, 754, 960]
+for k, (title, body) in enumerate(role_boxes):
+    bx = box_x[k]
+    hot = (title == "Role")
+    add(f"rounded=1;arcSize=8;fillColor=#ffffff;strokeColor={ACC if hot else PANELB};"
+        f"strokeWidth={2 if hot else 1};", bx, 672, 170, 118, "")
+    text(bx, 684, 170, title, size=16, align="center", bold=True)
+    mono_text(bx, 712, 170, body[0], size=11, color=INK, align="center")
+    mono_text(bx, 730, 170, body[1], size=11, color=INK, align="center")
+    if k < len(role_boxes) - 1:
+        curve(bx + 170, 731, box_x[k + 1], 731, ACC, 1.6, arrow=True)
+mono_text(136, 800, 1008, "role values come from a one-row SQL on the server · requests may override only the allow list · fixed values win · tokens never see the rules", size=11, color=MUTE, align="center")
+
 # bottom: execution labels, sources, axis
-add(f"rounded=0;fillColor=#f5f7fb;strokeColor=none;", 330, 712, 620, 44, "")
+add(f"rounded=0;fillColor=#f5f7fb;strokeColor=none;", 330, 712 + OFF, 620, 44, "")
 srcs = ["PostgreSQL", "BigQuery", "Snowflake", "DuckDB", "ClickHouse", "Trino",
         "Databricks", "Redshift", "Spark", "S3", "MySQL", "Athena"]
 dot_x = [100, 198, 296, 394, 492, 590, 689, 787, 885, 983, 1082, 1180]
 src_top = [251, 321, 392, 462, 533, 603, 675, 746, 817, 887, 958, 1029]
 for k, (sx, dx, name) in enumerate(zip(src_top, dot_x, srcs)):
     hl = (dx == 394)
-    curve(sx, 664, dx, 826, ACC if hl else LINE, 2.2 if hl else 1.2)
-    dot(dx, 826, WHITE, MUTE, 4.5)
-    text(dx - 70, 840, 140, name, size=17, align="center")
+    curve(sx, 664 + OFF, dx, 826 + OFF, ACC if hl else LINE, 2.2 if hl else 1.2)
+    dot(dx, 826 + OFF, WHITE, MUTE, 4.5)
+    text(dx - 70, 840 + OFF, 140, name, size=17, align="center")
 
-mono_text(100, 880, 600, "C · YOUR DATA, WHERE IT ALREADY LIVES", size=12)
-mono_text(780, 880, 400, "12 OF 20 SOURCES SHOWN", size=12, align="right")
-add(f"rounded=0;fillColor={LINE};strokeColor=none;", 100, 906, 1080, 1, "")
-mono_text(100, 920, 200, "0 SOURCES", size=12)
-mono_text(540, 920, 200, "11", size=12, align="center")
-mono_text(980, 920, 200, "20 CONNECTORS", size=12, align="right")
-mono_text(680, 956, 500, "COME BUILD CREPORT WITH US  ·  ★ STAR THE REPO", size=12, align="right")
+mono_text(100, 880 + OFF, 600, "C · YOUR DATA, WHERE IT ALREADY LIVES", size=12)
+mono_text(780, 880 + OFF, 400, "12 OF 20 SOURCES SHOWN", size=12, align="right")
+add(f"rounded=0;fillColor={LINE};strokeColor=none;", 100, 906 + OFF, 1080, 1, "")
+mono_text(100, 920 + OFF, 200, "0 SOURCES", size=12)
+mono_text(540, 920 + OFF, 200, "11", size=12, align="center")
+mono_text(980, 920 + OFF, 200, "20 CONNECTORS", size=12, align="right")
+mono_text(680, 956 + OFF, 500, "COME BUILD CREPORT WITH US  ·  ★ STAR THE REPO", size=12, align="right")
 
 # labels drawn last, on a page-colored plate, so curves pass behind them
 add("rounded=0;fillColor=#f5f7fb;strokeColor=none;", 555, 197, 170, 46, "")
 mono_text(440, 200, 400, "QUERIES ↓", size=13, color=MUTE, align="center")
 mono_text(440, 222, 400, "NL · SQL · MCP TOOLS", size=12, color=MUTE, align="center")
-add("rounded=0;fillColor=#f5f7fb;strokeColor=none;", 508, 712, 264, 22, "")
-add("rounded=0;fillColor=#f5f7fb;strokeColor=none;", 472, 734, 336, 22, "")
-mono_text(440, 718, 400, "EXECUTES AS DIALECT-SPECIFIC SQL ↓", size=12, align="center")
-mono_text(340, 738, 600, "PUSHED DOWN TO YOUR WAREHOUSE · NOTHING TO MIGRATE", size=12, align="center")
+add("rounded=0;fillColor=#f5f7fb;strokeColor=none;", 508, 712 + OFF, 264, 22, "")
+add("rounded=0;fillColor=#f5f7fb;strokeColor=none;", 472, 734 + OFF, 336, 22, "")
+mono_text(440, 718 + OFF, 400, "EXECUTES AS DIALECT-SPECIFIC SQL ↓", size=12, align="center")
+mono_text(340, 738 + OFF, 600, "PUSHED DOWN TO YOUR WAREHOUSE · NOTHING TO MIGRATE", size=12, align="center")
 
 xml = ('<mxfile host="Claude" modified="2026-10-13" agent="drawio-reconstruction" version="24.0.0">'
        '<diagram name="JanusAI architecture" id="arch">'
        '<mxGraphModel dx="1280" dy="1000" grid="0" gridSize="10" guides="0" tooltips="0" connect="0" '
-       'arrows="1" fold="0" page="0" pageScale="1" pageWidth="1280" pageHeight="1000" math="0" shadow="0">'
+       f'arrows="1" fold="0" page="0" pageScale="1" pageWidth="1280" pageHeight="{CANVAS_H}" math="0" shadow="0">'
        '<root><mxCell id="0"/><mxCell id="1" parent="0"/>'
        + "".join(cells) +
        '</root></mxGraphModel></diagram></mxfile>')
