@@ -699,10 +699,24 @@ implementation (row limits, provenance and warnings match `run_sql`).
 | GET | `/health` | | `{"ok": true}` |
 | GET | `/models` | | models with `certified` |
 | GET | `/models/{name}` | | one model's columns and key |
-| POST | `/query` | `{"sql", "limit"?, "knowledge"?, "include_sql"?}` | rows and `provenance` |
-| POST | `/dry-plan` | `{"sql"}` | expanded SQL, no database |
+| POST | `/query` | `{"sql", "limit"?, "knowledge"?, "include_sql"?, "properties"?}` | rows and `provenance` |
+| POST | `/dry-plan` | `{"sql", "properties"?}` | expanded SQL, no database |
 
 Binding a non-loopback address requires `--token` (or `JANUS_API_TOKEN`).
+
+`properties` carries the end user's session values, such as `session_customer`,
+so row-level access rules apply per request. Only the holder of the bearer token
+can pass them: your backend authenticates the user, then calls the API with the
+token and the user's values. An end user never receives the token. Without a
+token (loopback only), access-rule properties are refused unless the server runs
+with `--trust-client-properties`. A value fixed with `--property` cannot be
+overridden. Example:
+
+```bash
+curl -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d '{"sql": "SELECT id FROM customers", "properties": {"session_customer": 7}}' \
+  http://127.0.0.1:8090/query
+```
 Requests without a matching `Authorization: Bearer <token>` get `401`. Bad
 input gets `400`, and a query the engine rejects gets `422`.
 

@@ -327,7 +327,7 @@ def serve_api(
 
     from janus.api_server import run_api  # noqa: PLC0415
     from janus.cli import _build_engine  # noqa: PLC0415
-    from janus.mcp_server import ServeContext  # noqa: PLC0415
+    from janus.mcp_server import ServeContext, rls_property_names  # noqa: PLC0415
 
     project_path = resolve_project_path(str(project) if project else None)
     mdl_path = _require_mdl_file(project_path)
@@ -345,6 +345,9 @@ def serve_api(
         engine=engine,
         allow_write=False,
         no_connect=no_connect,
+        protected_properties=rls_property_names(
+            json.loads(mdl_path.read_text(encoding="utf-8"))
+        ),
     )
     try:
         run_api(ctx, host=host, port=port, token=token or None)
