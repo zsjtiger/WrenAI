@@ -33,5 +33,7 @@ model["row_level_access_controls"] = [
         "condition": "customer_id = @session_customer OR @session_level >= 3",
     }
 ]
-path.write_text(yaml.safe_dump(model, sort_keys=False, allow_unicode=True), encoding="utf-8")
+path.write_text(
+    yaml.safe_dump(model, sort_keys=False, allow_unicode=True), encoding="utf-8"
+)
 print(f"added access rules to {path}")

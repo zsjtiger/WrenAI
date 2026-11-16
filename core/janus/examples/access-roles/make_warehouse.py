@@ -1,6 +1,6 @@
 """Create the demo warehouse: a DuckDB file with customers and orders.
 
-    python make_warehouse.py <path/to/warehouse.duckdb>
+python make_warehouse.py <path/to/warehouse.duckdb>
 """
 
 import sys
@@ -14,7 +14,9 @@ if target.exists():
     target.unlink()
 
 con = duckdb.connect(str(target))
-con.execute("CREATE TABLE customers (customer_id INTEGER PRIMARY KEY, name VARCHAR, region VARCHAR)")
+con.execute(
+    "CREATE TABLE customers (customer_id INTEGER PRIMARY KEY, name VARCHAR, region VARCHAR)"
+)
 con.execute(
     """
     INSERT INTO customers VALUES
