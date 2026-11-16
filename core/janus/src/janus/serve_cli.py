@@ -45,7 +45,11 @@ def _mdl_is_stale(project: Path, mdl_path: Path) -> bool:
 
 
 def _serve_args(
-    project: Path, profile: str | None, allow_write: bool, no_connect: bool
+    project: Path,
+    profile: str | None,
+    allow_write: bool,
+    no_connect: bool,
+    properties: list[str] | None = None,
 ) -> list[str]:
     """Reconstruct the stdio `serve mcp` args for a client config."""
     args = ["serve", "mcp", "--project", str(project)]
@@ -55,7 +59,21 @@ def _serve_args(
         args.append("--allow-write")
     if no_connect:
         args.append("--no-connect")
+    for item in properties or []:
+        args += ["--property", item]
     return args
+
+
+def _parse_properties(items: list[str] | None) -> dict[str, str]:
+    """Turn repeated ``--property name=value`` options into a dict."""
+    out: dict[str, str] = {}
+    for item in items or []:
+        name, sep, value = item.partition("=")
+        name = name.strip()
+        if not sep or not name:
+            raise typer.BadParameter(f"expected name=value, got {item!r}")
+        out[name] = value
+    return out
 
 
 def _print_connection_help(
@@ -67,6 +85,7 @@ def _print_connection_help(
     profile: str | None,
     allow_write: bool,
     no_connect: bool,
+    properties: list[str] | None = None,
 ) -> None:
     """Print client-registration guidance.
 
@@ -98,7 +117,7 @@ def _print_connection_help(
         echo("")
         echo(" Press Ctrl+C to stop.")
     else:
-        args = _serve_args(project, profile, allow_write, no_connect)
+        args = _serve_args(project, profile, allow_write, no_connect, properties)
         # Shell-quote every token so paths with spaces stay copy-pasteable.
         cmd = " ".join(shlex.quote(t) for t in [janus_cmd, *args])
         env_flag = (
@@ -161,6 +180,16 @@ def serve_mcp(
             help="Suppress the client-registration help banner.",
         ),
     ] = False,
+    property_: Annotated[
+        Optional[list[str]],
+        typer.Option(
+            "--property",
+            help=(
+                "Session property the server sets for every call, as name=value. "
+                "Repeatable. Access-rule properties must be set here, not by clients."
+            ),
+        ),
+    ] = None,
 ) -> None:
     """Serve janus's query + context/knowledge tools as an MCP server.
 
@@ -175,6 +204,7 @@ def serve_mcp(
 
     project_path = resolve_project_path(str(project) if project else None)
     mdl_path = _require_mdl_file(project_path)
+    fixed = _parse_properties(property_)
 
     if _mdl_is_stale(project_path, mdl_path):
         logger.warning(
@@ -188,13 +218,20 @@ def serve_mcp(
     )
     atexit.register(lambda: engine.close() if hasattr(engine, "close") else None)
 
-    from janus.mcp_server import ServeContext, run_server  # noqa: PLC0415
+    from janus.mcp_server import (  # noqa: PLC0415
+        ServeContext,
+        rls_property_names,
+        run_server,
+    )
 
+    mdl_json = json.loads(mdl_path.read_text(encoding="utf-8"))
     ctx = ServeContext(
         project=project_path,
         engine=engine,
         allow_write=allow_write,
         no_connect=no_connect,
+        fixed_properties=fixed,
+        protected_properties=rls_property_names(mdl_json),
     )
     if not quiet:
         _print_connection_help(
@@ -205,6 +242,7 @@ def serve_mcp(
             profile=profile,
             allow_write=allow_write,
             no_connect=no_connect,
+            properties=property_,
         )
     run_server(ctx, transport=transport, host=host, port=port)
 

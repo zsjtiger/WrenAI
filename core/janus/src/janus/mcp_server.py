@@ -11,7 +11,7 @@ from __future__ import annotations
 import json
 import math
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import date, datetime, time
 from decimal import Decimal
 from pathlib import Path
@@ -36,6 +36,67 @@ class ServeContext:
     engine: Any  # janus.engine.JanusEngine
     allow_write: bool
     no_connect: bool
+    # Session properties the server sets for every call (``--property name=value``).
+    fixed_properties: dict[str, Any] = field(default_factory=dict)
+    # Properties that row-level access rules require. Only the server may set them.
+    protected_properties: frozenset[str] = frozenset()
+
+
+_PROPERTY_NAME = re.compile(r"[A-Za-z_][A-Za-z0-9_]*")
+
+
+def rls_property_names(mdl: dict) -> frozenset[str]:
+    """Names of the session properties that row-level access rules require.
+
+    Reads the camelCase MDL JSON (``target/mdl.json``).
+    """
+    names: set[str] = set()
+    for model in mdl.get("models") or []:
+        for rule in model.get("rowLevelAccessControls") or []:
+            for prop in rule.get("requiredProperties") or []:
+                if prop.get("name"):
+                    names.add(str(prop["name"]))
+    return frozenset(names)
+
+
+def to_sql_literal(value: Any) -> str:
+    """A session property value as the SQL literal the engine expects.
+
+    Strings are quoted with embedded quotes doubled, so ``O'Brien`` becomes
+    ``'O''Brien'``. The engine rejects a bare word such as ``APAC``.
+    """
+    if isinstance(value, bool):
+        return "TRUE" if value else "FALSE"
+    if isinstance(value, int):
+        return str(value)
+    if isinstance(value, float):
+        if not math.isfinite(value):
+            raise ValueError("property values must be finite numbers")
+        return repr(value)
+    if isinstance(value, str):
+        return "'" + value.replace("'", "''") + "'"
+    raise ValueError(f"unsupported property value type: {type(value).__name__}")
+
+
+def merge_properties(ctx: ServeContext, client: dict | None) -> dict[str, str] | None:
+    """Session properties for one call: the client's filters plus the server's fixed values.
+
+    A client may pass only plain filter properties. A name the server fixes, or
+    one a row-level access rule requires, is refused, so a client cannot choose
+    its own access scope.
+    """
+    merged: dict[str, str] = {}
+    for name, value in (client or {}).items():
+        if not _PROPERTY_NAME.fullmatch(str(name)):
+            raise ValueError(f"invalid property name: {name!r}")
+        if name in ctx.protected_properties or name in ctx.fixed_properties:
+            raise ValueError(
+                f"property {name!r} is set by the server and cannot be passed by the client"
+            )
+        merged[name] = to_sql_literal(value)
+    for name, value in ctx.fixed_properties.items():
+        merged[name] = to_sql_literal(value)
+    return merged or None
 
 
 def _memory_path(ctx: ServeContext) -> str:
@@ -137,18 +198,22 @@ def _query_with_limit_probe(
     *,
     knowledge: list[str] | None = None,
     include_sql: bool = False,
+    properties: dict[str, str] | None = None,
 ) -> dict:
     """Run arbitrary SQL with a connector-applied N+1 truncation probe.
 
     The connector owns dialect-specific row limiting for opaque user SQL. The
     requested limit is capped at ``MAX_ROW_LIMIT`` before the probe is applied.
+    ``properties`` are already merged SQL literals (see ``merge_properties``).
     """
     if limit is not None and limit < 0:
         raise ValueError(f"run_sql limit must be non-negative, got {limit}.")
     refs = _knowledge_refs(ctx, knowledge)
     effective_limit = DEFAULT_ROW_LIMIT if limit is None else limit
     effective_limit = min(effective_limit, MAX_ROW_LIMIT)
-    table, models, expanded = ctx.engine.query_with_provenance(sql, effective_limit + 1)
+    table, models, expanded = ctx.engine.query_with_provenance(
+        sql, effective_limit + 1, properties
+    )
     truncated = table.num_rows > effective_limit
     if truncated:
         table = table.slice(0, effective_limit)
@@ -209,6 +274,7 @@ def _register_query_tools(mcp: FastMCP, ctx: ServeContext) -> None:
             limit: int | None = None,
             knowledge: list[str] | None = None,
             include_sql: bool = False,
+            properties: dict[str, Any] | None = None,
         ) -> dict:
             """Execute a SQL query through the Janus semantic layer and return rows.
 
@@ -217,6 +283,10 @@ def _register_query_tools(mcp: FastMCP, ctx: ServeContext) -> None:
             a hard maximum of 10000 rows regardless of the requested limit.
             Negative limits are rejected.
 
+            ``properties`` passes filter values, e.g. ``{"region": "APAC"}``,
+            that the model's rules can read. Strings are quoted for you. Names
+            the server fixes or access rules require are refused here.
+
             The result carries ``provenance``: the models the query used, their
             certification (``certified``), and the ``knowledge`` files passed in
             (paths under ``knowledge/``, e.g. from ``recall_queries``). Set
@@ -224,19 +294,25 @@ def _register_query_tools(mcp: FastMCP, ctx: ServeContext) -> None:
             not certified add a ``warnings`` entry.
             """
             return _query_with_limit_probe(
-                ctx, sql, limit, knowledge=knowledge, include_sql=include_sql
+                ctx,
+                sql,
+                limit,
+                knowledge=knowledge,
+                include_sql=include_sql,
+                properties=merge_properties(ctx, properties),
             )
 
         @mcp.tool(
             annotations=ToolAnnotations(title="Dry Run SQL", readOnlyHint=True),
         )
-        def dry_run(sql: str) -> dict:
+        def dry_run(sql: str, properties: dict[str, Any] | None = None) -> dict:
             """Validate SQL against the connected data source without returning rows.
 
             Cheap way to check a query is valid before calling ``run_sql``.
-            Raises on failure with the engine's error message.
+            Raises on failure with the engine's error message. Takes the same
+            ``properties`` as ``run_sql``.
             """
-            ctx.engine.dry_run(sql)
+            ctx.engine.dry_run(sql, merge_properties(ctx, properties))
             return {"ok": True}
 
         @mcp.tool(
@@ -311,12 +387,13 @@ def _register_query_tools(mcp: FastMCP, ctx: ServeContext) -> None:
     @mcp.tool(
         annotations=ToolAnnotations(title="Dry Plan SQL", readOnlyHint=True),
     )
-    def dry_plan(sql: str) -> str:
+    def dry_plan(sql: str, properties: dict[str, Any] | None = None) -> str:
         """Expand SQL through the MDL semantic layer and return the target-dialect SQL.
 
-        No database connection is used — this only shows what would run.
+        No database connection is used — this only shows what would run. Takes
+        the same ``properties`` as ``run_sql``.
         """
-        return ctx.engine.dry_plan(sql)
+        return ctx.engine.dry_plan(sql, merge_properties(ctx, properties))
 
 
 _SAFE_MODEL_NAME = re.compile(r"[A-Za-z0-9_]+")
