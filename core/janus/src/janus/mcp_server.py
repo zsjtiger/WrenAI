@@ -8,11 +8,10 @@ has already verified the ``mcp`` extra is installed (see ``serve_cli.py``).
 
 from __future__ import annotations
 
-import hmac
 import json
 import math
 import re
-from dataclasses import dataclass, field, replace
+from dataclasses import dataclass, field
 from datetime import date, datetime, time
 from decimal import Decimal
 from pathlib import Path
@@ -996,72 +995,22 @@ def build_server(ctx: ServeContext) -> FastMCP:
     return mcp
 
 
-def bearer_guard(app: Any, token: str) -> Any:
-    """ASGI wrapper: HTTP requests must present ``Authorization: Bearer <token>``.
-
-    Lifespan events pass through so the MCP session manager still starts.
-    The comparison is constant-time, and the token is never logged.
-    """
-    expected = f"Bearer {token}".encode()
-
-    async def guarded(scope: Any, receive: Any, send: Any) -> None:
-        if scope["type"] != "http":
-            await app(scope, receive, send)
-            return
-        headers = dict(scope.get("headers") or [])
-        if not hmac.compare_digest(headers.get(b"authorization", b""), expected):
-            body = b'{"error": "missing or invalid bearer token"}'
-            await send(
-                {
-                    "type": "http.response.start",
-                    "status": 401,
-                    "headers": [
-                        (b"content-type", b"application/json"),
-                        (b"content-length", str(len(body)).encode()),
-                    ],
-                }
-            )
-            await send({"type": "http.response.body", "body": body})
-            return
-        await app(scope, receive, send)
-
-    return guarded
-
-
-def prepare_http_context(ctx: ServeContext, token: str | None) -> ServeContext:
-    """The context an HTTP server uses for every request.
-
-    A request that presents the bearer token is the trusted service that
-    asserts identity, so it may pass access-rule properties. With no token
-    (loopback only), the operator's ``--trust-client-properties`` decides.
-    """
-    return replace(
-        ctx, trust_client_properties=ctx.trust_client_properties or token is not None
-    )
-
-
 def run_server(
     ctx: ServeContext,
     *,
     transport: str = "stdio",
     host: str = "127.0.0.1",
     port: int = 8080,
-    token: str | None = None,
 ) -> None:
     """Build the FastMCP server and run it on the given transport."""
-    if transport == "http":
-        ctx = prepare_http_context(ctx, token)
     mcp = build_server(ctx)
 
     if transport == "stdio":
         mcp.run(transport="stdio")
     elif transport == "http":
-        import uvicorn  # noqa: PLC0415
-
-        app = mcp.streamable_http_app()
-        if token is not None:
-            app = bearer_guard(app, token)
+        mcp.settings.host = host
+        mcp.settings.port = port
         logger.info(f"Serving janus MCP over streamable-http at {host}:{port}")
-        uvicorn.run(app, host=host, port=port, log_level="info")
+        mcp.run(transport="streamable-http")
     else:
         raise ValueError(f"Unsupported transport '{transport}'.")

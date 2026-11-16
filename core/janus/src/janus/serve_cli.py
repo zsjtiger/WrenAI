@@ -217,16 +217,6 @@ def serve_mcp(
             ),
         ),
     ] = False,
-    token: Annotated[
-        Optional[str],
-        typer.Option(
-            "--token",
-            help=(
-                "Bearer token required on every HTTP request (env: JANUS_MCP_TOKEN). "
-                "Required when --transport http binds a non-loopback address."
-            ),
-        ),
-    ] = None,
     property_: Annotated[
         Optional[list[str]],
         typer.Option(
@@ -293,18 +283,7 @@ def serve_mcp(
             properties=property_,
             trust_client_properties=trust_client_properties,
         )
-    if transport == "http":
-        from janus.api_server import is_loopback  # noqa: PLC0415
-
-        token = token or os.environ.get("JANUS_MCP_TOKEN") or None
-        if not is_loopback(host) and not token:
-            typer.echo(
-                "Error: refusing to bind a non-loopback address without a token; "
-                "pass --token or set JANUS_MCP_TOKEN",
-                err=True,
-            )
-            raise typer.Exit(2)
-    run_server(ctx, transport=transport, host=host, port=port, token=token)
+    run_server(ctx, transport=transport, host=host, port=port)
 
 
 @serve_app.command("api")
