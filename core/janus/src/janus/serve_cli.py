@@ -51,6 +51,7 @@ def _serve_args(
     allow_write: bool,
     no_connect: bool,
     properties: list[str] | None = None,
+    trust_client_properties: bool = False,
 ) -> list[str]:
     """Reconstruct the stdio `serve mcp` args for a client config."""
     args = ["serve", "mcp", "--project", str(project)]
@@ -62,6 +63,8 @@ def _serve_args(
         args.append("--no-connect")
     for item in properties or []:
         args += ["--property", item]
+    if trust_client_properties:
+        args.append("--trust-client-properties")
     return args
 
 
@@ -101,6 +104,7 @@ def _print_connection_help(
     allow_write: bool,
     no_connect: bool,
     properties: list[str] | None = None,
+    trust_client_properties: bool = False,
 ) -> None:
     """Print client-registration guidance.
 
@@ -132,7 +136,14 @@ def _print_connection_help(
         echo("")
         echo(" Press Ctrl+C to stop.")
     else:
-        args = _serve_args(project, profile, allow_write, no_connect, properties)
+        args = _serve_args(
+            project,
+            profile,
+            allow_write,
+            no_connect,
+            properties,
+            trust_client_properties,
+        )
         # Shell-quote every token so paths with spaces stay copy-pasteable.
         cmd = " ".join(shlex.quote(t) for t in [janus_cmd, *args])
         env_flag = (
@@ -195,6 +206,17 @@ def serve_mcp(
             help="Suppress the client-registration help banner.",
         ),
     ] = False,
+    trust_client_properties: Annotated[
+        bool,
+        typer.Option(
+            "--trust-client-properties",
+            help=(
+                "Let clients pass access-rule properties such as session_customer. "
+                "Only for a local server that one user owns: any client can then "
+                "choose its own access scope."
+            ),
+        ),
+    ] = False,
     property_: Annotated[
         Optional[list[str]],
         typer.Option(
@@ -247,6 +269,7 @@ def serve_mcp(
         no_connect=no_connect,
         fixed_properties=fixed,
         protected_properties=rls_property_names(mdl_json),
+        trust_client_properties=trust_client_properties,
     )
     if not quiet:
         _print_connection_help(
@@ -258,6 +281,7 @@ def serve_mcp(
             allow_write=allow_write,
             no_connect=no_connect,
             properties=property_,
+            trust_client_properties=trust_client_properties,
         )
     run_server(ctx, transport=transport, host=host, port=port)
 
