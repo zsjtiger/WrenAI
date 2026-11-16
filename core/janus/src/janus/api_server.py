@@ -9,14 +9,8 @@ Endpoints (JSON in and out):
 * ``GET  /health``            liveness
 * ``GET  /models``            models with certification
 * ``GET  /models/{name}``     one model's columns, key and certification
-* ``POST /query``             ``{"sql", "limit"?, "knowledge"?, "include_sql"?, "properties"?}``
-* ``POST /dry-plan``          ``{"sql", "properties"?}`` expanded target-dialect SQL, no database
-
-``properties`` carries the end user's session values, such as ``session_customer``,
-so access rules apply per request. A caller that presents the bearer token is the
-trusted service that asserts identity, so it may pass access-rule properties.
-Without a token (loopback only) those are refused unless the server was started
-with ``--trust-client-properties``. Server-fixed values can never be overridden.
+* ``POST /query``             ``{"sql", "limit"?, "knowledge"?, "include_sql"?}``
+* ``POST /dry-plan``          ``{"sql"}`` expanded target-dialect SQL, no database
 
 Authentication: a bearer token is required whenever the server is not bound to
 a loopback address. Compare with ``hmac.compare_digest``; the token is never
@@ -28,8 +22,6 @@ from __future__ import annotations
 import hmac
 import ipaddress
 from collections.abc import Awaitable, Callable
-from dataclasses import replace
-from functools import partial
 from typing import Any
 
 from starlette.applications import Starlette
@@ -38,7 +30,7 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 from starlette.routing import Route
 
-from janus.mcp_server import ServeContext, _query_with_limit_probe, merge_properties
+from janus.mcp_server import ServeContext, _query_with_limit_probe
 from janus.model.error import JanusError
 
 
@@ -92,11 +84,6 @@ def _model_payload(ctx: ServeContext, name: str) -> dict[str, Any] | None:
 
 def build_app(ctx: ServeContext, *, token: str | None) -> Starlette:
     """Build the Starlette application. ``token=None`` disables authentication."""
-    # Only the token holder asserts identity. With no token, trust only if the
-    # operator opted in with --trust-client-properties.
-    ctx = replace(
-        ctx, trust_client_properties=ctx.trust_client_properties or token is not None
-    )
 
     def guarded(handler: Callable[[Request], Awaitable[Response]]):
         async def wrapper(request: Request) -> Response:
@@ -130,15 +117,12 @@ def build_app(ctx: ServeContext, *, token: str | None) -> Starlette:
             return _error(400, "'sql' must be a non-empty string")
         try:
             result = await run_in_threadpool(
-                partial(
-                    _query_with_limit_probe,
-                    ctx,
-                    sql,
-                    body.get("limit"),
-                    knowledge=body.get("knowledge"),
-                    include_sql=bool(body.get("include_sql", False)),
-                    properties=_properties(ctx, body),
-                )
+                _query_with_limit_probe,
+                ctx,
+                sql,
+                body.get("limit"),
+                knowledge=body.get("knowledge"),
+                include_sql=bool(body.get("include_sql", False)),
             )
         except ValueError as exc:
             return _error(400, str(exc))
@@ -152,10 +136,7 @@ def build_app(ctx: ServeContext, *, token: str | None) -> Starlette:
         if not isinstance(sql, str) or not sql.strip():
             return _error(400, "'sql' must be a non-empty string")
         try:
-            props = _properties(ctx, body)
-            planned = await run_in_threadpool(ctx.engine.dry_plan, sql, props)
-        except ValueError as exc:
-            return _error(400, str(exc))
+            planned = await run_in_threadpool(ctx.engine.dry_plan, sql)
         except JanusError as exc:
             return _error(422, str(exc))
         return JSONResponse({"sql": planned})
@@ -170,16 +151,6 @@ def build_app(ctx: ServeContext, *, token: str | None) -> Starlette:
     app = Starlette(routes=routes)
     app.state.janus = ctx
     return app
-
-
-def _properties(ctx: ServeContext, body: dict[str, Any]) -> dict[str, str] | None:
-    """The request's session properties, checked and turned into SQL literals."""
-    raw = body.get("properties")
-    if raw is None:
-        return None
-    if not isinstance(raw, dict):
-        raise ValueError("'properties' must be an object")
-    return merge_properties(ctx, raw)
 
 
 async def _json_body(request: Request) -> dict[str, Any]:
