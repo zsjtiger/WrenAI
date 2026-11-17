@@ -4,7 +4,7 @@
 
 ## 一、架构：一条从提问到数据的受控路径
 
-![Janus 架构](../../assets/janus-ai-flow.zh-CN.png)
+![Janus 架构](./janus-flow.zh-CN.png)
 
 智能体提出问题，Janus 在中间做三件事，然后才让数据库执行。
 
