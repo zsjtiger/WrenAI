@@ -84,11 +84,11 @@ class Svg:
         return head + "".join(self.parts) + "</svg>"
 
 
-def card(s: Svg, x, y, w, h, title, sub, color, *, dash=None, sw=1.2):
+def card(s: Svg, x, y, w, h, title, sub, color, *, dash=None, sw=1.2, sub_size=13):
     s.rect(x, y, w, h, stroke=color, sw=sw, dash=dash, shadow=True)
     s.dot(x + 16, y + 22, color, r=5)
     s.text(x + 30, y + 27, title, size=16, weight=700, anchor="start")
-    s.text(x + 30, y + 49, sub, size=13, fill=SUB, anchor="start")
+    s.text(x + 30, y + 49, sub, size=sub_size, fill=SUB, anchor="start")
 
 
 def build() -> str:
@@ -116,10 +116,10 @@ def build() -> str:
     s.tag(pb[0] + pb[2] / 2, top - 14, "开放上下文层", AMBER, w=170)
     s.text(pb[0] + 24, 200, "本项目的核心，全部可审阅、可版本管理", size=13, fill=SUB, anchor="start")
     pillars = [("本体（MDL）", "模型 · 关系 · 术语", BLUE), ("知识", "规则 · 枚举 · SQL 属性", GREEN),
-               ("记忆", "召回已确认的 NL→SQL", TEAL), ("受治理的执行", "认证模型 · 溯源", GREEN)]
+               ("记忆", "召回 NL→SQL", TEAL), ("受治理的执行", "认证模型 · 溯源", GREEN)]
     for i, (t, sub, c) in enumerate(pillars):
         x = pb[0] + 20 + i * 185
-        card(s, x, 220, 170, 92, t, sub, c)
+        card(s, x, 220, 170, 92, t, sub, c, sub_size=12)
 
     # the role band (policy and access decisions: purple)
     s.rect(pb[0] + 20, 340, pb[2] - 40, 200, fill="#f5f0ff", stroke=PURPLE, rx=14, sw=1.6)
