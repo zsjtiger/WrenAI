@@ -30,8 +30,8 @@ from janus.llm import LlmConfig, LlmError, complete_json, load_llm_config
 ANSWER_SYSTEM = (
     "You write one SQL SELECT for a semantic layer. Use only the model and column "
     "names you are given; write the SQL against model names, not database tables. "
-    "Reply with a JSON object {\"sql\": \"<one SELECT>\"} and nothing else. "
-    "If the question cannot be answered from these models, reply {\"sql\": null}."
+    'Reply with a JSON object {"sql": "<one SELECT>"} and nothing else. '
+    'If the question cannot be answered from these models, reply {"sql": null}.'
 )
 
 _SELECT_ONLY = re.compile(r"^\s*select\b", re.IGNORECASE)
@@ -54,12 +54,16 @@ def fetch_schema(janus_url: str, token: str | None, http: Any = requests) -> lis
     base = janus_url.rstrip("/")
     listing = http.get(f"{base}/models", headers=_headers(token), timeout=30)
     if listing.status_code != 200:
-        raise QaError(f"Janus refused the model list ({listing.status_code})", listing.status_code)
+        raise QaError(
+            f"Janus refused the model list ({listing.status_code})", listing.status_code
+        )
     models = []
     for item in listing.json().get("models", []):
         if not item.get("certified"):
             continue
-        detail = http.get(f"{base}/models/{item['name']}", headers=_headers(token), timeout=30)
+        detail = http.get(
+            f"{base}/models/{item['name']}", headers=_headers(token), timeout=30
+        )
         if detail.status_code == 200:
             models.append(detail.json())
     if not models:
@@ -71,8 +75,14 @@ def build_context(models: list[dict]) -> str:
     """The schema, as plain text for the LLM."""
     lines = []
     for model in models:
-        cols = ", ".join(f"{c['name']} {c.get('type') or ''}".rstrip() for c in model["columns"])
-        pk = f" (primary key: {model['primary_key']})" if model.get("primary_key") else ""
+        cols = ", ".join(
+            f"{c['name']} {c.get('type') or ''}".rstrip() for c in model["columns"]
+        )
+        pk = (
+            f" (primary key: {model['primary_key']})"
+            if model.get("primary_key")
+            else ""
+        )
         lines.append(f"- {model['name']}{pk}: {cols}")
     return "\n".join(lines)
 
@@ -111,7 +121,9 @@ def run_query(
     )
     body = response.json() if response.content else {}
     if response.status_code != 200:
-        raise QaError(body.get("error", "Janus refused the query"), response.status_code)
+        raise QaError(
+            body.get("error", "Janus refused the query"), response.status_code
+        )
     return body
 
 
@@ -122,12 +134,14 @@ def answer(
     token: str | None,
     llm: LlmConfig,
     http: Any = requests,
-    draft: Callable[[LlmConfig, str, str], str] = draft_sql,
+    draft: Callable[[LlmConfig, str, str], str] | None = None,
     limit: int = 100,
 ) -> dict:
     """Answer one question. Returns the SQL, the rows, and the provenance."""
     if not question or not question.strip():
         raise QaError("the question is empty", 400)
+    # Looked up at call time, so a replacement of draft_sql is picked up.
+    draft = draft or draft_sql
     models = fetch_schema(janus_url, token, http)
     sql = draft(llm, question.strip(), build_context(models))
     result = run_query(janus_url, token, sql, limit=limit, http=http)
