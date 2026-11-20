@@ -395,3 +395,10 @@ def test_audit_writes_one_json_line_per_call(tmp_path):
     lines = [json.loads(x) for x in path.read_text().splitlines()]
     assert lines[0]["sql"] == "SELECT 1" and lines[0]["token"] == "svc_shop"
     assert "sql" not in lines[1]
+
+
+def test_a_null_role_value_is_refused_not_replaced():
+    cfg = _config_obj()
+    rows = {"analyst": [{"session_level": None, "session_customer": "c_001"}]}
+    with pytest.raises(AccessConfigError, match="session_level is NULL"):
+        evaluate_roles(cfg, lambda sql: rows["analyst"])
