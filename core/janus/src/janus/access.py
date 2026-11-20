@@ -205,7 +205,10 @@ RunSql = Callable[[str], list[dict]]
 
 
 def evaluate_roles(config: AccessConfig, run_sql: RunSql) -> dict[str, dict[str, Any]]:
-    """Run each role's SQL once. Each must return exactly one row."""
+    """Run each role's SQL once. Each must return exactly one row with no NULL values.
+
+    A NULL is refused rather than replaced: a substituted value could grant access.
+    """
     values: dict[str, dict[str, Any]] = {}
     for role in config.roles.values():
         rows = run_sql(role.sql)
@@ -219,6 +222,11 @@ def evaluate_roles(config: AccessConfig, run_sql: RunSql) -> dict[str, dict[str,
                 raise AccessConfigError(
                     f"role {role.name!r}: column {col!r} is not a valid name"
                 )
+        nulls = [str(col) for col, value in row.items() if value is None]
+        if nulls:
+            raise AccessConfigError(
+                f"role {role.name!r}: {', '.join(nulls)} is NULL; give every property a value"
+            )
         missing = [o for o in role.allow_override if o not in row]
         if missing:
             raise AccessConfigError(
